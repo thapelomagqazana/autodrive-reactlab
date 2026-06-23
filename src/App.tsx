@@ -3,7 +3,7 @@
  */
 
 import { AppShell } from "./app";
-import { ControlsPanel, Header, SimulationCanvas } from "./components";
+import { ControlsPanel, DashboardPanel, Header, SimulationCanvas } from "./components";
 import {
   usePauseSimulation,
   useResetSimulation,
@@ -36,36 +36,13 @@ export function App() {
         />
       }
       dashboard={
-        <div className="arcade-panel p-5">
-          <div className="relative z-10">
-            <h2 className="arcade-accent text-lg font-black uppercase tracking-[0.2em]">
-              Simulation State
-            </h2>
-
-            <dl className="mt-4 grid gap-4">
-              <div className="arcade-metric p-4">
-                <dt className="text-sm text-violet-100/70">Status</dt>
-                <dd className="text-2xl font-black capitalize text-cyan-300">
-                  {status}
-                </dd>
-              </div>
-
-              <div className="arcade-metric p-4">
-                <dt className="text-sm text-violet-100/70">Elapsed Time</dt>
-                <dd className="text-2xl font-black text-cyan-300">
-                  {telemetry.elapsedTimeSeconds}s
-                </dd>
-              </div>
-
-              <div className="arcade-metric p-4">
-                <dt className="text-sm text-violet-100/70">FPS</dt>
-                <dd className="text-2xl font-black text-cyan-300">
-                  {telemetry.fps}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
+        <DashboardPanel
+          telemetry={{
+            simulationTime: `${telemetry.elapsedTimeSeconds}s`,
+            fps: String(telemetry.fps),
+            currentDecision: status,
+          }}
+        />
       }
     />
   );
