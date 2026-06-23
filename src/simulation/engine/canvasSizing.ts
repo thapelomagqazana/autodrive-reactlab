@@ -65,11 +65,13 @@ export function applyCanvasSize(
 ): CanvasBufferSize {
   const bufferSize = calculateCanvasBufferSize(cssSize, devicePixelRatio);
 
-  canvas.style.width = `${Math.max(0, Math.floor(cssSize.width))}px`;
-  canvas.style.height = `${Math.max(0, Math.floor(cssSize.height))}px`;
+  if (canvas.width !== bufferSize.width) {
+    canvas.width = bufferSize.width;
+  }
 
-  canvas.width = bufferSize.width;
-  canvas.height = bufferSize.height;
+  if (canvas.height !== bufferSize.height) {
+    canvas.height = bufferSize.height;
+  }
 
   return bufferSize;
 }

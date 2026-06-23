@@ -17,18 +17,21 @@
  * - No game loop.
  * - No resizing logic.
  */
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useCanvas, useCanvasResize } from "../hooks";
+import { renderBackgroundGrid } from "../simulation/engine/gridRenderer";
 
 export interface SimulationCanvasProps {
   /**
    * Accessible label used by assistive technology and tests.
    */
   label?: string;
+  isGridEnabled?: boolean;
 }
 
 export function SimulationCanvas({
   label = "AutoDrive simulation canvas",
+  isGridEnabled = true,
 }: SimulationCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   /**
@@ -37,14 +40,32 @@ export function SimulationCanvas({
    * Future canvas hooks/renderers may use this ref to access:
    * canvasRef.current?.getContext("2d")
    */
-  const { canvasRef, resizeCanvas } = useCanvas();
+  const { canvasRef, context, dimensions, resizeCanvas, initializeContext } =
+    useCanvas();
 
   useCanvasResize({
     containerRef,
     resizeCanvas,
   });
 
-  return (
+  useEffect(() => {
+    initializeContext();
+  }, [initializeContext]);
+
+  useEffect(() => {
+    if (!context || !dimensions || !isGridEnabled) {
+      return;
+    }
+
+    renderBackgroundGrid(context, {
+      width: dimensions.width,
+      height: dimensions.height,
+      spacing: 40 * dimensions.pixelRatio,
+      enabled: isGridEnabled,
+    });
+  }, [context, dimensions, isGridEnabled]);
+
+   return (
     <section className="arcade-panel min-w-0 overflow-hidden p-4">
       <div className="relative z-10">
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -59,19 +80,19 @@ export function SimulationCanvas({
           </div>
 
           <span className="arcade-badge rounded-full px-3 py-1 text-xs font-black">
-            Surface Ready
+            Grid Online
           </span>
         </div>
 
         <div
-          ref={containerRef}
-          className="relative min-h-[28rem] overflow-hidden rounded-xl border border-cyan-300/20 bg-black/45"
+            ref={containerRef}
+            className="relative h-[28rem] overflow-hidden rounded-xl border border-cyan-300/20 bg-black/45 md:h-[34rem] xl:h-[42rem]"
         >
           <canvas
             ref={canvasRef}
             aria-label={label}
             data-testid="simulation-canvas"
-            className="block h-full min-h-[28rem] w-full"
+            className="block h-full w-full"
           >
             Your browser does not support the HTML canvas element.
           </canvas>
@@ -83,7 +104,7 @@ export function SimulationCanvas({
               </p>
 
               <p className="mt-2 text-sm text-violet-100/75">
-                Roads, vehicles, sensors, and debug overlays will render here.
+                Background grid verifies the canvas rendering pipeline.
               </p>
             </div>
           </div>
