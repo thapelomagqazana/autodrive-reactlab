@@ -14,3 +14,6 @@ export type { ToggleButtonProps } from "./ToggleButton";
 
 export { Header } from "./Header";
 export type { HeaderProps } from "./Header";
+
+export { SimulationCanvas } from "./SimulationCanvas";
+export type { SimulationCanvasProps } from "./SimulationCanvas";

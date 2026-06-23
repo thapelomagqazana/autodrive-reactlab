@@ -11,7 +11,7 @@ describe("Header", () => {
     render(<Header />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "AutoDrive ReactLab" }),
+      screen.getByRole("heading", { level: 1, name: "AutoDrive Lab" }),
     ).toBeInTheDocument();
   });
 

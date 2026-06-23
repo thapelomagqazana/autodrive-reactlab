@@ -3,7 +3,7 @@
  */
 
 import { AppShell } from "./app";
-import { Header } from "./components";
+import { Header, SimulationCanvas } from "./components";
 import {
   usePauseSimulation,
   useResetSimulation,
@@ -25,18 +25,7 @@ export function App() {
   return (
     <AppShell
       header={<Header />}
-      simulation={
-        <div className="arcade-panel flex min-h-[28rem] items-center justify-center overflow-hidden">
-          <div className="relative z-10 text-center">
-            <p className="arcade-accent text-sm font-black uppercase tracking-[0.3em]">
-              Canvas Port
-            </p>
-            <p className="mt-3 text-sm text-violet-100/75">
-              Simulation canvas area
-            </p>
-          </div>
-        </div>
-      }
+      simulation={<SimulationCanvas />}
       controls={
         <div className="arcade-panel p-5">
           <div className="relative z-10">
