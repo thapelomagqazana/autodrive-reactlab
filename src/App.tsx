@@ -1,122 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+/**
+ * Root application component for AutoDrive ReactLab.
+ *
+ * Purpose in WBS 0.2.1:
+ * - Prove Tailwind CSS utilities render correctly.
+ * - Provide a temporary professional project landing surface.
+ * - Avoid deep simulation logic before the architecture phases are complete.
+ *
+ * This component is intentionally simple. Future phases will replace this
+ * temporary layout with AppShell, SimulationCanvas, ControlsPanel, and
+ * DashboardPanel components.
+ */
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <main className="min-h-screen px-6 py-8 text-slate-100">
+      <section className="mx-auto flex max-w-6xl flex-col gap-6">
+        <header className="rounded-2xl border border-slate-700/80 bg-slate-900/70 p-6 shadow-2xl shadow-sky-950/30 backdrop-blur">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-300">
+            AutoDrive ReactLab
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-white md:text-5xl">
+            React-Based Self-Driving Car Simulation
+          </h1>
+
+          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
+            Tailwind CSS is configured and ready for the simulator layout,
+            dashboard panels, controls, canvas shell, and responsive engineering UI.
+          </p>
+        </header>
+
+        <section className="grid gap-4 md:grid-cols-3">
+          <article className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+            <h2 className="text-lg font-semibold text-white">Styling</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Utility classes are rendering correctly.
+            </p>
+          </article>
+
+          <article className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+            <h2 className="text-lg font-semibold text-white">Build</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Tailwind is integrated through Vite.
+            </p>
+          </article>
+
+          <article className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+            <h2 className="text-lg font-semibold text-white">Future UI</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Ready for dashboard, controls, and canvas components.
+            </p>
+          </article>
+        </section>
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    </main>
+  );
 }
 
-export default App
+export default App;
