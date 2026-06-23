@@ -17,3 +17,6 @@ export type { HeaderProps } from "./Header";
 
 export { SimulationCanvas } from "./SimulationCanvas";
 export type { SimulationCanvasProps } from "./SimulationCanvas";
+
+export { ControlsPanel } from "./ControlsPanel";
+export type { ControlsPanelProps } from "./ControlsPanel";

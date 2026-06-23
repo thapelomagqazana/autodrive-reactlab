@@ -3,11 +3,10 @@
  */
 
 import { AppShell } from "./app";
-import { Header, SimulationCanvas } from "./components";
+import { ControlsPanel, Header, SimulationCanvas } from "./components";
 import {
   usePauseSimulation,
   useResetSimulation,
-  useSetFps,
   useSimulationStatus,
   useSimulationTelemetry,
   useStartSimulation,
@@ -20,54 +19,21 @@ export function App() {
   const startSimulation = useStartSimulation();
   const pauseSimulation = usePauseSimulation();
   const resetSimulation = useResetSimulation();
-  const setFps = useSetFps();
 
   return (
     <AppShell
       header={<Header />}
       simulation={<SimulationCanvas />}
       controls={
-        <div className="arcade-panel p-5">
-          <div className="relative z-10">
-            <h2 className="arcade-accent text-lg font-black uppercase tracking-[0.2em]">
-              Controls
-            </h2>
-
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                className="arcade-button rounded-lg px-4 py-2 font-black"
-                type="button"
-                onClick={startSimulation}
-              >
-                Start
-              </button>
-
-              <button
-                className="arcade-button rounded-lg px-4 py-2 font-black"
-                type="button"
-                onClick={pauseSimulation}
-              >
-                Pause
-              </button>
-
-              <button
-                className="arcade-button rounded-lg px-4 py-2 font-black"
-                type="button"
-                onClick={resetSimulation}
-              >
-                Reset
-              </button>
-
-              <button
-                className="rounded-lg border border-cyan-300/30 px-4 py-2 font-black text-cyan-200 hover:bg-cyan-300/10"
-                type="button"
-                onClick={() => setFps(60)}
-              >
-                Set FPS 60
-              </button>
-            </div>
-          </div>
-        </div>
+        <ControlsPanel
+          onStart={startSimulation}
+          onPause={pauseSimulation}
+          onReset={resetSimulation}
+          onToggleSensors={() => undefined}
+          onToggleDebugMode={() => undefined}
+          onSelectScenario={() => undefined}
+          selectedScenarioLabel="Foundation preview"
+        />
       }
       dashboard={
         <div className="arcade-panel p-5">
