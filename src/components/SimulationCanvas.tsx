@@ -17,7 +17,7 @@
  * - No game loop.
  * - No resizing logic.
  */
-
+import { useEffect, useRef } from "react";
 import { useCanvas } from "../hooks";
 
 export interface SimulationCanvasProps {
@@ -30,13 +30,29 @@ export interface SimulationCanvasProps {
 export function SimulationCanvas({
   label = "AutoDrive simulation canvas",
 }: SimulationCanvasProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   /**
    * Owned canvas reference.
    *
    * Future canvas hooks/renderers may use this ref to access:
    * canvasRef.current?.getContext("2d")
    */
-  const { canvasRef } = useCanvas();
+  const { canvasRef, resizeCanvas } = useCanvas();
+
+  useEffect(() => {
+    const container = containerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+
+    resizeCanvas({
+      width: rect.width,
+      height: rect.height,
+    });
+  }, [resizeCanvas]);
 
   return (
     <section className="arcade-panel min-w-0 overflow-hidden p-4">
@@ -57,7 +73,10 @@ export function SimulationCanvas({
           </span>
         </div>
 
-        <div className="relative min-h-[28rem] overflow-hidden rounded-xl border border-cyan-300/20 bg-black/45">
+        <div
+          ref={containerRef}
+          className="relative min-h-[28rem] overflow-hidden rounded-xl border border-cyan-300/20 bg-black/45"
+        >
           <canvas
             ref={canvasRef}
             aria-label={label}
