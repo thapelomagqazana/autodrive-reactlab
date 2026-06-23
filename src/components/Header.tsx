@@ -28,7 +28,7 @@ export interface HeaderProps {
 }
 
 export function Header({
-  title = "AutoDrive ReactLab",
+  title = "AutoDrive Lab",
   eyebrow = "Autonomous Simulation Lab",
   subtitle = "A retro arcade autonomous driving simulator with state, telemetry, controls, and future canvas-based vehicle intelligence.",
   phaseLabel = "Phase 0 · Foundation",
