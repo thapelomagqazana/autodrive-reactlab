@@ -17,8 +17,8 @@
  * - No game loop.
  * - No resizing logic.
  */
-import { useEffect, useRef } from "react";
-import { useCanvas } from "../hooks";
+import { useRef } from "react";
+import { useCanvas, useCanvasResize } from "../hooks";
 
 export interface SimulationCanvasProps {
   /**
@@ -39,20 +39,10 @@ export function SimulationCanvas({
    */
   const { canvasRef, resizeCanvas } = useCanvas();
 
-  useEffect(() => {
-    const container = containerRef.current;
-
-    if (!container) {
-      return;
-    }
-
-    const rect = container.getBoundingClientRect();
-
-    resizeCanvas({
-      width: rect.width,
-      height: rect.height,
-    });
-  }, [resizeCanvas]);
+  useCanvasResize({
+    containerRef,
+    resizeCanvas,
+  });
 
   return (
     <section className="arcade-panel min-w-0 overflow-hidden p-4">
