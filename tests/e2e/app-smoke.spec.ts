@@ -22,7 +22,7 @@ test.describe("AutoDrive ReactLab startup", () => {
     await expect(page).toHaveTitle(/AutoDrive ReactLab/i);
 
     await expect(
-      page.getByRole("heading", { name: "AutoDrive ReactLab" }),
+      page.getByRole("heading", { name: "AutoDrive Lab" }),
     ).toBeVisible();
 
     await expect(
