@@ -20,6 +20,7 @@
 import { useEffect, useRef } from "react";
 import { useCanvas, useCanvasResize } from "../hooks";
 import { renderBackgroundGrid } from "../simulation/engine/gridRenderer";
+import { beginFrame } from "../simulation/engine/frameRenderer";
 
 export interface SimulationCanvasProps {
   /**
@@ -53,19 +54,28 @@ export function SimulationCanvas({
   }, [initializeContext]);
 
   useEffect(() => {
-    if (!context || !dimensions || !isGridEnabled) {
-      return;
+    if (!context || !dimensions) {
+        return;
+    }
+
+    beginFrame(context, {
+        width: dimensions.width,
+        height: dimensions.height,
+    });
+
+    if (!isGridEnabled) {
+        return;
     }
 
     renderBackgroundGrid(context, {
-      width: dimensions.width,
-      height: dimensions.height,
-      spacing: 40 * dimensions.pixelRatio,
-      enabled: isGridEnabled,
+        width: dimensions.width,
+        height: dimensions.height,
+        spacing: 40 * dimensions.pixelRatio,
+        enabled: isGridEnabled,
     });
-  }, [context, dimensions, isGridEnabled]);
+    }, [context, dimensions, isGridEnabled]);
 
-   return (
+  return (
     <section className="arcade-panel min-w-0 overflow-hidden p-4">
       <div className="relative z-10">
         <div className="mb-3 flex items-center justify-between gap-3">
