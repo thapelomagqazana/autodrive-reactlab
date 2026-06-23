@@ -1,17 +1,25 @@
 /**
- * Root application component for AutoDrive ReactLab.
+ * Temporary root component used to verify Tailwind and Zustand integration.
  *
- * Purpose in WBS 0.2.1:
- * - Prove Tailwind CSS utilities render correctly.
- * - Provide a temporary professional project landing surface.
- * - Avoid deep simulation logic before the architecture phases are complete.
- *
- * This component is intentionally simple. Future phases will replace this
- * temporary layout with AppShell, SimulationCanvas, ControlsPanel, and
- * DashboardPanel components.
+ * Later phases will replace this with:
+ * - AppShell
+ * - SimulationCanvas
+ * - ControlsPanel
+ * - DashboardPanel
  */
 
+import {
+  useSimulationActions,
+  useSimulationStatus,
+  useSimulationTelemetry,
+} from "./store";
+
 export function App() {
+  const status = useSimulationStatus();
+  const telemetry = useSimulationTelemetry();
+  const { startSimulation, pauseSimulation, resetSimulation, setFps } =
+    useSimulationActions();
+
   return (
     <main className="min-h-screen px-6 py-8 text-slate-100">
       <section className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -21,36 +29,74 @@ export function App() {
           </p>
 
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-white md:text-5xl">
-            React-Based Self-Driving Car Simulation
+            Zustand Store Configured
           </h1>
 
           <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
-            Tailwind CSS is configured and ready for the simulator layout,
-            dashboard panels, controls, canvas shell, and responsive engineering UI.
+            Global simulation state is now available for controls, telemetry,
+            dashboard panels, and future engine integration.
           </p>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
-            <h2 className="text-lg font-semibold text-white">Styling</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Utility classes are rendering correctly.
-            </p>
-          </article>
+        <section className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+          <h2 className="text-lg font-semibold text-white">Simulation State</h2>
 
-          <article className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
-            <h2 className="text-lg font-semibold text-white">Build</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Tailwind is integrated through Vite.
-            </p>
-          </article>
+          <dl className="mt-4 grid gap-4 md:grid-cols-3">
+            <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
+              <dt className="text-sm text-slate-400">Status</dt>
+              <dd className="mt-1 text-2xl font-bold capitalize text-sky-300">
+                {status}
+              </dd>
+            </div>
 
-          <article className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
-            <h2 className="text-lg font-semibold text-white">Future UI</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Ready for dashboard, controls, and canvas components.
-            </p>
-          </article>
+            <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
+              <dt className="text-sm text-slate-400">Elapsed Time</dt>
+              <dd className="mt-1 text-2xl font-bold text-sky-300">
+                {telemetry.elapsedTimeSeconds}s
+              </dd>
+            </div>
+
+            <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
+              <dt className="text-sm text-slate-400">FPS</dt>
+              <dd className="mt-1 text-2xl font-bold text-sky-300">
+                {telemetry.fps}
+              </dd>
+            </div>
+          </dl>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              className="rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-emerald-950 hover:bg-emerald-400"
+              type="button"
+              onClick={startSimulation}
+            >
+              Start
+            </button>
+
+            <button
+              className="rounded-lg bg-amber-400 px-4 py-2 font-semibold text-amber-950 hover:bg-amber-300"
+              type="button"
+              onClick={pauseSimulation}
+            >
+              Pause
+            </button>
+
+            <button
+              className="rounded-lg bg-rose-500 px-4 py-2 font-semibold text-white hover:bg-rose-400"
+              type="button"
+              onClick={resetSimulation}
+            >
+              Reset
+            </button>
+
+            <button
+              className="rounded-lg border border-slate-600 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-800"
+              type="button"
+              onClick={() => setFps(60)}
+            >
+              Set FPS 60
+            </button>
+          </div>
         </section>
       </section>
     </main>
