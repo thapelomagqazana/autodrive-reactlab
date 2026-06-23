@@ -1,12 +1,16 @@
+/// <reference types="vitest/config" />
+
 /**
- * Vite configuration for AutoDrive ReactLab.
+ * Vite and Vitest configuration for AutoDrive ReactLab.
  *
- * This file configures:
- * - React support through the official Vite React plugin.
- * - Tailwind CSS v4 through the official Tailwind Vite plugin.
+ * This file owns:
+ * - Vite build/dev configuration
+ * - React plugin configuration
+ * - Tailwind CSS plugin configuration
+ * - Vitest unit-test configuration
  *
- * Keeping Tailwind integration here makes the styling pipeline explicit,
- * fast, and compatible with Vite production builds.
+ * Keeping Vitest close to Vite ensures the tests use the same TypeScript,
+ * module resolution, and transformation pipeline as the application.
  */
 
 import { defineConfig } from "vite";
@@ -14,15 +18,47 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  plugins: [
-    react(),
+  plugins: [react(), tailwindcss()],
+
+  test: {
+    /**
+     * jsdom provides a browser-like DOM environment.
+     *
+     * This supports future tests for hooks and lightweight React behavior
+     * without requiring a real browser.
+     */
+    environment: "jsdom",
 
     /**
-     * Tailwind CSS v4 Vite plugin.
+     * Global test setup file.
      *
-     * This enables Tailwind utility generation during development and
-     * production builds without needing a separate PostCSS config.
+     * Keep shared mocks, custom matchers, and test cleanup here instead of
+     * duplicating setup code in every test file.
      */
-    tailwindcss(),
-  ],
+    setupFiles: ["./src/tests/setupTests.ts"],
+
+    /**
+     * Include only intentional test files.
+     */
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+
+    /**
+     * Keep test output deterministic and readable.
+     */
+    reporters: ["default"],
+
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "json"],
+      reportsDirectory: "./coverage",
+      exclude: [
+        "dist/**",
+        "coverage/**",
+        "node_modules/**",
+        "src/main.tsx",
+        "src/vite-env.d.ts",
+        "**/*.config.*",
+      ],
+    },
+  },
 });
