@@ -1,11 +1,9 @@
 /**
- * Temporary root composition for AutoDrive ReactLab.
- *
- * This wires the application through AppShell while later phases introduce
- * dedicated Header, SimulationCanvas, ControlsPanel, and DashboardPanel components.
+ * Root composition for AutoDrive ReactLab.
  */
 
 import { AppShell } from "./app";
+import { Header } from "./components";
 import {
   usePauseSimulation,
   useResetSimulation,
@@ -26,69 +24,92 @@ export function App() {
 
   return (
     <AppShell
-      header={
-        <div className="rounded-2xl border border-slate-700/80 bg-slate-900/70 p-6 shadow-2xl shadow-sky-950/30 backdrop-blur">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-300">
-            AutoDrive ReactLab
-          </p>
-
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-white md:text-5xl">
-            AutoDrive ReactLab
-          </h1>
-
-          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
-            Global simulation state is now available for controls, telemetry,
-            dashboard panels, and future engine integration.
-          </p>
-        </div>
-      }
+      header={<Header />}
       simulation={
-        <div className="flex min-h-[28rem] items-center justify-center rounded-xl border border-slate-700 bg-slate-950/70">
-          <p className="text-sm text-slate-400">Simulation canvas area</p>
+        <div className="arcade-panel flex min-h-[28rem] items-center justify-center overflow-hidden">
+          <div className="relative z-10 text-center">
+            <p className="arcade-accent text-sm font-black uppercase tracking-[0.3em]">
+              Canvas Port
+            </p>
+            <p className="mt-3 text-sm text-violet-100/75">
+              Simulation canvas area
+            </p>
+          </div>
         </div>
       }
       controls={
-        <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
-          <h2 className="text-lg font-semibold text-white">Controls</h2>
+        <div className="arcade-panel p-5">
+          <div className="relative z-10">
+            <h2 className="arcade-accent text-lg font-black uppercase tracking-[0.2em]">
+              Controls
+            </h2>
 
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button type="button" onClick={startSimulation}>
-              Start
-            </button>
-            <button type="button" onClick={pauseSimulation}>
-              Pause
-            </button>
-            <button type="button" onClick={resetSimulation}>
-              Reset
-            </button>
-            <button type="button" onClick={() => setFps(60)}>
-              Set FPS 60
-            </button>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                className="arcade-button rounded-lg px-4 py-2 font-black"
+                type="button"
+                onClick={startSimulation}
+              >
+                Start
+              </button>
+
+              <button
+                className="arcade-button rounded-lg px-4 py-2 font-black"
+                type="button"
+                onClick={pauseSimulation}
+              >
+                Pause
+              </button>
+
+              <button
+                className="arcade-button rounded-lg px-4 py-2 font-black"
+                type="button"
+                onClick={resetSimulation}
+              >
+                Reset
+              </button>
+
+              <button
+                className="rounded-lg border border-cyan-300/30 px-4 py-2 font-black text-cyan-200 hover:bg-cyan-300/10"
+                type="button"
+                onClick={() => setFps(60)}
+              >
+                Set FPS 60
+              </button>
+            </div>
           </div>
         </div>
       }
       dashboard={
-        <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
-          <h2 className="text-lg font-semibold text-white">Simulation State</h2>
+        <div className="arcade-panel p-5">
+          <div className="relative z-10">
+            <h2 className="arcade-accent text-lg font-black uppercase tracking-[0.2em]">
+              Simulation State
+            </h2>
 
-          <dl className="mt-4 grid gap-4">
-            <div>
-              <dt className="text-sm text-slate-400">Status</dt>
-              <dd className="text-2xl font-bold capitalize text-sky-300">{status}</dd>
-            </div>
+            <dl className="mt-4 grid gap-4">
+              <div className="arcade-metric p-4">
+                <dt className="text-sm text-violet-100/70">Status</dt>
+                <dd className="text-2xl font-black capitalize text-cyan-300">
+                  {status}
+                </dd>
+              </div>
 
-            <div>
-              <dt className="text-sm text-slate-400">Elapsed Time</dt>
-              <dd className="text-2xl font-bold text-sky-300">
-                {telemetry.elapsedTimeSeconds}s
-              </dd>
-            </div>
+              <div className="arcade-metric p-4">
+                <dt className="text-sm text-violet-100/70">Elapsed Time</dt>
+                <dd className="text-2xl font-black text-cyan-300">
+                  {telemetry.elapsedTimeSeconds}s
+                </dd>
+              </div>
 
-            <div>
-              <dt className="text-sm text-slate-400">FPS</dt>
-              <dd className="text-2xl font-bold text-sky-300">{telemetry.fps}</dd>
-            </div>
-          </dl>
+              <div className="arcade-metric p-4">
+                <dt className="text-sm text-violet-100/70">FPS</dt>
+                <dd className="text-2xl font-black text-cyan-300">
+                  {telemetry.fps}
+                </dd>
+              </div>
+            </dl>
+          </div>
         </div>
       }
     />
