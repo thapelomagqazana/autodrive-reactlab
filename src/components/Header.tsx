@@ -41,11 +41,11 @@ export function Header({
             {eyebrow}
           </p>
 
-          <h1 className="arcade-title mt-3 text-4xl font-black tracking-tight md:text-6xl">
+          <h1 className="arcade-title mt-3 text-6xl font-black tracking-tight md:text-7xl xl:text-8xl">
             {title}
           </h1>
 
-          <p className="mt-4 max-w-3xl text-base leading-7 text-violet-100/80">
+          <p className="mt-4 max-w-3xl text-base leading-7 text-violet-100/80 md:text-lg">
             {subtitle}
           </p>
         </div>

@@ -20,7 +20,7 @@ describe("ControlsPanel", () => {
     expect(screen.getByRole("button", { name: "Sensors: On" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Debug: Off" })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Scenario: Scenario selector pending/i }),
+      screen.getByRole("button", { name: "Foundation preview" }),
     ).toBeInTheDocument();
   });
 
@@ -52,17 +52,17 @@ describe("ControlsPanel", () => {
     const onSelectScenario = vi.fn();
 
     render(
-      <ControlsPanel
+        <ControlsPanel
         onToggleSensors={onToggleSensors}
         onToggleDebugMode={onToggleDebugMode}
         onSelectScenario={onSelectScenario}
-      />,
+        />,
     );
 
     await user.click(screen.getByRole("button", { name: "Sensors: On" }));
     await user.click(screen.getByRole("button", { name: "Debug: Off" }));
     await user.click(
-      screen.getByRole("button", { name: /Scenario: Scenario selector pending/i }),
+        screen.getByRole("button", { name: "Foundation preview" }),
     );
 
     expect(onToggleSensors).toHaveBeenCalledTimes(1);
@@ -86,13 +86,13 @@ describe("ControlsPanel", () => {
     render(<ControlsPanel isSensorsVisible={false} isDebugModeEnabled={true} />);
 
     expect(screen.getByRole("button", { name: "Sensors: Off" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
+        "aria-pressed",
+        "false",
     );
 
     expect(screen.getByRole("button", { name: "Debug: On" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+        "aria-pressed",
+        "true",
     );
   });
 });
