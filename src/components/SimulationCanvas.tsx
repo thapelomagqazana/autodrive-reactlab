@@ -18,7 +18,7 @@
  * - No resizing logic.
  */
 
-import { useRef } from "react";
+import { useCanvas } from "../hooks";
 
 export interface SimulationCanvasProps {
   /**
@@ -36,7 +36,7 @@ export function SimulationCanvas({
    * Future canvas hooks/renderers may use this ref to access:
    * canvasRef.current?.getContext("2d")
    */
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { canvasRef } = useCanvas();
 
   return (
     <section className="arcade-panel min-w-0 overflow-hidden p-4">
