@@ -1,24 +1,28 @@
 /**
  * SimulationCanvas component.
  *
- * Responsibility:
- * - Own the initial HTML canvas rendering surface.
- * - Provide a visible placeholder for future rendering work.
- * - Prepare a local canvas ref for future 2D renderer integration.
+ * Owns the primary HTML canvas rendering surface for AutoDrive ReactLab.
  *
- * Non-responsibility:
+ * Responsibilities:
+ * - Render exactly one canvas element.
+ * - Own the canvas ref.
+ * - Provide accessible canvas labeling.
+ * - Provide browser fallback text.
+ * - Prepare for future 2D context usage.
+ *
+ * Non-responsibilities:
+ * - No drawing logic.
  * - No physics.
  * - No AI.
  * - No game loop.
- * - No sensor raycasting.
- * - No collision detection.
+ * - No resizing logic.
  */
 
 import { useRef } from "react";
 
 export interface SimulationCanvasProps {
   /**
-   * Accessible label for the canvas region.
+   * Accessible label used by assistive technology and tests.
    */
   label?: string;
 }
@@ -27,9 +31,9 @@ export function SimulationCanvas({
   label = "AutoDrive simulation canvas",
 }: SimulationCanvasProps) {
   /**
-   * Local canvas reference.
+   * Owned canvas reference.
    *
-   * Future renderer work can use this ref to obtain:
+   * Future canvas hooks/renderers may use this ref to access:
    * canvasRef.current?.getContext("2d")
    */
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -42,13 +46,14 @@ export function SimulationCanvas({
             <p className="arcade-accent text-xs font-black uppercase tracking-[0.3em]">
               Canvas Port
             </p>
+
             <h2 className="mt-1 text-lg font-black text-white">
               Simulation Canvas
             </h2>
           </div>
 
           <span className="arcade-badge rounded-full px-3 py-1 text-xs font-black">
-            Placeholder
+            Surface Ready
           </span>
         </div>
 
@@ -56,8 +61,8 @@ export function SimulationCanvas({
           <canvas
             ref={canvasRef}
             aria-label={label}
-            className="h-full min-h-[28rem] w-full bg-[linear-gradient(rgba(0,234,255,0.14)_1px,transparent_1px),linear-gradient(90deg,rgba(255,43,214,0.12)_1px,transparent_1px)] bg-[size:40px_40px]"
             data-testid="simulation-canvas"
+            className="block h-full min-h-[28rem] w-full"
           >
             Your browser does not support the HTML canvas element.
           </canvas>
@@ -67,8 +72,9 @@ export function SimulationCanvas({
               <p className="arcade-accent text-sm font-black uppercase tracking-[0.25em]">
                 Render Surface Ready
               </p>
+
               <p className="mt-2 text-sm text-violet-100/75">
-                Future roads, vehicles, sensors, and debug overlays render here.
+                Roads, vehicles, sensors, and debug overlays will render here.
               </p>
             </div>
           </div>
