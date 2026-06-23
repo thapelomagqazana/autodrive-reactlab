@@ -50,3 +50,20 @@ The HTML report can be opened locally after running:
 ```bash
 npm run test:coverage
 ```
+
+## Component testing rules
+- Test behavior from the user’s perspective.
+- Prefer `getByRole`, `getByLabelText`, and visible text queries.
+- Avoid testing implementation details.
+- Avoid testing Tailwind class names unless visual class behavior is the actual contract.
+- Use `userEvent.setup()` inside each interaction test.
+- Import render from src/tests/test-utils.
+
+## Example
+```ts
+const user = userEvent.setup();
+
+render(<ToggleButton label="Sensors" isEnabled={false} onToggle={onToggle} />);
+
+await user.click(screen.getByRole("button", { name: /sensors: off/i }));
+```

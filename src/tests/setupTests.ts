@@ -1,22 +1,24 @@
 /**
- * Shared Vitest setup for AutoDrive ReactLab.
+ * Shared test setup for AutoDrive ReactLab.
  *
- * This file is executed before test files.
+ * This file is loaded before each Vitest test file.
  *
- * Keep this file small and deterministic:
- * - test-wide mocks belong here
- * - browser API polyfills belong here
- * - one-off test data does not belong here
+ * Responsibilities:
+ * - Enable jest-dom matchers for readable DOM assertions.
+ * - Clean up React trees after each test.
+ * - Keep test isolation predictable.
  */
 
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
 /**
- * Reset document body after every test.
+ * Ensures each test starts with a clean DOM.
  *
- * This prevents DOM state from leaking between tests and producing
- * false positives or flaky behavior.
+ * This prevents one component test from leaking rendered markup,
+ * event handlers, or state into another test.
  */
 afterEach(() => {
-  document.body.innerHTML = "";
+  cleanup();
 });
