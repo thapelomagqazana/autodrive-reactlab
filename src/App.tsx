@@ -9,16 +9,22 @@
  */
 
 import {
-  useSimulationActions,
+  usePauseSimulation,
+  useResetSimulation,
+  useSetFps,
   useSimulationStatus,
   useSimulationTelemetry,
+  useStartSimulation,
 } from "./store";
 
 export function App() {
   const status = useSimulationStatus();
   const telemetry = useSimulationTelemetry();
-  const { startSimulation, pauseSimulation, resetSimulation, setFps } =
-    useSimulationActions();
+
+  const startSimulation = useStartSimulation();
+  const pauseSimulation = usePauseSimulation();
+  const resetSimulation = useResetSimulation();
+  const setFps = useSetFps();
 
   return (
     <main className="min-h-screen px-6 py-8 text-slate-100">
@@ -29,7 +35,7 @@ export function App() {
           </p>
 
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-white md:text-5xl">
-            Zustand Store Configured
+            AutoDrive ReactLab
           </h1>
 
           <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">

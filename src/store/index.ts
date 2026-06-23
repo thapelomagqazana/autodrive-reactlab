@@ -6,11 +6,17 @@
  */
 
 export {
-  useSimulationActions,
+  usePauseSimulation,
+  useResetSimulation,
+  useSetElapsedTimeSeconds,
+  useSetFps,
   useSimulationStatus,
   useSimulationStore,
   useSimulationTelemetry,
   useSimulationUiPreferences,
+  useStartSimulation,
+  useToggleDebugMode,
+  useToggleSensorsVisibility,
 } from "./simulationStore";
 
 export type {
