@@ -122,6 +122,24 @@ export const DEFAULT_CAR_POSITION: Readonly<CarPosition> = Object.freeze({
 });
 
 /**
+ * Default speed for a fresh simulation.
+ *
+ * The vehicle must start stationary so Start/Pause/Reset behaviour remains
+ * deterministic and safe.
+ */
+export const DEFAULT_CAR_SPEED = 0;
+
+/**
+ * Default maximum forward speed in pixels per second.
+ */
+export const DEFAULT_CAR_MAX_SPEED = 260;
+
+/**
+ * Default maximum reverse speed magnitude in pixels per second.
+ */
+export const DEFAULT_CAR_MAX_REVERSE_SPEED = 80;
+
+/**
  * Immutable default configuration for the Phase 1 MVP car.
  *
  * Keeping these defaults centralized prevents components, tests, physics,
@@ -130,14 +148,14 @@ export const DEFAULT_CAR_POSITION: Readonly<CarPosition> = Object.freeze({
 export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
   ...DEFAULT_CAR_POSITION,
 
-  speed: 0,
+  speed: DEFAULT_CAR_SPEED,
   acceleration: 120,
 
   angle: 0,
   steeringAngle: 0,
 
-  maxSpeed: 260,
-  maxReverseSpeed: 80,
+  maxSpeed: DEFAULT_CAR_MAX_SPEED,
+  maxReverseSpeed: DEFAULT_CAR_MAX_REVERSE_SPEED,
 
   width: 36,
   height: 64,
@@ -171,6 +189,23 @@ export function isValidCanvasPositionValue(value: number): boolean {
 }
 
 /**
+ * Returns true when a speed value is safe for simulation calculations.
+ */
+export function isValidCarSpeedValue(value: number): boolean {
+  return Number.isFinite(value);
+}
+
+/**
+ * Returns true when a speed limit is safe.
+ *
+ * Speed limits must be finite and non-negative. Zero is technically valid,
+ * because tests or future scenarios may intentionally freeze movement.
+ */
+export function isValidSpeedLimit(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
+
+/**
  * Creates a safe car position object.
  *
  * This helper is useful for tests, future scenario loading, reset logic, and
@@ -189,4 +224,32 @@ export function createCarPosition(positionX: number, positionY: number): CarPosi
     positionX,
     positionY,
   };
+}
+
+/**
+ * Clamps a speed value into the allowed reverse/forward speed range.
+ *
+ * Rule:
+ * - maxSpeed controls the upper forward bound.
+ * - maxReverseSpeed controls the reverse magnitude.
+ * - final speed must satisfy: -maxReverseSpeed <= speed <= maxSpeed.
+ */
+export function clampCarSpeed(
+  speed: number,
+  maxSpeed: number,
+  maxReverseSpeed: number,
+): number {
+  if (!isValidCarSpeedValue(speed)) {
+    throw new RangeError("speed must be a finite pixels-per-second value.");
+  }
+
+  if (!isValidSpeedLimit(maxSpeed)) {
+    throw new RangeError("maxSpeed must be a finite non-negative value.");
+  }
+
+  if (!isValidSpeedLimit(maxReverseSpeed)) {
+    throw new RangeError("maxReverseSpeed must be a finite non-negative value.");
+  }
+
+  return Math.min(Math.max(speed, -maxReverseSpeed), maxSpeed);
 }

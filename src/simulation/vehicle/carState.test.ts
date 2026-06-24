@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_CAR_STATE,
+  DEFAULT_CAR_MAX_REVERSE_SPEED,
+  DEFAULT_CAR_MAX_SPEED,
+  DEFAULT_CAR_SPEED,
+  DEFAULT_CAR_POSITION,
+  clampCarSpeed,
   createCarPosition,
   createInitialCarState,
-  DEFAULT_CAR_POSITION,
+  isValidCarSpeedValue,
+  isValidSpeedLimit,
   isValidCanvasPositionValue,
 } from "./carState";
 
@@ -140,5 +146,88 @@ describe("car position fields", () => {
     expect(isValidCanvasPositionValue(-400)).toBe(true);
     expect(isValidCanvasPositionValue(Number.NaN)).toBe(false);
     expect(isValidCanvasPositionValue(Number.POSITIVE_INFINITY)).toBe(false);
+  });
+});
+
+describe("car speed field", () => {
+  it("starts with speed set to zero", () => {
+    const car = createInitialCarState();
+
+    expect(car.speed).toBe(0);
+    expect(car.speed).toBe(DEFAULT_CAR_SPEED);
+  });
+
+  it("documents forward speed using a positive value", () => {
+    expect(clampCarSpeed(120, DEFAULT_CAR_MAX_SPEED, DEFAULT_CAR_MAX_REVERSE_SPEED)).toBe(
+      120,
+    );
+  });
+
+  it("documents reverse speed using a negative value", () => {
+    expect(clampCarSpeed(-40, DEFAULT_CAR_MAX_SPEED, DEFAULT_CAR_MAX_REVERSE_SPEED)).toBe(
+      -40,
+    );
+  });
+
+  it("keeps zero speed stationary", () => {
+    expect(clampCarSpeed(0, DEFAULT_CAR_MAX_SPEED, DEFAULT_CAR_MAX_REVERSE_SPEED)).toBe(
+      0,
+    );
+  });
+
+  it("clamps forward speed to maxSpeed", () => {
+    expect(clampCarSpeed(999, 260, 80)).toBe(260);
+  });
+
+  it("clamps reverse speed to negative maxReverseSpeed", () => {
+    expect(clampCarSpeed(-999, 260, 80)).toBe(-80);
+  });
+
+  it("allows speed exactly at forward boundary", () => {
+    expect(clampCarSpeed(260, 260, 80)).toBe(260);
+  });
+
+  it("allows speed exactly at reverse boundary", () => {
+    expect(clampCarSpeed(-80, 260, 80)).toBe(-80);
+  });
+
+  it("supports zero speed limits for locked movement scenarios", () => {
+    expect(clampCarSpeed(100, 0, 0)).toBe(0);
+    expect(clampCarSpeed(-100, 0, 0)).toBe(-0);
+  });
+
+  it("validates finite speed values", () => {
+    expect(isValidCarSpeedValue(0)).toBe(true);
+    expect(isValidCarSpeedValue(120)).toBe(true);
+    expect(isValidCarSpeedValue(-40)).toBe(true);
+    expect(isValidCarSpeedValue(Number.NaN)).toBe(false);
+    expect(isValidCarSpeedValue(Number.POSITIVE_INFINITY)).toBe(false);
+    expect(isValidCarSpeedValue(Number.NEGATIVE_INFINITY)).toBe(false);
+  });
+
+  it("validates speed limits", () => {
+    expect(isValidSpeedLimit(0)).toBe(true);
+    expect(isValidSpeedLimit(80)).toBe(true);
+    expect(isValidSpeedLimit(-1)).toBe(false);
+    expect(isValidSpeedLimit(Number.NaN)).toBe(false);
+    expect(isValidSpeedLimit(Number.POSITIVE_INFINITY)).toBe(false);
+  });
+
+  it("rejects invalid speed values", () => {
+    expect(() => clampCarSpeed(Number.NaN, 260, 80)).toThrow(RangeError);
+    expect(() => clampCarSpeed(Number.POSITIVE_INFINITY, 260, 80)).toThrow(RangeError);
+    expect(() => clampCarSpeed(Number.NEGATIVE_INFINITY, 260, 80)).toThrow(RangeError);
+  });
+
+  it("rejects invalid max speed limits", () => {
+    expect(() => clampCarSpeed(10, -1, 80)).toThrow(RangeError);
+    expect(() => clampCarSpeed(10, Number.NaN, 80)).toThrow(RangeError);
+    expect(() => clampCarSpeed(10, Number.POSITIVE_INFINITY, 80)).toThrow(RangeError);
+  });
+
+  it("rejects invalid max reverse speed limits", () => {
+    expect(() => clampCarSpeed(10, 260, -1)).toThrow(RangeError);
+    expect(() => clampCarSpeed(10, 260, Number.NaN)).toThrow(RangeError);
+    expect(() => clampCarSpeed(10, 260, Number.POSITIVE_INFINITY)).toThrow(RangeError);
   });
 });
