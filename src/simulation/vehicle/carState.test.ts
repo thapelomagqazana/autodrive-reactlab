@@ -6,6 +6,8 @@ import {
   DEFAULT_CAR_MAX_SPEED,
   DEFAULT_CAR_SPEED,
   DEFAULT_CAR_POSITION,
+  DEFAULT_CAR_ANGLE,
+  TWO_PI,
   applyForwardAcceleration,
   clampCarSpeed,
   createCarPosition,
@@ -14,6 +16,11 @@ import {
   isValidSpeedLimit,
   isValidCanvasPositionValue,
   isValidAccelerationValue,
+  degreesToRadians,
+  getHeadingVector,
+  isValidHeadingAngle,
+  normalizeHeadingAngle,
+  radiansToDegrees,
 } from "./carState";
 
 describe("createInitialCarState", () => {
@@ -300,5 +307,81 @@ describe("car acceleration capability", () => {
   it("handles fractional delta time for frame-rate independent motion", () => {
     expect(applyForwardAcceleration(0, 120, 1 / 60)).toBeCloseTo(2);
     expect(applyForwardAcceleration(0, 120, 1 / 30)).toBeCloseTo(4);
+  });
+});
+
+describe("vehicle heading angle", () => {
+  it("defines default heading as 0 radians", () => {
+    const car = createInitialCarState();
+
+    expect(car.angle).toBe(DEFAULT_CAR_ANGLE);
+    expect(car.angle).toBe(0);
+  });
+
+  it("treats 0 radians as facing upward / north", () => {
+    const vector = getHeadingVector(0);
+
+    expect(vector.x).toBeCloseTo(0);
+    expect(vector.y).toBeCloseTo(-1);
+  });
+
+  it("treats positive rotation as clockwise", () => {
+    const right = getHeadingVector(Math.PI / 2);
+    const down = getHeadingVector(Math.PI);
+    const left = getHeadingVector((3 * Math.PI) / 2);
+
+    expect(right.x).toBeCloseTo(1);
+    expect(right.y).toBeCloseTo(0);
+
+    expect(down.x).toBeCloseTo(0);
+    expect(down.y).toBeCloseTo(1);
+
+    expect(left.x).toBeCloseTo(-1);
+    expect(left.y).toBeCloseTo(0);
+  });
+
+  it("validates finite heading angles", () => {
+    expect(isValidHeadingAngle(0)).toBe(true);
+    expect(isValidHeadingAngle(Math.PI)).toBe(true);
+    expect(isValidHeadingAngle(-Math.PI)).toBe(true);
+    expect(isValidHeadingAngle(TWO_PI * 10)).toBe(true);
+
+    expect(isValidHeadingAngle(Number.NaN)).toBe(false);
+    expect(isValidHeadingAngle(Number.POSITIVE_INFINITY)).toBe(false);
+    expect(isValidHeadingAngle(Number.NEGATIVE_INFINITY)).toBe(false);
+  });
+
+  it("normalizes positive angles into the range 0 inclusive to 2π exclusive", () => {
+    expect(normalizeHeadingAngle(0)).toBeCloseTo(0);
+    expect(normalizeHeadingAngle(TWO_PI)).toBeCloseTo(0);
+    expect(normalizeHeadingAngle(TWO_PI + Math.PI / 2)).toBeCloseTo(Math.PI / 2);
+  });
+
+  it("normalizes negative angles into the range 0 inclusive to 2π exclusive", () => {
+    expect(normalizeHeadingAngle(-Math.PI / 2)).toBeCloseTo((3 * Math.PI) / 2);
+    expect(normalizeHeadingAngle(-TWO_PI)).toBeCloseTo(0);
+  });
+
+  it("converts radians to degrees for display use", () => {
+    expect(radiansToDegrees(0)).toBeCloseTo(0);
+    expect(radiansToDegrees(Math.PI / 2)).toBeCloseTo(90);
+    expect(radiansToDegrees(Math.PI)).toBeCloseTo(180);
+  });
+
+  it("converts degrees to radians for tests and tooling", () => {
+    expect(degreesToRadians(0)).toBeCloseTo(0);
+    expect(degreesToRadians(90)).toBeCloseTo(Math.PI / 2);
+    expect(degreesToRadians(180)).toBeCloseTo(Math.PI);
+  });
+
+  it("rejects invalid heading angles", () => {
+    expect(() => getHeadingVector(Number.NaN)).toThrow(RangeError);
+    expect(() => normalizeHeadingAngle(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+    expect(() => radiansToDegrees(Number.NEGATIVE_INFINITY)).toThrow(RangeError);
+  });
+
+  it("rejects invalid degree values", () => {
+    expect(() => degreesToRadians(Number.NaN)).toThrow(RangeError);
+    expect(() => degreesToRadians(Number.POSITIVE_INFINITY)).toThrow(RangeError);
   });
 });

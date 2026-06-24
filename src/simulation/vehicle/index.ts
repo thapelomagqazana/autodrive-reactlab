@@ -5,21 +5,27 @@
  * stable boundary.
  */
 
-export type { CarDecision, CarPosition, CarState } from "./carState";
+export type { CarDecision, CarPosition, CarState, HeadingVector } from "./carState";
 
 export {
   DEFAULT_CAR_ACCELERATION,
+  DEFAULT_CAR_ANGLE,
   DEFAULT_CAR_MAX_REVERSE_SPEED,
   DEFAULT_CAR_MAX_SPEED,
   DEFAULT_CAR_POSITION,
   DEFAULT_CAR_SPEED,
   DEFAULT_CAR_STATE,
+  TWO_PI,
   applyForwardAcceleration,
   clampCarSpeed,
   createCarPosition,
   createInitialCarState,
+  degreesToRadians,
+  getHeadingVector,
   isValidAccelerationValue,
   isValidCanvasPositionValue,
   isValidCarSpeedValue,
   isValidSpeedLimit,
+  normalizeHeadingAngle,
+  radiansToDegrees,
 } from "./carState";
