@@ -39,16 +39,21 @@ export interface RoadLine {
 }
 
 /**
- * Canonical road model for the MVP straight-road scenario.
+ * Horizontal position and width of a road.
+ *
+ * This smaller interface makes road layout helpers reusable by future scenario
+ * systems that may only need the road's horizontal geometry.
  */
-export interface Road {
+export interface RoadHorizontalGeometry {
   /** Horizontal center of the road in pixels. */
   centerX: number;
 
-  /** Total road width in pixels. */
+  /** Total road width in pixels. Must be greater than zero. */
   width: number;
+}
 
-  /** Number of lanes on the road. */
+export interface Road extends RoadHorizontalGeometry {
+  /** Number of lanes on the road. Must be a positive integer. */
   laneCount: number;
 
   /** Top Y coordinate of the road in pixels. */
@@ -58,9 +63,12 @@ export interface Road {
   bottomY: number;
 }
 
+export const DEFAULT_ROAD_CENTER_X = 400;
+export const DEFAULT_ROAD_WIDTH = 360;
+
 export const DEFAULT_ROAD: Readonly<Road> = Object.freeze({
-  centerX: 400,
-  width: 360,
+  centerX: DEFAULT_ROAD_CENTER_X,
+  width: DEFAULT_ROAD_WIDTH,
   laneCount: 3,
   topY: -2000,
   bottomY: 900,
@@ -83,6 +91,15 @@ export function isFiniteRoadNumber(value: number): boolean {
 }
 
 /**
+ * Returns true when a road width is valid.
+ *
+ * Width must be finite and greater than zero.
+ */
+export function isValidRoadWidth(width: number): boolean {
+  return Number.isFinite(width) && width > 0;
+}
+
+/**
  * Returns true when a value is a valid positive road size.
  */
 export function isPositiveRoadSize(value: number): boolean {
@@ -97,16 +114,27 @@ export function isValidLaneCount(value: number): boolean {
 }
 
 /**
+ * Validates only the horizontal road geometry.
+ *
+ * This is useful for helpers that only require centerX and width.
+ */
+export function assertValidRoadHorizontalGeometry(
+  geometry: RoadHorizontalGeometry,
+): void {
+  if (!isFiniteRoadNumber(geometry.centerX)) {
+    throw new RangeError("road.centerX must be a finite pixel coordinate.");
+  }
+
+  if (!isValidRoadWidth(geometry.width)) {
+    throw new RangeError("road.width must be a finite positive pixel width.");
+  }
+}
+
+/**
  * Validates road model invariants.
  */
 export function assertValidRoad(road: Road): void {
-  if (!isFiniteRoadNumber(road.centerX)) {
-    throw new RangeError("road.centerX must be finite.");
-  }
-
-  if (!isPositiveRoadSize(road.width)) {
-    throw new RangeError("road.width must be a finite positive number.");
-  }
+  assertValidRoadHorizontalGeometry(road);
 
   if (!isValidLaneCount(road.laneCount)) {
     throw new RangeError("road.laneCount must be a positive integer.");
@@ -128,19 +156,32 @@ export function assertValidRoad(road: Road): void {
 /**
  * Returns the left road edge X coordinate.
  */
-export function getRoadLeftEdgeX(road: Road): number {
-  assertValidRoad(road);
+export function getRoadLeftEdgeX(geometry: RoadHorizontalGeometry): number {
+  assertValidRoadHorizontalGeometry(geometry);
 
-  return road.centerX - road.width / 2;
+  return geometry.centerX - geometry.width / 2;
 }
 
 /**
  * Returns the right road edge X coordinate.
  */
-export function getRoadRightEdgeX(road: Road): number {
-  assertValidRoad(road);
+export function getRoadRightEdgeX(geometry: RoadHorizontalGeometry): number {
+  assertValidRoadHorizontalGeometry(geometry);
 
-  return road.centerX + road.width / 2;
+  return geometry.centerX + geometry.width / 2;
+}
+
+/**
+ * Returns both horizontal road edges as derived values.
+ */
+export function getRoadHorizontalEdges(geometry: RoadHorizontalGeometry): {
+  leftEdgeX: number;
+  rightEdgeX: number;
+} {
+  return {
+    leftEdgeX: getRoadLeftEdgeX(geometry),
+    rightEdgeX: getRoadRightEdgeX(geometry),
+  };
 }
 
 /**

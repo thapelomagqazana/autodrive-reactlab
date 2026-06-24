@@ -1,17 +1,22 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_ROAD,
+  DEFAULT_ROAD_CENTER_X,
+  DEFAULT_ROAD_WIDTH,
   assertValidRoad,
+  assertValidRoadHorizontalGeometry,
   createInitialRoad,
   getLaneCenterX,
   getLaneDividerLines,
   getLaneWidth,
   getRoadBoundaryLines,
+  getRoadHorizontalEdges,
   getRoadLeftEdgeX,
   getRoadLines,
   getRoadRightEdgeX,
   isPositiveRoadSize,
   isValidLaneCount,
+  isValidRoadWidth,
 } from "./road";
 
 describe("road domain model", () => {
@@ -143,5 +148,111 @@ describe("road domain model", () => {
     expect(() => getLaneCenterX(road, -1)).toThrow(RangeError);
     expect(() => getLaneCenterX(road, road.laneCount)).toThrow(RangeError);
     expect(() => getLaneCenterX(road, 1.5)).toThrow(RangeError);
+  });
+});
+
+describe("road width and horizontal position", () => {
+  it("defines default road center and width", () => {
+    const road = createInitialRoad();
+
+    expect(road.centerX).toBe(DEFAULT_ROAD_CENTER_X);
+    expect(road.width).toBe(DEFAULT_ROAD_WIDTH);
+  });
+
+  it("measures road width in positive pixels", () => {
+    const road = createInitialRoad();
+
+    expect(road.width).toBeGreaterThan(0);
+  });
+
+  it("derives the left edge from centerX and width", () => {
+    const road = createInitialRoad();
+
+    expect(getRoadLeftEdgeX(road)).toBe(220);
+  });
+
+  it("derives the right edge from centerX and width", () => {
+    const road = createInitialRoad();
+
+    expect(getRoadRightEdgeX(road)).toBe(580);
+  });
+
+  it("derives both horizontal edges from one source of truth", () => {
+    const road = createInitialRoad();
+
+    expect(getRoadHorizontalEdges(road)).toEqual({
+      leftEdgeX: 220,
+      rightEdgeX: 580,
+    });
+  });
+
+  it("supports non-default road center and width", () => {
+    const geometry = {
+      centerX: 500,
+      width: 200,
+    };
+
+    expect(getRoadLeftEdgeX(geometry)).toBe(400);
+    expect(getRoadRightEdgeX(geometry)).toBe(600);
+  });
+
+  it("supports fractional road center and width", () => {
+    const geometry = {
+      centerX: 100.5,
+      width: 50.5,
+    };
+
+    expect(getRoadLeftEdgeX(geometry)).toBeCloseTo(75.25);
+    expect(getRoadRightEdgeX(geometry)).toBeCloseTo(125.75);
+  });
+
+  it("validates positive road width", () => {
+    expect(isValidRoadWidth(1)).toBe(true);
+    expect(isValidRoadWidth(360)).toBe(true);
+    expect(isValidRoadWidth(0.5)).toBe(true);
+
+    expect(isValidRoadWidth(0)).toBe(false);
+    expect(isValidRoadWidth(-1)).toBe(false);
+    expect(isValidRoadWidth(Number.NaN)).toBe(false);
+    expect(isValidRoadWidth(Number.POSITIVE_INFINITY)).toBe(false);
+  });
+
+  it("rejects invalid horizontal geometry", () => {
+    expect(() =>
+      assertValidRoadHorizontalGeometry({
+        centerX: Number.NaN,
+        width: 360,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      assertValidRoadHorizontalGeometry({
+        centerX: 400,
+        width: 0,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      assertValidRoadHorizontalGeometry({
+        centerX: 400,
+        width: -1,
+      }),
+    ).toThrow(RangeError);
+  });
+
+  it("rejects invalid geometry before calculating edges", () => {
+    expect(() =>
+      getRoadLeftEdgeX({
+        centerX: 400,
+        width: 0,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      getRoadRightEdgeX({
+        centerX: Number.POSITIVE_INFINITY,
+        width: 360,
+      }),
+    ).toThrow(RangeError);
   });
 });
