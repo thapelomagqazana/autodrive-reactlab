@@ -18,9 +18,7 @@ describe("Header", () => {
   it("renders the simulator subtitle", () => {
     render(<Header />);
 
-    expect(
-      screen.getByText(/retro arcade autonomous driving simulator/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/autonomous driving simulation/i)).toBeInTheDocument();
   });
 
   it("renders the phase badge", () => {
