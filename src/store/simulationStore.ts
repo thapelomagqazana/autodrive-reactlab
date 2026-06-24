@@ -23,6 +23,27 @@
 
 import { create } from "zustand";
 
+/**
+ * Represents the simulation lifecycle state.
+ *
+ * Valid states:
+ * - idle: simulation has not started or has been reset
+ * - running: simulation updates are active
+ * - paused: simulation is halted without resetting runtime state
+ *
+ * Valid transitions:
+ * - idle -> running
+ * - running -> paused
+ * - paused -> running
+ * - running -> idle
+ * - paused -> idle
+ * - idle -> idle
+ *
+ * Invalid transitions:
+ * - idle -> paused is ignored
+ * - running -> running is safe/no-op
+ * - paused -> paused is safe/no-op
+ */
 export type SimulationStatus = "idle" | "running" | "paused";
 
 export interface SimulationTelemetry {

@@ -136,4 +136,27 @@ describe("simulationStore", () => {
 
     expect(useSimulationStore.getState().status).toBe("idle");
   });
+
+  it("keeps running status unchanged when start is called while already running", () => {
+    useSimulationStore.getState().startSimulation();
+    useSimulationStore.getState().startSimulation();
+
+    expect(useSimulationStore.getState().status).toBe("running");
+  });
+
+  it("keeps paused status unchanged when pause is called while already paused", () => {
+    useSimulationStore.getState().startSimulation();
+    useSimulationStore.getState().pauseSimulation();
+    useSimulationStore.getState().pauseSimulation();
+
+    expect(useSimulationStore.getState().status).toBe("paused");
+  });
+
+  it("resets paused simulation to idle", () => {
+    useSimulationStore.getState().startSimulation();
+    useSimulationStore.getState().pauseSimulation();
+    useSimulationStore.getState().resetSimulation();
+
+    expect(useSimulationStore.getState().status).toBe("idle");
+  });
 });
