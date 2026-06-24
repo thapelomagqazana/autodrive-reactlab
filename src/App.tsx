@@ -3,38 +3,23 @@
  */
 
 import { AppShell } from "./app";
-import { ControlsPanel, DashboardPanel, Header, SimulationCanvas } from "./components";
 import {
-  usePauseSimulation,
-  useResetSimulation,
-  useSimulationStatus,
-  useSimulationTelemetry,
-  useStartSimulation,
-} from "./store";
+  ControlsPanelContainer,
+  DashboardPanel,
+  Header,
+  SimulationCanvas,
+} from "./components";
+import { useSimulationStatus, useSimulationTelemetry } from "./store";
 
 export function App() {
   const status = useSimulationStatus();
   const telemetry = useSimulationTelemetry();
 
-  const startSimulation = useStartSimulation();
-  const pauseSimulation = usePauseSimulation();
-  const resetSimulation = useResetSimulation();
-
   return (
     <AppShell
       header={<Header />}
       simulation={<SimulationCanvas />}
-      controls={
-        <ControlsPanel
-          onStart={startSimulation}
-          onPause={pauseSimulation}
-          onReset={resetSimulation}
-          onToggleSensors={() => undefined}
-          onToggleDebugMode={() => undefined}
-          onSelectScenario={() => undefined}
-          selectedScenarioLabel="Foundation preview"
-        />
-      }
+      controls={<ControlsPanelContainer />}
       dashboard={
         <DashboardPanel
           telemetry={{

@@ -19,7 +19,7 @@ export { SimulationCanvas } from "./SimulationCanvas";
 export type { SimulationCanvasProps } from "./SimulationCanvas";
 
 export { ControlsPanel } from "./ControlsPanel";
-export type { ControlsPanelProps } from "./ControlsPanel";
+export { ControlsPanelContainer } from "./ControlsPanelContainer";
 
 export { DashboardPanel } from "./DashboardPanel";
 export type { DashboardPanelProps, DashboardTelemetry } from "./DashboardPanel";
