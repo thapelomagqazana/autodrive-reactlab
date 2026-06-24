@@ -167,6 +167,12 @@ export const DEFAULT_CAR_ANGLE = 0;
  */
 export const TWO_PI = Math.PI * 2;
 
+/** Default steering angle: wheels straight. */
+export const DEFAULT_CAR_STEERING_ANGLE = 0;
+
+/** Maximum steering angle for MVP, equal to 30 degrees in radians. */
+export const DEFAULT_MAX_STEERING_ANGLE = Math.PI / 6;
+
 /**
  * Immutable default configuration for the Phase 1 MVP car.
  *
@@ -180,7 +186,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
   acceleration: DEFAULT_CAR_ACCELERATION,
 
   angle: DEFAULT_CAR_ANGLE,
-  steeringAngle: 0,
+  steeringAngle: DEFAULT_CAR_STEERING_ANGLE,
 
   maxSpeed: DEFAULT_CAR_MAX_SPEED,
   maxReverseSpeed: DEFAULT_CAR_MAX_REVERSE_SPEED,
@@ -252,6 +258,22 @@ export function isValidSpeedLimit(value: number): boolean {
  */
 export function isValidHeadingAngle(value: number): boolean {
   return Number.isFinite(value);
+}
+
+/**
+ * Returns true when a steering angle is safe for simulation use.
+ */
+export function isValidSteeringAngle(value: number): boolean {
+  return Number.isFinite(value);
+}
+
+/**
+ * Returns true when a maximum steering angle is safe.
+ *
+ * It must be finite and non-negative.
+ */
+export function isValidMaxSteeringAngle(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
 }
 
 /**
@@ -329,6 +351,53 @@ export function applyForwardAcceleration(
   }
 
   return speed + acceleration * deltaTimeSeconds;
+}
+
+/**
+ * Clamps steering angle to the configured steering range.
+ *
+ * Rule:
+ * - negative max = full left
+ * - positive max = full right
+ */
+export function clampSteeringAngle(
+  steeringAngle: number,
+  maxSteeringAngle = DEFAULT_MAX_STEERING_ANGLE,
+): number {
+  if (!isValidSteeringAngle(steeringAngle)) {
+    throw new RangeError("steeringAngle must be a finite radian value.");
+  }
+
+  if (!isValidMaxSteeringAngle(maxSteeringAngle)) {
+    throw new RangeError("maxSteeringAngle must be a finite non-negative value.");
+  }
+
+  return Math.min(Math.max(steeringAngle, -maxSteeringAngle), maxSteeringAngle);
+}
+
+/**
+ * Converts normalized steering input into a steering angle.
+ *
+ * Input convention:
+ * - -1 = full left
+ * - 0 = straight
+ * - 1 = full right
+ */
+export function steeringInputToAngle(
+  steeringInput: number,
+  maxSteeringAngle = DEFAULT_MAX_STEERING_ANGLE,
+): number {
+  if (!Number.isFinite(steeringInput)) {
+    throw new RangeError("steeringInput must be finite.");
+  }
+
+  if (!isValidMaxSteeringAngle(maxSteeringAngle)) {
+    throw new RangeError("maxSteeringAngle must be a finite non-negative value.");
+  }
+
+  const clampedInput = Math.min(Math.max(steeringInput, -1), 1);
+
+  return clampedInput * maxSteeringAngle;
 }
 
 /**
