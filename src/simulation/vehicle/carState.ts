@@ -140,6 +140,14 @@ export const DEFAULT_CAR_MAX_SPEED = 260;
 export const DEFAULT_CAR_MAX_REVERSE_SPEED = 80;
 
 /**
+ * Default acceleration in pixels per second squared.
+ *
+ * This value means the car can gain 120 px/s of speed every second while
+ * acceleration input is active, before max-speed clamping is applied.
+ */
+export const DEFAULT_CAR_ACCELERATION = 120;
+
+/**
  * Immutable default configuration for the Phase 1 MVP car.
  *
  * Keeping these defaults centralized prevents components, tests, physics,
@@ -149,7 +157,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
   ...DEFAULT_CAR_POSITION,
 
   speed: DEFAULT_CAR_SPEED,
-  acceleration: 120,
+  acceleration: DEFAULT_CAR_ACCELERATION,
 
   angle: 0,
   steeringAngle: 0,
@@ -193,6 +201,17 @@ export function isValidCanvasPositionValue(value: number): boolean {
  */
 export function isValidCarSpeedValue(value: number): boolean {
   return Number.isFinite(value);
+}
+
+/**
+ * Returns true when an acceleration value is safe for simulation calculations.
+ *
+ * Acceleration must be finite and non-negative.
+ * Zero is allowed for tests, parked states, disabled vehicles, or future
+ * scenarios where movement is intentionally locked.
+ */
+export function isValidAccelerationValue(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
 }
 
 /**
@@ -252,4 +271,32 @@ export function clampCarSpeed(
   }
 
   return Math.min(Math.max(speed, -maxReverseSpeed), maxSpeed);
+}
+
+/**
+ * Applies forward acceleration to speed in a frame-rate independent way.
+ *
+ * This helper does not update position. It only calculates speed.
+ *
+ * Formula:
+ * nextSpeed = speed + acceleration * deltaTimeSeconds
+ */
+export function applyForwardAcceleration(
+  speed: number,
+  acceleration: number,
+  deltaTimeSeconds: number,
+): number {
+  if (!isValidCarSpeedValue(speed)) {
+    throw new RangeError("speed must be a finite pixels-per-second value.");
+  }
+
+  if (!isValidAccelerationValue(acceleration)) {
+    throw new RangeError("acceleration must be a finite non-negative value.");
+  }
+
+  if (!Number.isFinite(deltaTimeSeconds) || deltaTimeSeconds < 0) {
+    throw new RangeError("deltaTimeSeconds must be a finite non-negative value.");
+  }
+
+  return speed + acceleration * deltaTimeSeconds;
 }
