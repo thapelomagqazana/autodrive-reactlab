@@ -116,4 +116,83 @@ describe("createGameLoop start", () => {
       deltaTimeSeconds: 0,
     });
   });
+
+  it("stops the loop and cancels the pending frame", () => {
+    const { scheduler } = createMockScheduler();
+    const loop = createGameLoop({ scheduler });
+
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
+    });
+
+    loop.stop();
+
+    expect(loop.isRunning()).toBe(false);
+    expect(scheduler.cancelFrame).toHaveBeenCalledWith(1);
+  });
+
+  it("allows stop before start", () => {
+    const { scheduler } = createMockScheduler();
+    const loop = createGameLoop({ scheduler });
+
+    expect(() => loop.stop()).not.toThrow();
+    expect(loop.isRunning()).toBe(false);
+    expect(scheduler.cancelFrame).not.toHaveBeenCalled();
+  });
+
+  it("allows stop to be called multiple times", () => {
+    const { scheduler } = createMockScheduler();
+    const loop = createGameLoop({ scheduler });
+
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
+    });
+
+    expect(() => {
+      loop.stop();
+      loop.stop();
+      loop.stop();
+    }).not.toThrow();
+
+    expect(scheduler.cancelFrame).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not continue after stop", () => {
+    const { scheduler, runNextFrame } = createMockScheduler();
+    const update = vi.fn();
+    const render = vi.fn();
+
+    const loop = createGameLoop({ scheduler });
+
+    loop.start({ update, render });
+    loop.stop();
+
+    runNextFrame(1000);
+
+    expect(update).not.toHaveBeenCalled();
+    expect(render).not.toHaveBeenCalled();
+    expect(scheduler.requestFrame).toHaveBeenCalledTimes(1);
+  });
+
+  it("resumes with safe first-frame delta after stop", () => {
+    const { scheduler, runNextFrame } = createMockScheduler();
+    const update = vi.fn();
+
+    const loop = createGameLoop({ scheduler });
+
+    loop.start({ update, render: vi.fn() });
+    runNextFrame(1000);
+
+    loop.stop();
+
+    loop.start({ update, render: vi.fn() });
+    runNextFrame(9000);
+
+    expect(update).toHaveBeenLastCalledWith({
+      timestampMs: 9000,
+      deltaTimeSeconds: 0,
+    });
+  });
 });

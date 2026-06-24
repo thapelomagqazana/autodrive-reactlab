@@ -1,21 +1,22 @@
 /**
  * Browser game loop module for AutoDrive ReactLab.
  *
- * This module owns loop lifecycle only.
+ * This module owns animation-loop lifecycle only.
  *
  * Responsibilities:
- * - start the browser animation loop
- * - prevent duplicate loops
- * - schedule frames with requestAnimationFrame
- * - calculate safe delta time
- * - execute update/render callbacks
+ * - Start the browser animation loop.
+ * - Stop/pause the browser animation loop.
+ * - Cancel pending animation frames.
+ * - Prevent duplicate loops.
+ * - Calculate safe delta time.
  *
  * Non-responsibilities:
- * - no React
- * - no Zustand
- * - no physics
- * - no AI
- * - no rendering details
+ * - No React.
+ * - No Zustand.
+ * - No physics.
+ * - No AI.
+ * - No rendering details.
+ * - No simulation reset.
  */
 
 export interface GameLoopTick {
@@ -113,16 +114,12 @@ export function createGameLoop(options: GameLoopOptions = {}): GameLoopControlle
       callbacks.update(tick);
       callbacks.render(tick);
 
-      scheduleNextFrame(callbacks);
+      if (running) {
+        scheduleNextFrame(callbacks);
+      }
     });
   }
 
-  /**
-   * Starts or resumes the animation loop.
-   *
-   * Calling start repeatedly while running is safe and does not create
-   * duplicate requestAnimationFrame loops.
-   */
   function start(callbacks: GameLoopCallbacks): void {
     if (running) {
       return;
@@ -133,6 +130,11 @@ export function createGameLoop(options: GameLoopOptions = {}): GameLoopControlle
     scheduleNextFrame(callbacks);
   }
 
+  /**
+   * Stops or pauses the animation loop.
+   *
+   * This does not reset simulation state. It only stops frame scheduling.
+   */
   function stop(): void {
     if (!running && frameId === null) {
       return;
