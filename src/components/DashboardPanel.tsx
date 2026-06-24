@@ -1,175 +1,217 @@
 /**
  * DashboardPanel component.
  *
- * Displays simulation telemetry with visual hierarchy:
- * - Primary metrics receive larger emphasis.
- * - Secondary metrics remain compact.
- * - Placeholder values remain visually muted.
+ * Read-only dashboard for simulation status, elapsed simulation time,
+ * sampled FPS telemetry, and optional canvas diagnostics.
  *
- * This component displays telemetry only.
- * It does not calculate simulation state.
+ * Responsibilities:
+ * - Display lifecycle status.
+ * - Display formatted simulation time.
+ * - Display sampled FPS.
+ * - Display optional canvas diagnostics.
+ *
+ * Non-responsibilities:
+ * - No store mutation.
+ * - No game loop logic.
+ * - No FPS calculation.
+ * - No canvas mutation.
  */
 
-export interface DashboardTelemetry {
-  speed: string;
-  currentDecision: string;
-  collisionCount: string;
-  sensorStatus: string;
-  simulationTime: string;
-  fps: string;
-  trafficLightState: string;
-  aiConfidence: string;
-}
+import type { SimulationStatus } from "../store";
+import type { CanvasDiagnostics } from "../types/canvasDiagnostics";
+import { formatCanvasResolution } from "../utils/formatCanvasResolution";
+import { formatElapsedTime } from "../utils/formatElapsedTime";
+import { formatFps } from "../utils/formatFps";
+import { TelemetryCard } from "./TelemetryCard";
+import { DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS } from "./vehicleTelemetryPlaceholders";
 
 export interface DashboardPanelProps {
-  telemetry?: Partial<DashboardTelemetry>;
+  status: SimulationStatus;
+  simulationTimeSeconds: number;
+  fps: number;
+  canvasDiagnostics?: CanvasDiagnostics;
 }
 
-type MetricPriority = "primary" | "secondary";
+function getStatusPresentation(status: SimulationStatus) {
+  switch (status) {
+    case "running":
+      return {
+        label: "Running",
+        dotClassName: "bg-emerald-400",
+        textClassName: "text-emerald-300",
+      };
 
-interface MetricDefinition {
-  key: keyof DashboardTelemetry;
-  label: string;
-  priority: MetricPriority;
-}
+    case "paused":
+      return {
+        label: "Paused",
+        dotClassName: "bg-amber-400",
+        textClassName: "text-amber-300",
+      };
 
-const PLACEHOLDER_TELEMETRY: DashboardTelemetry = {
-  speed: "-- km/h",
-  currentDecision: "Waiting",
-  collisionCount: "0",
-  sensorStatus: "Not connected",
-  simulationTime: "00:00.000",
-  fps: "--",
-  trafficLightState: "N/A",
-  aiConfidence: "--%",
-};
-
-const METRICS: MetricDefinition[] = [
-  { key: "speed", label: "Speed", priority: "primary" },
-  { key: "currentDecision", label: "Simulation", priority: "primary" },
-  { key: "fps", label: "FPS", priority: "primary" },
-  { key: "simulationTime", label: "Time", priority: "secondary" },
-  { key: "sensorStatus", label: "Sensors", priority: "secondary" },
-  { key: "trafficLightState", label: "Traffic Light", priority: "secondary" },
-  { key: "collisionCount", label: "Collisions", priority: "secondary" },
-  { key: "aiConfidence", label: "AI Confidence", priority: "secondary" },
-];
-
-function buildTelemetry(
-  telemetry?: Partial<DashboardTelemetry>,
-): DashboardTelemetry {
-  return {
-    ...PLACEHOLDER_TELEMETRY,
-    ...telemetry,
-  };
-}
-
-function isPlaceholderValue(value: string): boolean {
-  return value.includes("--") || value === "N/A" || value === "Not connected";
-}
-
-interface MetricCardProps {
-  label: string;
-  value: string;
-  priority: MetricPriority;
-}
-
-/**
- * MetricCard displays one label-value telemetry pair.
- *
- * Primary cards are larger because they represent the values users scan first.
- * Secondary cards are compact to reduce dashboard repetition.
- */
-function MetricCard({ label, value, priority }: MetricCardProps) {
-  const isPlaceholder = isPlaceholderValue(value);
-
-  if (priority === "primary") {
-    return (
-      <div className="arcade-metric p-4">
-        <dt className="text-xs font-black uppercase tracking-[0.22em] text-violet-100/60">
-          {label}
-        </dt>
-        <dd
-          className={
-            isPlaceholder
-              ? "mt-2 text-3xl font-black text-violet-100/55"
-              : "mt-2 text-3xl font-black text-cyan-300"
-          }
-        >
-          {value}
-        </dd>
-      </div>
-    );
+    case "idle":
+    default:
+      return {
+        label: "Idle",
+        dotClassName: "bg-slate-400",
+        textClassName: "text-slate-300",
+      };
   }
+}
 
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-t border-cyan-300/15 py-3 first:border-t-0">
-      <dt className="text-xs font-bold uppercase tracking-[0.18em] text-violet-100/55">
+    <article className="rounded-xl border border-cyan-300/20 bg-black/40 p-4">
+      <dt className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
         {label}
       </dt>
-      <dd
-        className={
-          isPlaceholder
-            ? "mt-1 text-sm font-black text-violet-100/55"
-            : "mt-1 text-sm font-black text-cyan-300"
-        }
-      >
-        {value}
-      </dd>
-    </div>
+
+      <dd className="mt-2 text-2xl font-black text-white">{value}</dd>
+    </article>
   );
 }
 
-export function DashboardPanel({ telemetry }: DashboardPanelProps) {
-  const resolvedTelemetry = buildTelemetry(telemetry);
-  const primaryMetrics = METRICS.filter((metric) => metric.priority === "primary");
-  const secondaryMetrics = METRICS.filter(
-    (metric) => metric.priority === "secondary",
-  );
+export function DashboardPanel({
+  status,
+  simulationTimeSeconds,
+  fps,
+  canvasDiagnostics,
+}: DashboardPanelProps) {
+  const statusPresentation = getStatusPresentation(status);
 
   return (
-    <section className="arcade-panel p-5" aria-labelledby="dashboard-panel-title">
+    <section aria-labelledby="dashboard-panel-title" className="arcade-panel p-5">
       <div className="relative z-10">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="arcade-accent text-xs font-black uppercase tracking-[0.25em]">
-              Telemetry Deck
-            </p>
+        <p className="arcade-accent text-xs font-black uppercase tracking-[0.25em]">
+          Telemetry Deck
+        </p>
 
-            <h2
-              id="dashboard-panel-title"
-              className="mt-1 text-lg font-black text-white"
-            >
-              Dashboard
-            </h2>
-          </div>
+        <h2 id="dashboard-panel-title" className="mt-1 text-lg font-black text-white">
+          Dashboard
+        </h2>
 
-          <span className="arcade-badge rounded-full px-3 py-1 text-xs font-black">
-            Preview
+        <div
+          aria-live="polite"
+          aria-label={`Simulation status: ${statusPresentation.label}`}
+          className="mt-4 flex items-center gap-2 rounded-xl border border-cyan-300/20 bg-black/40 px-4 py-3"
+        >
+          <span
+            aria-hidden="true"
+            className={`h-3 w-3 rounded-full ${statusPresentation.dotClassName}`}
+          />
+
+          <span className={`font-black ${statusPresentation.textClassName}`}>
+            {statusPresentation.label}
           </span>
         </div>
 
-        <dl className="mt-5 grid gap-4">
-          {primaryMetrics.map((metric) => (
-            <MetricCard
-              key={metric.key}
-              label={metric.label}
-              value={resolvedTelemetry[metric.key]}
-              priority={metric.priority}
-            />
-          ))}
+        <dl className="mt-4 grid gap-3">
+          <MetricCard
+            label="Elapsed Time"
+            value={formatElapsedTime(simulationTimeSeconds)}
+          />
+
+          <MetricCard label="FPS" value={formatFps(fps)} />
         </dl>
 
-        <dl className="mt-5 rounded-xl border border-cyan-300/15 bg-black/25 px-4">
-          {secondaryMetrics.map((metric) => (
-            <MetricCard
-              key={metric.key}
-              label={metric.label}
-              value={resolvedTelemetry[metric.key]}
-              priority={metric.priority}
+        {canvasDiagnostics ? (
+          <section aria-label="Canvas Diagnostics" className="mt-5">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-violet-100/70">
+              Canvas Diagnostics
+            </h3>
+
+            <dl className="mt-3 grid gap-2 text-sm text-violet-100/80">
+              <div className="flex justify-between gap-3">
+                <dt>Width</dt>
+                <dd>{Math.round(canvasDiagnostics.width)}px</dd>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <dt>Height</dt>
+                <dd>{Math.round(canvasDiagnostics.height)}px</dd>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <dt>DPR</dt>
+                <dd>{canvasDiagnostics.pixelRatio}</dd>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <dt>Logical</dt>
+                <dd>
+                  {formatCanvasResolution(
+                    canvasDiagnostics.width,
+                    canvasDiagnostics.height,
+                  )}
+                </dd>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <dt>Buffer</dt>
+                <dd>
+                  {formatCanvasResolution(
+                    canvasDiagnostics.bufferWidth,
+                    canvasDiagnostics.bufferHeight,
+                  )}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        ) : null}
+        <section aria-label="Vehicle Telemetry" className="mt-5">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-violet-100/70">
+                Vehicle Telemetry
+            </h3>
+
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <TelemetryCard
+                label="Vehicle Speed"
+                value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.speed}
+                isPlaceholder
             />
-          ))}
-        </dl>
+
+                <TelemetryCard
+                    label="Acceleration"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.acceleration}
+                    isPlaceholder
+                />
+
+                <TelemetryCard
+                    label="Steering Angle"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.steeringAngle}
+                    isPlaceholder
+                />
+
+                <TelemetryCard
+                    label="Heading"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.heading}
+                    isPlaceholder
+                />
+
+                <TelemetryCard
+                    label="AI Decision"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.aiDecision}
+                    isPlaceholder
+                />
+
+                <TelemetryCard
+                    label="Collision Count"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.collisionCount}
+                    isPlaceholder
+                />
+
+                <TelemetryCard
+                    label="Sensor Status"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.sensorStatus}
+                    isPlaceholder
+                />
+
+                <TelemetryCard
+                    label="Destination Status"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.destinationStatus}
+                    isPlaceholder
+                />
+            </div>
+        </section>
       </div>
     </section>
   );

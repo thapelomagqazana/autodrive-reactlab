@@ -22,4 +22,7 @@ export { ControlsPanel } from "./ControlsPanel";
 export { ControlsPanelContainer } from "./ControlsPanelContainer";
 
 export { DashboardPanel } from "./DashboardPanel";
-export type { DashboardPanelProps, DashboardTelemetry } from "./DashboardPanel";
+export { DashboardPanelContainer } from "./DashboardPanelContainer";
+
+export { TelemetryCard } from "./TelemetryCard";
+export type { TelemetryCardProps } from "./TelemetryCard";
