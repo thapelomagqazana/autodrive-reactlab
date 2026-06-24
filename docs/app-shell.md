@@ -18,14 +18,14 @@ It is responsible only for layout composition.
 
 It must **never** become responsible for:
 
-* simulation logic
-* vehicle physics
-* AI decision making
-* canvas rendering
-* sensor processing
-* telemetry calculations
-* Zustand mutations
-* networking
+- simulation logic
+- vehicle physics
+- AI decision making
+- canvas rendering
+- sensor processing
+- telemetry calculations
+- Zustand mutations
+- networking
 
 Those concerns belong to dedicated modules.
 
@@ -56,11 +56,11 @@ Child components own their own responsibilities.
 
 The AppShell owns:
 
-* page-level layout
-* responsive grid
-* semantic page regions
-* spacing
-* component composition
+- page-level layout
+- responsive grid
+- semantic page regions
+- spacing
+- component composition
 
 The AppShell does **not** own application state.
 
@@ -76,10 +76,10 @@ Displays project identity.
 
 Examples:
 
-* project title
-* project subtitle
-* release badge
-* phase indicator
+- project title
+- project subtitle
+- release badge
+- phase indicator
 
 ---
 
@@ -89,13 +89,13 @@ Contains the browser rendering surface.
 
 Initially this hosts:
 
-* SimulationCanvas
+- SimulationCanvas
 
 Future versions may contain:
 
-* overlays
-* minimap
-* debug layers
+- overlays
+- minimap
+- debug layers
 
 ---
 
@@ -105,12 +105,12 @@ Contains user interaction controls.
 
 Examples:
 
-* Start
-* Pause
-* Reset
-* Toggle Sensors
-* Toggle Debug
-* Scenario Selector
+- Start
+- Pause
+- Reset
+- Toggle Sensors
+- Toggle Debug
+- Scenario Selector
 
 ---
 
@@ -120,13 +120,13 @@ Displays runtime telemetry.
 
 Examples:
 
-* Speed
-* FPS
-* Simulation Time
-* Collision Count
-* Current AI Decision
-* Traffic Light State
-* AI Confidence
+- Speed
+- FPS
+- Simulation Time
+- Collision Count
+- Current AI Decision
+- Traffic Light State
+- AI Confidence
 
 ---
 
@@ -202,10 +202,10 @@ The AppShell should use semantic HTML.
 
 Recommended landmarks:
 
-* `<main>`
-* `<header>`
-* `<section>`
-* `<aside>`
+- `<main>`
+- `<header>`
+- `<section>`
+- `<aside>`
 
 Each region should expose an accessible label where appropriate.
 
@@ -227,20 +227,20 @@ Simulation dashboard
 
 The AppShell may import:
 
-* Header
-* SimulationCanvas
-* ControlsPanel
-* DashboardPanel
+- Header
+- SimulationCanvas
+- ControlsPanel
+- DashboardPanel
 
 The AppShell must **not** import:
 
-* simulation engine
-* physics
-* AI
-* sensors
-* collision detection
-* renderer
-* telemetry calculators
+- simulation engine
+- physics
+- AI
+- sensors
+- collision detection
+- renderer
+- telemetry calculators
 
 Keeping dependencies one-directional reduces coupling.
 
@@ -252,9 +252,9 @@ The AppShell should remain lightweight.
 
 Avoid:
 
-* unnecessary React state
-* expensive calculations
-* subscriptions to frequently changing stores
+- unnecessary React state
+- expensive calculations
+- subscriptions to frequently changing stores
 
 Only compose child components.
 
@@ -264,10 +264,10 @@ Only compose child components.
 
 Unit tests should verify:
 
-* AppShell renders
-* semantic regions exist
-* layout accepts child components
-* layout renders without runtime errors
+- AppShell renders
+- semantic regions exist
+- layout accepts child components
+- layout renders without runtime errors
 
 Tests should **not** verify simulation behavior.
 
@@ -281,15 +281,15 @@ The AppShell should remain stable even as the simulator grows.
 
 Future additions may include:
 
-* command palette
-* notifications
-* toast system
-* modal host
-* loading overlays
-* global keyboard shortcuts
-* theme provider
-* error boundary
-* suspense boundaries
+- command palette
+- notifications
+- toast system
+- modal host
+- loading overlays
+- global keyboard shortcuts
+- theme provider
+- error boundary
+- suspense boundaries
 
 These additions should remain layout infrastructure rather than simulation logic.
 
@@ -299,13 +299,13 @@ These additions should remain layout infrastructure rather than simulation logic
 
 The AppShell should always:
 
-* compose rather than calculate
-* arrange rather than simulate
-* contain no business logic
-* remain reusable
-* remain framework idiomatic
-* remain easy to test
-* remain accessible
+- compose rather than calculate
+- arrange rather than simulate
+- contain no business logic
+- remain reusable
+- remain framework idiomatic
+- remain easy to test
+- remain accessible
 
 ---
 
@@ -313,14 +313,14 @@ The AppShell should always:
 
 Avoid introducing:
 
-* physics calculations
-* AI decision trees
-* canvas drawing
-* sensor updates
-* Zustand mutations
-* API calls
-* timers
-* animation loops
+- physics calculations
+- AI decision trees
+- canvas drawing
+- sensor updates
+- Zustand mutations
+- API calls
+- timers
+- animation loops
 
 These belong to specialized modules.
 
@@ -339,21 +339,21 @@ src/
 
 # Related Components
 
-* Header
-* SimulationCanvas
-* ControlsPanel
-* DashboardPanel
+- Header
+- SimulationCanvas
+- ControlsPanel
+- DashboardPanel
 
 ---
 
 # Related WBS Items
 
-* 0.4.1 — Create AppShell Component
-* 0.4.2 — Create Header Component
-* 0.4.3 — Create SimulationCanvas Component
-* 0.4.4 — Create ControlsPanel Component
-* 0.4.5 — Create DashboardPanel Component
-* 0.4.6 — Create Responsive Layout
+- 0.4.1 — Create AppShell Component
+- 0.4.2 — Create Header Component
+- 0.4.3 — Create SimulationCanvas Component
+- 0.4.4 — Create ControlsPanel Component
+- 0.4.5 — Create DashboardPanel Component
+- 0.4.6 — Create Responsive Layout
 
 ---
 
@@ -361,13 +361,13 @@ src/
 
 The AppShell is considered complete when:
 
-* it renders the application through a single layout component
-* semantic regions are clearly defined
-* no simulation logic exists inside the component
-* responsive behavior works on desktop and tablet
-* component tests pass
-* linting passes
-* production build succeeds
+- it renders the application through a single layout component
+- semantic regions are clearly defined
+- no simulation logic exists inside the component
+- responsive behavior works on desktop and tablet
+- component tests pass
+- linting passes
+- production build succeeds
 
 ---
 

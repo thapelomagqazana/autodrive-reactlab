@@ -25,6 +25,7 @@ npm run test:coverage
 ## Test file naming
 
 Use:
+
 ```
 *.test.ts
 *.test.tsx
@@ -33,6 +34,7 @@ Use:
 ```
 
 ## Testing rules
+
 - Prefer pure functions where possible.
 - Test behavior, not implementation details.
 - Keep tests deterministic.
@@ -43,15 +45,19 @@ Use:
 ## Coverage
 
 Coverage reports are written to:
+
 ```
 coverage/
 ```
+
 The HTML report can be opened locally after running:
+
 ```bash
 npm run test:coverage
 ```
 
 ## Component testing rules
+
 - Test behavior from the user’s perspective.
 - Prefer `getByRole`, `getByLabelText`, and visible text queries.
 - Avoid testing implementation details.
@@ -60,6 +66,7 @@ npm run test:coverage
 - Import render from src/tests/test-utils.
 
 ## Example
+
 ```ts
 const user = userEvent.setup();
 

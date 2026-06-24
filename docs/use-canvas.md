@@ -24,11 +24,11 @@ It provides a reusable foundation for future rendering systems without mixing li
 
 The hook owns:
 
-* typed canvas reference
-* safe 2D context lookup
-* context readiness state
-* null-safe access
-* cleanup on component unmount
+- typed canvas reference
+- safe 2D context lookup
+- context readiness state
+- null-safe access
+- cleanup on component unmount
 
 ---
 
@@ -36,18 +36,18 @@ The hook owns:
 
 The hook must not contain:
 
-* road drawing
-* vehicle drawing
-* sensor ray rendering
-* background grid rendering
-* frame clearing
-* game-loop scheduling
-* physics simulation
-* AI decisions
-* telemetry calculations
-* scenario loading
-* resize handling
-* high-DPI scaling
+- road drawing
+- vehicle drawing
+- sensor ray rendering
+- background grid rendering
+- frame clearing
+- game-loop scheduling
+- physics simulation
+- AI decisions
+- telemetry calculations
+- scenario loading
+- resize handling
+- high-DPI scaling
 
 Those responsibilities belong to later hooks, renderer utilities, or simulation modules.
 
@@ -56,12 +56,7 @@ Those responsibilities belong to later hooks, renderer utilities, or simulation 
 # Public API
 
 ```tsx
-const {
-  canvasRef,
-  context,
-  isContextReady,
-  initializeContext,
-} = useCanvas();
+const { canvasRef, context, isContextReady, initializeContext } = useCanvas();
 ```
 
 ---
@@ -84,10 +79,10 @@ The current `CanvasRenderingContext2D`, or `null` when unavailable.
 
 Possible reasons for `null`:
 
-* canvas is not mounted yet
-* browser does not support 2D canvas context
-* test environment does not implement canvas context
-* context initialization has not completed yet
+- canvas is not mounted yet
+- browser does not support 2D canvas context
+- test environment does not implement canvas context
+- context initialization has not completed yet
 
 ---
 
@@ -96,7 +91,7 @@ Possible reasons for `null`:
 Boolean convenience value.
 
 ```tsx
-isContextReady === context !== null
+(isContextReady === context) !== null;
 ```
 
 Use this to decide whether future rendering setup can safely proceed.
@@ -110,7 +105,7 @@ A safe function that attempts to retrieve the 2D rendering context.
 It returns:
 
 ```tsx
-CanvasRenderingContext2D | null
+CanvasRenderingContext2D | null;
 ```
 
 It should never throw because the canvas ref is missing.
@@ -202,11 +197,11 @@ No renderer, animation loop, or external resource should remain active.
 
 Verify:
 
-* hook returns a ref
-* ref can attach to a canvas element
-* context initialization can be requested
-* component renders without crashing
-* unmount completes safely
+- hook returns a ref
+- ref can attach to a canvas element
+- context initialization can be requested
+- component renders without crashing
+- unmount completes safely
 
 ---
 
@@ -214,10 +209,10 @@ Verify:
 
 Verify:
 
-* hook behaves safely without an attached canvas
-* missing 2D context does not crash
-* hook does not import simulation modules
-* hook does not start animation loops
+- hook behaves safely without an attached canvas
+- missing 2D context does not crash
+- hook does not import simulation modules
+- hook does not start animation loops
 
 ---
 
@@ -225,10 +220,10 @@ Verify:
 
 Verify:
 
-* canvas ref starts as `null`
-* test environment lacks canvas context support
-* component unmounts immediately after mount
-* repeated `initializeContext` calls do not throw
+- canvas ref starts as `null`
+- test environment lacks canvas context support
+- component unmounts immediately after mount
+- repeated `initializeContext` calls do not throw
 
 ---
 
@@ -293,36 +288,36 @@ These do not belong in `useCanvas`.
 
 `useCanvas` is complete for this phase when:
 
-* `src/hooks/useCanvas.ts` exists
-* hook returns a stable `canvasRef`
-* hook attempts safe 2D context retrieval
-* hook exposes context readiness
-* hook handles missing canvas safely
-* hook cleans up on unmount
-* hook tests pass
-* linting passes
-* build passes
-* SimulationCanvas can reuse the hook
+- `src/hooks/useCanvas.ts` exists
+- hook returns a stable `canvasRef`
+- hook attempts safe 2D context retrieval
+- hook exposes context readiness
+- hook handles missing canvas safely
+- hook cleans up on unmount
+- hook tests pass
+- linting passes
+- build passes
+- SimulationCanvas can reuse the hook
 
 ---
 
 # Related WBS Items
 
-* 0.5.1 — Create Simulation Canvas Surface
-* 0.5.2 — Create Canvas Hook
-* 0.5.3 — Configure Responsive Canvas Dimensions
-* 0.5.4 — Implement Canvas Resize Management
-* 0.5.5 — Render Background Grid
-* 0.5.6 — Establish Render Loop Clearing
+- 0.5.1 — Create Simulation Canvas Surface
+- 0.5.2 — Create Canvas Hook
+- 0.5.3 — Configure Responsive Canvas Dimensions
+- 0.5.4 — Implement Canvas Resize Management
+- 0.5.5 — Render Background Grid
+- 0.5.6 — Establish Render Loop Clearing
 
 ---
 
 # Related Documentation
 
-* `docs/simulation-canvas.md`
-* `docs/app-shell.md`
-* `docs/testing.md`
-* `docs/canvas-rendering.md`
+- `docs/simulation-canvas.md`
+- `docs/app-shell.md`
+- `docs/testing.md`
+- `docs/canvas-rendering.md`
 
 ---
 

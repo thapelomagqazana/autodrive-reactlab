@@ -34,10 +34,7 @@ export function millisecondsToSeconds(milliseconds: number): number {
  *
  * @throws Error when either input is invalid.
  */
-export function clampDeltaTime(
-  deltaSeconds: number,
-  maxDeltaSeconds = 0.1,
-): number {
+export function clampDeltaTime(deltaSeconds: number, maxDeltaSeconds = 0.1): number {
   if (!Number.isFinite(deltaSeconds) || deltaSeconds < 0) {
     throw new Error("deltaSeconds must be a non-negative finite number");
   }

@@ -30,9 +30,7 @@ test.describe("AutoDrive ReactLab startup", () => {
 
     await expect(page.getByText("Autonomous Simulation Lab")).toBeVisible();
 
-    await expect(
-      page.getByRole("heading", { name: "Simulation Canvas" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Simulation Canvas" })).toBeVisible();
 
     await expect(page.getByTestId("simulation-canvas")).toBeVisible();
 
@@ -49,9 +47,7 @@ test.describe("AutoDrive ReactLab startup", () => {
     await expect(page.getByText("00:00:00.000")).toBeVisible();
     await expect(page.getByText("FPS", { exact: true })).toBeVisible();
 
-    await expect(
-      page.getByRole("region", { name: "Vehicle Telemetry" }),
-    ).toBeVisible();
+    await expect(page.getByRole("region", { name: "Vehicle Telemetry" })).toBeVisible();
 
     await expect(page.getByText("Vehicle Speed")).toBeVisible();
     await expect(page.getByText("AI Decision")).toBeVisible();

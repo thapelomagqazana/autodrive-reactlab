@@ -41,8 +41,7 @@ export function SimulationCanvas({
    * Future canvas hooks/renderers may use this ref to access:
    * canvasRef.current?.getContext("2d")
    */
-  const { canvasRef, context, dimensions, resizeCanvas, initializeContext } =
-    useCanvas();
+  const { canvasRef, context, dimensions, resizeCanvas, initializeContext } = useCanvas();
 
   useCanvasResize({
     containerRef,
@@ -55,25 +54,25 @@ export function SimulationCanvas({
 
   useEffect(() => {
     if (!context || !dimensions) {
-        return;
+      return;
     }
 
     beginFrame(context, {
-        width: dimensions.width,
-        height: dimensions.height,
+      width: dimensions.width,
+      height: dimensions.height,
     });
 
     if (!isGridEnabled) {
-        return;
+      return;
     }
 
     renderBackgroundGrid(context, {
-        width: dimensions.width,
-        height: dimensions.height,
-        spacing: 40 * dimensions.pixelRatio,
-        enabled: isGridEnabled,
+      width: dimensions.width,
+      height: dimensions.height,
+      spacing: 40 * dimensions.pixelRatio,
+      enabled: isGridEnabled,
     });
-    }, [context, dimensions, isGridEnabled]);
+  }, [context, dimensions, isGridEnabled]);
 
   return (
     <section className="arcade-panel min-w-0 overflow-hidden p-4">
@@ -84,9 +83,7 @@ export function SimulationCanvas({
               Canvas Port
             </p>
 
-            <h2 className="mt-1 text-lg font-black text-white">
-              Simulation Canvas
-            </h2>
+            <h2 className="mt-1 text-lg font-black text-white">Simulation Canvas</h2>
           </div>
 
           <span className="arcade-badge rounded-full px-3 py-1 text-xs font-black">
@@ -95,8 +92,8 @@ export function SimulationCanvas({
         </div>
 
         <div
-            ref={containerRef}
-            className="relative h-[28rem] overflow-hidden rounded-xl border border-cyan-300/20 bg-black/45 md:h-[34rem] xl:h-[42rem]"
+          ref={containerRef}
+          className="relative h-[28rem] overflow-hidden rounded-xl border border-cyan-300/20 bg-black/45 md:h-[34rem] xl:h-[42rem]"
         >
           <canvas
             ref={canvasRef}

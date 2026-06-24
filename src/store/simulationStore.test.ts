@@ -174,7 +174,7 @@ describe("simulationStore", () => {
     useSimulationStore.getState().advanceSimulationTime(0.034);
 
     expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBeCloseTo(
-        0.05,
+      0.05,
     );
   });
 

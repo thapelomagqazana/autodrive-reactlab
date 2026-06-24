@@ -53,6 +53,7 @@ unnecessary re-renders as the simulator grows.
 `resetSimulation` resets runtime telemetry but preserves UI preferences.
 
 This means:
+
 - status returns to `idle`
 - elapsed time returns to `0`
 - FPS returns to `0`

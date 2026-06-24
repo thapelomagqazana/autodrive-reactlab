@@ -24,16 +24,16 @@ It gives users a predictable place to interact with the simulation while keeping
 
 The ControlsPanel owns:
 
-* Start control
-* Pause control
-* Reset control
-* Sensor visibility toggle
-* Debug mode toggle
-* Scenario selector placeholder
-* Accessible button labels
-* Safe optional event handlers
-* Basic control grouping
-* Keyboard-accessible interaction surface
+- Start control
+- Pause control
+- Reset control
+- Sensor visibility toggle
+- Debug mode toggle
+- Scenario selector placeholder
+- Accessible button labels
+- Safe optional event handlers
+- Basic control grouping
+- Keyboard-accessible interaction surface
 
 ---
 
@@ -41,15 +41,15 @@ The ControlsPanel owns:
 
 The ControlsPanel must not contain:
 
-* game loop implementation
-* physics logic
-* AI behavior
-* canvas drawing
-* collision detection
-* scenario loading logic
-* pathfinding logic
-* telemetry calculations
-* direct engine mutation
+- game loop implementation
+- physics logic
+- AI behavior
+- canvas drawing
+- collision detection
+- scenario loading logic
+- pathfinding logic
+- telemetry calculations
+- direct engine mutation
 
 Those responsibilities belong to dedicated simulation modules, hooks, stores, or controllers.
 
@@ -124,9 +124,9 @@ Called when the user activates the Start button.
 
 Expected future behavior:
 
-* start simulation lifecycle
-* resume from paused state
-* eventually trigger game loop coordination elsewhere
+- start simulation lifecycle
+- resume from paused state
+- eventually trigger game loop coordination elsewhere
 
 ---
 
@@ -136,9 +136,9 @@ Called when the user activates the Pause button.
 
 Expected future behavior:
 
-* pause simulation lifecycle
-* preserve current simulation state
-* stop time progression elsewhere
+- pause simulation lifecycle
+- preserve current simulation state
+- stop time progression elsewhere
 
 ---
 
@@ -148,9 +148,9 @@ Called when the user activates the Reset button.
 
 Expected future behavior:
 
-* restore simulation baseline
-* clear runtime telemetry
-* reset vehicle state elsewhere
+- restore simulation baseline
+- clear runtime telemetry
+- reset vehicle state elsewhere
 
 ---
 
@@ -160,8 +160,8 @@ Called when the user toggles sensor visibility.
 
 Expected future behavior:
 
-* show or hide sensor rays
-* update debug rendering preferences elsewhere
+- show or hide sensor rays
+- update debug rendering preferences elsewhere
 
 ---
 
@@ -171,8 +171,8 @@ Called when the user toggles debug mode.
 
 Expected future behavior:
 
-* show or hide debug overlays
-* expose development diagnostics elsewhere
+- show or hide debug overlays
+- expose development diagnostics elsewhere
 
 ---
 
@@ -182,9 +182,9 @@ Called when the user activates the scenario selector placeholder.
 
 Expected future behavior:
 
-* open scenario selector
-* switch between road scenarios
-* reset simulation for selected scenario elsewhere
+- open scenario selector
+- switch between road scenarios
+- reset simulation for selected scenario elsewhere
 
 ---
 
@@ -228,20 +228,18 @@ Scenario selector pending
 
 Controls must be accessible through:
 
-* keyboard navigation
-* readable button names
-* semantic `<button>` elements
-* visible focus state
-* `aria-pressed` for toggle buttons
+- keyboard navigation
+- readable button names
+- semantic `<button>` elements
+- visible focus state
+- `aria-pressed` for toggle buttons
 
 Toggle controls should expose state clearly.
 
 Example:
 
 ```tsx
-<button aria-pressed={isSensorsVisible}>
-  Sensors: On
-</button>
+<button aria-pressed={isSensorsVisible}>Sensors: On</button>
 ```
 
 ---
@@ -269,13 +267,13 @@ Styling should remain declarative and Tailwind-based.
 
 Verify:
 
-* Start button renders.
-* Pause button renders.
-* Reset button renders.
-* Sensor toggle renders.
-* Debug toggle renders.
-* Scenario selector placeholder renders.
-* Provided callbacks are called.
+- Start button renders.
+- Pause button renders.
+- Reset button renders.
+- Sensor toggle renders.
+- Debug toggle renders.
+- Scenario selector placeholder renders.
+- Provided callbacks are called.
 
 ---
 
@@ -283,10 +281,10 @@ Verify:
 
 Verify:
 
-* Component renders without handlers.
-* Clicking buttons without handlers does not crash.
-* Component does not import engine modules.
-* Component does not mutate canvas state directly.
+- Component renders without handlers.
+- Clicking buttons without handlers does not crash.
+- Component does not import engine modules.
+- Component does not mutate canvas state directly.
 
 ---
 
@@ -294,10 +292,10 @@ Verify:
 
 Verify:
 
-* Buttons wrap correctly in narrow containers.
-* Long scenario labels do not break layout.
-* Toggle state displays correctly.
-* Disabled or future loading states can be added without redesign.
+- Buttons wrap correctly in narrow containers.
+- Long scenario labels do not break layout.
+- Toggle state displays correctly.
+- Disabled or future loading states can be added without redesign.
 
 ---
 
@@ -305,17 +303,17 @@ Verify:
 
 Later phases may add:
 
-* disabled state based on simulation status
-* loading state while scenario loads
-* keyboard shortcuts
-* speed multiplier control
-* scenario dropdown
-* add obstacle button
-* add traffic car button
-* reset confirmation for active runs
-* grouped control sections
-* telemetry recording controls
-* replay controls
+- disabled state based on simulation status
+- loading state while scenario loads
+- keyboard shortcuts
+- speed multiplier control
+- scenario dropdown
+- add obstacle button
+- add traffic car button
+- reset confirmation for active runs
+- grouped control sections
+- telemetry recording controls
+- replay controls
 
 ---
 
@@ -360,35 +358,35 @@ These responsibilities do not belong inside the control surface.
 
 The ControlsPanel is complete for this phase when:
 
-* the component exists
-* all required controls render
-* buttons have accessible names
-* toggles expose `aria-pressed`
-* optional handlers are safe
-* component tests pass
-* linting passes
-* production build passes
-* the component is integrated into AppShell
+- the component exists
+- all required controls render
+- buttons have accessible names
+- toggles expose `aria-pressed`
+- optional handlers are safe
+- component tests pass
+- linting passes
+- production build passes
+- the component is integrated into AppShell
 
 ---
 
 # Related WBS Items
 
-* 0.4.1 — Create AppShell Component
-* 0.4.4 — Create ControlsPanel Component
-* 0.7 — Zustand Store Setup
-* 0.8 — Controls Panel
-* Phase 6 — Scenario Selector
-* Phase 13 — Replay and Telemetry
+- 0.4.1 — Create AppShell Component
+- 0.4.4 — Create ControlsPanel Component
+- 0.7 — Zustand Store Setup
+- 0.8 — Controls Panel
+- Phase 6 — Scenario Selector
+- Phase 13 — Replay and Telemetry
 
 ---
 
 # Related Documentation
 
-* `docs/app-shell.md`
-* `docs/state-management.md`
-* `docs/testing.md`
-* `docs/simulation-canvas.md`
+- `docs/app-shell.md`
+- `docs/state-management.md`
+- `docs/testing.md`
+- `docs/simulation-canvas.md`
 
 ---
 

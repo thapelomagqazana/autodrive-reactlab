@@ -22,9 +22,7 @@ describe("SimulationCanvas", () => {
   it("renders an accessible canvas label", () => {
     render(<SimulationCanvas />);
 
-    expect(
-      screen.getByLabelText("AutoDrive simulation canvas"),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("AutoDrive simulation canvas")).toBeInTheDocument();
   });
 
   it("includes browser fallback text inside the canvas", () => {

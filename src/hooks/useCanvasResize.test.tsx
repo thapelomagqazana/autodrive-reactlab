@@ -122,17 +122,11 @@ describe("useCanvasResize", () => {
 
     const { unmount } = render(<ResizeTestComponent resizeCanvas={resizeCanvas} />);
 
-    expect(addEventListenerSpy).toHaveBeenCalledWith(
-      "resize",
-      expect.any(Function),
-    );
+    expect(addEventListenerSpy).toHaveBeenCalledWith("resize", expect.any(Function));
 
     unmount();
 
-    expect(removeEventListenerSpy).toHaveBeenCalledWith(
-      "resize",
-      expect.any(Function),
-    );
+    expect(removeEventListenerSpy).toHaveBeenCalledWith("resize", expect.any(Function));
   });
 
   it("does not call onResize when resizeCanvas returns null", () => {

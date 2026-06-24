@@ -60,11 +60,7 @@ export function useCanvas(): UseCanvasResult {
       return null;
     }
 
-    const nextDimensions = applyCanvasSize(
-      canvas,
-      cssSize,
-      window.devicePixelRatio,
-    );
+    const nextDimensions = applyCanvasSize(canvas, cssSize, window.devicePixelRatio);
 
     setDimensions(nextDimensions);
 

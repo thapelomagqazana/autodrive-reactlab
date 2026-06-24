@@ -45,23 +45,23 @@ describe("gridRenderer", () => {
 
   it("draws grid lines using the canvas context", () => {
     const context = {
-        save: vi.fn(),
-        restore: vi.fn(),
-        beginPath: vi.fn(),
-        moveTo: vi.fn(),
-        lineTo: vi.fn(),
-        stroke: vi.fn(),
-        arc: vi.fn(),
-        fill: vi.fn(),
-        strokeStyle: "",
-        fillStyle: "",
-        lineWidth: 1,
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      strokeStyle: "",
+      fillStyle: "",
+      lineWidth: 1,
     } as unknown as CanvasRenderingContext2D;
 
     renderBackgroundGrid(context, {
-        width: 80,
-        height: 40,
-        spacing: 40,
+      width: 80,
+      height: 40,
+      spacing: 40,
     });
 
     expect(context.save).toHaveBeenCalledTimes(1);

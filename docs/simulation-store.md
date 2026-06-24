@@ -18,12 +18,12 @@ The simulation store exists to answer one question:
 
 It provides a typed, deterministic state model for:
 
-* simulation lifecycle status
-* elapsed simulation time
-* sampled FPS telemetry
-* debug-mode preference
-* sensor-visibility preference
-* lifecycle actions
+- simulation lifecycle status
+- elapsed simulation time
+- sampled FPS telemetry
+- debug-mode preference
+- sensor-visibility preference
+- lifecycle actions
 
 ---
 
@@ -31,20 +31,20 @@ It provides a typed, deterministic state model for:
 
 The store owns:
 
-* `status`
-* `simulationTimeSeconds`
-* `fps`
-* `isDebugModeEnabled`
-* `areSensorsVisible`
-* `startSimulation`
-* `pauseSimulation`
-* `resetSimulation`
-* `advanceSimulationTime`
-* `setSimulationTimeSeconds`
-* `setFps`
-* `toggleDebugMode`
-* `toggleSensorsVisibility`
-* focused selector hooks
+- `status`
+- `simulationTimeSeconds`
+- `fps`
+- `isDebugModeEnabled`
+- `areSensorsVisible`
+- `startSimulation`
+- `pauseSimulation`
+- `resetSimulation`
+- `advanceSimulationTime`
+- `setSimulationTimeSeconds`
+- `setFps`
+- `toggleDebugMode`
+- `toggleSensorsVisibility`
+- focused selector hooks
 
 ---
 
@@ -52,16 +52,16 @@ The store owns:
 
 The store must not contain:
 
-* canvas rendering context
-* `requestAnimationFrame` IDs
-* game loop instance
-* raw sensor arrays
-* heavy physics objects
-* large replay history
-* road mesh data
-* AI model internals
-* browser-only APIs during store creation
-* per-frame rendering calculations
+- canvas rendering context
+- `requestAnimationFrame` IDs
+- game loop instance
+- raw sensor arrays
+- heavy physics objects
+- large replay history
+- road mesh data
+- AI model internals
+- browser-only APIs during store creation
+- per-frame rendering calculations
 
 Those responsibilities belong to engine, rendering, replay, or runtime modules.
 
@@ -323,10 +323,10 @@ This action directly sets elapsed simulation time.
 
 It is useful for:
 
-* tests
-* replay restore
-* deterministic scenario setup
-* future timeline scrubbing
+- tests
+- replay restore
+- deterministic scenario setup
+- future timeline scrubbing
 
 It must still reject invalid values.
 
@@ -396,10 +396,10 @@ It should not be updated every animation frame.
 
 Controls future development overlays such as:
 
-* canvas bounds
-* grid markers
-* sensor debug views
-* AI reasoning overlays
+- canvas bounds
+- grid markers
+- sensor debug views
+- AI reasoning overlays
 
 ---
 
@@ -444,19 +444,19 @@ Subscribing to the whole store may cause unnecessary component re-renders as the
 # Public Selectors
 
 ```ts
-useSimulationStatus
-useSimulationTelemetry
-useSimulationTimeSeconds
-useSimulationFps
-useSimulationUiPreferences
-useStartSimulation
-usePauseSimulation
-useResetSimulation
-useAdvanceSimulationTime
-useSetSimulationTimeSeconds
-useSetFps
-useToggleDebugMode
-useToggleSensorsVisibility
+useSimulationStatus;
+useSimulationTelemetry;
+useSimulationTimeSeconds;
+useSimulationFps;
+useSimulationUiPreferences;
+useStartSimulation;
+usePauseSimulation;
+useResetSimulation;
+useAdvanceSimulationTime;
+useSetSimulationTimeSeconds;
+useSetFps;
+useToggleDebugMode;
+useToggleSensorsVisibility;
 ```
 
 ---
@@ -467,20 +467,20 @@ useToggleSensorsVisibility
 
 Verify:
 
-* initial status is `idle`
-* initial simulation time is `0`
-* initial FPS is `0`
-* initial debug mode is disabled
-* initial sensors visibility is enabled
-* start changes status to `running`
-* pause changes running status to `paused`
-* paused status can resume to `running`
-* reset restores runtime state
-* reset preserves UI preferences
-* valid simulation time updates are accepted
-* valid FPS updates are accepted
-* debug mode toggles
-* sensor visibility toggles
+- initial status is `idle`
+- initial simulation time is `0`
+- initial FPS is `0`
+- initial debug mode is disabled
+- initial sensors visibility is enabled
+- start changes status to `running`
+- pause changes running status to `paused`
+- paused status can resume to `running`
+- reset restores runtime state
+- reset preserves UI preferences
+- valid simulation time updates are accepted
+- valid FPS updates are accepted
+- debug mode toggles
+- sensor visibility toggles
 
 ---
 
@@ -488,17 +488,17 @@ Verify:
 
 Verify:
 
-* pause from idle is ignored
-* repeated start is safe
-* repeated pause is safe
-* repeated reset is safe
-* time does not advance while idle
-* time does not advance while paused
-* invalid delta time is ignored
-* invalid FPS is ignored
-* reset does not erase UI preferences
-* store does not import game loop modules
-* store does not use browser-only APIs during creation
+- pause from idle is ignored
+- repeated start is safe
+- repeated pause is safe
+- repeated reset is safe
+- time does not advance while idle
+- time does not advance while paused
+- invalid delta time is ignored
+- invalid FPS is ignored
+- reset does not erase UI preferences
+- store does not import game loop modules
+- store does not use browser-only APIs during creation
 
 ---
 
@@ -506,16 +506,16 @@ Verify:
 
 Verify:
 
-* delta time of `0`
-* FPS of `0`
-* very small positive delta
-* large finite delta
-* decimal FPS
-* reset while running
-* reset while paused
-* start after reset
-* pause after reset
-* rapid start/pause/reset calls
+- delta time of `0`
+- FPS of `0`
+- very small positive delta
+- large finite delta
+- decimal FPS
+- reset while running
+- reset while paused
+- start after reset
+- pause after reset
+- rapid start/pause/reset calls
 
 ---
 
@@ -596,38 +596,38 @@ These increase coupling and make the store harder to test.
 
 The simulation store is complete for this phase when:
 
-* state is strongly typed
-* actions are strongly typed
-* initial state is deterministic
-* status transitions are safe
-* simulation time updates only while running
-* FPS accepts valid sampled values only
-* reset restores runtime state
-* reset preserves UI preferences
-* focused selector hooks exist
-* unit tests cover lifecycle, telemetry, reset, and preferences
-* linting passes
-* build passes
+- state is strongly typed
+- actions are strongly typed
+- initial state is deterministic
+- status transitions are safe
+- simulation time updates only while running
+- FPS accepts valid sampled values only
+- reset restores runtime state
+- reset preserves UI preferences
+- focused selector hooks exist
+- unit tests cover lifecycle, telemetry, reset, and preferences
+- linting passes
+- build passes
 
 ---
 
 # Related WBS Items
 
-* 0.7.1 — Create Simulation Store Module
-* 0.7.2 — Add Simulation Status State
-* 0.7.3 — Add Simulation Time State
-* 0.7.4 — Add FPS State
-* 0.7.5 — Add Reset Action
-* 0.7.6 — Add Start and Pause Actions
+- 0.7.1 — Create Simulation Store Module
+- 0.7.2 — Add Simulation Status State
+- 0.7.3 — Add Simulation Time State
+- 0.7.4 — Add FPS State
+- 0.7.5 — Add Reset Action
+- 0.7.6 — Add Start and Pause Actions
 
 ---
 
 # Related Documentation
 
-* `docs/game-loop.md`
-* `docs/dashboard-panel.md`
-* `docs/controls-panel.md`
-* `docs/simulation-canvas.md`
+- `docs/game-loop.md`
+- `docs/dashboard-panel.md`
+- `docs/controls-panel.md`
+- `docs/simulation-canvas.md`
 
 ---
 

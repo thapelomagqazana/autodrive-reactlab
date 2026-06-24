@@ -18,12 +18,7 @@ export interface AppShellProps {
   dashboard: ReactNode;
 }
 
-export function AppShell({
-  header,
-  simulation,
-  controls,
-  dashboard,
-}: AppShellProps) {
+export function AppShell({ header, simulation, controls, dashboard }: AppShellProps) {
   return (
     <main className="min-h-screen px-4 py-6 text-white md:px-6 lg:px-8">
       <div className="mx-auto flex max-w-[96rem] flex-col gap-6">

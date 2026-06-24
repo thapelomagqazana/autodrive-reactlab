@@ -20,8 +20,5 @@ export function formatElapsedTime(seconds: number): string {
   return `${String(hours).padStart(2, "0")}:${String(displayMinutes).padStart(
     2,
     "0",
-  )}:${String(displaySeconds).padStart(2, "0")}.${String(milliseconds).padStart(
-    3,
-    "0",
-  )}`;
+  )}:${String(displaySeconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
 }

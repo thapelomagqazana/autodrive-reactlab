@@ -24,20 +24,26 @@ npm run format:check
 ## When to use each command
 
 Use this before opening a pull request:
+
 ```bash
 npm run lint
 npm run format:check
 ```
+
 Use this when you want to automatically format files:
+
 ```bash
 npm run format
 ```
+
 Use this when you want ESLint to fix safe issues:
+
 ```bash
 npm run lint:fix
 ```
 
 ## Rules
+
 - ESLint owns code-quality checks.
 - Prettier owns formatting.
 - Do not add formatting rules to ESLint.
@@ -48,6 +54,7 @@ npm run lint:fix
 ## Ignored outputs
 
 The following generated folders should not be linted or formatted:
+
 ```
 dist
 coverage
@@ -59,6 +66,7 @@ node_modules
 ## Pull request checklist
 
 Before creating a PR, run:
+
 ```bash
 npm run format:check
 npm run lint
@@ -69,7 +77,8 @@ npm run build
 For browser validation, also run:
 ``bash
 npm run test:e2e
-```
+
+````
 
 ## Common failures
 ### Formatting check fails
@@ -77,8 +86,10 @@ npm run test:e2e
 Run:
 ```bash
 npm run format
-```
+````
+
 Then rerun:
+
 ```bash
 npm run format:check
 ```
@@ -90,6 +101,7 @@ Remove the unused variable.
 If the value is intentionally unused, prefix it with `_`.
 
 Example:
+
 ```ts
 function handleEvent(_event: Event) {
   return true;

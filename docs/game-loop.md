@@ -18,13 +18,13 @@ The game loop exists to answer one question:
 
 It provides a reusable timing foundation for:
 
-* car movement
-* sensor updates
-* AI decision timing
-* canvas rendering
-* dashboard telemetry
-* FPS tracking
-* replay and performance diagnostics
+- car movement
+- sensor updates
+- AI decision timing
+- canvas rendering
+- dashboard telemetry
+- FPS tracking
+- replay and performance diagnostics
 
 ---
 
@@ -32,15 +32,15 @@ It provides a reusable timing foundation for:
 
 The game loop owns:
 
-* `requestAnimationFrame` scheduling
-* `cancelAnimationFrame` cleanup
-* start lifecycle
-* stop lifecycle
-* running state
-* delta-time calculation
-* delta-time capping
-* FPS sampling
-* duplicate-loop prevention
+- `requestAnimationFrame` scheduling
+- `cancelAnimationFrame` cleanup
+- start lifecycle
+- stop lifecycle
+- running state
+- delta-time calculation
+- delta-time capping
+- FPS sampling
+- duplicate-loop prevention
 
 ---
 
@@ -48,17 +48,17 @@ The game loop owns:
 
 The game loop must not contain:
 
-* React component logic
-* Zustand store mutation
-* canvas drawing details
-* road rendering
-* vehicle physics
-* AI decisions
-* collision detection
-* sensor raycasting
-* scenario loading
-* telemetry persistence
-* dashboard rendering
+- React component logic
+- Zustand store mutation
+- canvas drawing details
+- road rendering
+- vehicle physics
+- AI decisions
+- collision detection
+- sensor raycasting
+- scenario loading
+- telemetry persistence
+- dashboard rendering
 
 Those responsibilities belong to dedicated modules.
 
@@ -96,10 +96,10 @@ loop.isRunning();
 
 Expected behavior:
 
-* sets running state
-* resets timing state
-* schedules the first animation frame
-* prevents duplicate loops if called more than once
+- sets running state
+- resets timing state
+- schedules the first animation frame
+- prevents duplicate loops if called more than once
 
 ---
 
@@ -109,11 +109,11 @@ Expected behavior:
 
 Expected behavior:
 
-* cancels the pending animation frame
-* marks loop as not running
-* clears stored animation frame ID
-* resets timing state
-* does not reset simulation state
+- cancels the pending animation frame
+- marks loop as not running
+- clears stored animation frame ID
+- resets timing state
+- does not reset simulation state
 
 Important distinction:
 
@@ -163,11 +163,11 @@ This prevents invalid or giant first-frame movement.
 
 Large delta-time jumps can happen when:
 
-* the browser tab sleeps
-* the computer lags
-* the app is paused
-* the user switches tabs
-* the browser throttles timers
+- the browser tab sleeps
+- the computer lags
+- the app is paused
+- the user switches tabs
+- the browser throttles timers
 
 To avoid huge simulation jumps, delta time should be capped.
 
@@ -260,13 +260,13 @@ It only calls `render`.
 
 Verify:
 
-* loop starts
-* frame is scheduled
-* update callback executes
-* render callback executes
-* delta time is passed in seconds
-* FPS callback fires after sampling interval
-* stop cancels pending frame
+- loop starts
+- frame is scheduled
+- update callback executes
+- render callback executes
+- delta time is passed in seconds
+- FPS callback fires after sampling interval
+- stop cancels pending frame
 
 ---
 
@@ -274,11 +274,11 @@ Verify:
 
 Verify:
 
-* starting twice does not create duplicate loops
-* stopping before start does not throw
-* stopping twice does not throw
-* loop does not continue after stop
-* module does not import React, Zustand, physics, AI, or rendering modules
+- starting twice does not create duplicate loops
+- stopping before start does not throw
+- stopping twice does not throw
+- loop does not continue after stop
+- module does not import React, Zustand, physics, AI, or rendering modules
 
 ---
 
@@ -286,11 +286,11 @@ Verify:
 
 Verify:
 
-* first frame delta is safe
-* large delta time is capped
-* rapid start/stop cycles do not leak frames
-* frame callback firing after stop does not continue loop
-* pause/resume does not create giant delta jump
+- first frame delta is safe
+- large delta time is capped
+- rapid start/stop cycles do not leak frames
+- frame callback firing after stop does not continue loop
+- pause/resume does not create giant delta jump
 
 ---
 
@@ -319,12 +319,12 @@ These responsibilities do not belong in the game loop module.
 
 A good game loop should:
 
-* do minimal work itself
-* call update/render callbacks
-* avoid unnecessary allocations
-* avoid duplicate loops
-* avoid per-frame UI state updates
-* cancel frames on stop
+- do minimal work itself
+- call update/render callbacks
+- avoid unnecessary allocations
+- avoid duplicate loops
+- avoid per-frame UI state updates
+- cancel frames on stop
 
 The game loop is a coordinator, not the whole simulation engine.
 
@@ -334,39 +334,39 @@ The game loop is a coordinator, not the whole simulation engine.
 
 The game loop is complete for this phase when:
 
-* `gameLoop.ts` exists
-* loop can start
-* loop can stop
-* duplicate starts are prevented
-* stop is idempotent
-* delta time is calculated in seconds
-* large delta time is capped
-* FPS is sampled at a controlled interval
-* pending animation frames are cancelled
-* unit tests verify lifecycle behavior
-* linting passes
-* build passes
+- `gameLoop.ts` exists
+- loop can start
+- loop can stop
+- duplicate starts are prevented
+- stop is idempotent
+- delta time is calculated in seconds
+- large delta time is capped
+- FPS is sampled at a controlled interval
+- pending animation frames are cancelled
+- unit tests verify lifecycle behavior
+- linting passes
+- build passes
 
 ---
 
 # Related WBS Items
 
-* 0.6.1 — Create Game Loop Module
-* 0.6.2 — Implement RequestAnimationFrame Loop
-* 0.6.3 — Track Delta Time
-* 0.6.4 — Add Start Loop Function
-* 0.6.5 — Add Stop/Pause Loop Function
-* 0.6.6 — Add FPS Calculation
+- 0.6.1 — Create Game Loop Module
+- 0.6.2 — Implement RequestAnimationFrame Loop
+- 0.6.3 — Track Delta Time
+- 0.6.4 — Add Start Loop Function
+- 0.6.5 — Add Stop/Pause Loop Function
+- 0.6.6 — Add FPS Calculation
 
 ---
 
 # Related Documentation
 
-* `docs/simulation-canvas.md`
-* `docs/canvas-sizing.md`
-* `docs/canvas-grid.md`
-* `docs/frame-renderer.md`
-* `docs/state-management.md`
+- `docs/simulation-canvas.md`
+- `docs/canvas-sizing.md`
+- `docs/canvas-grid.md`
+- `docs/frame-renderer.md`
+- `docs/state-management.md`
 
 ---
 

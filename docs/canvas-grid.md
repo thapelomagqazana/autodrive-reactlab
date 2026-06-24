@@ -18,11 +18,11 @@ The background grid exists to answer one question:
 
 It helps verify:
 
-* canvas context access
-* drawing-buffer sizing
-* coordinate spacing
-* rendering origin behavior
-* future redraw readiness
+- canvas context access
+- drawing-buffer sizing
+- coordinate spacing
+- rendering origin behavior
+- future redraw readiness
 
 ---
 
@@ -30,12 +30,12 @@ It helps verify:
 
 The grid renderer owns:
 
-* vertical grid line calculation
-* horizontal grid line calculation
-* lightweight grid drawing
-* optional origin marker
-* safe no-op behavior when disabled
-* safe no-op behavior for invalid dimensions
+- vertical grid line calculation
+- horizontal grid line calculation
+- lightweight grid drawing
+- optional origin marker
+- safe no-op behavior when disabled
+- safe no-op behavior for invalid dimensions
 
 ---
 
@@ -43,16 +43,16 @@ The grid renderer owns:
 
 The grid renderer must not contain:
 
-* road rendering
-* vehicle rendering
-* sensor ray rendering
-* traffic light rendering
-* pedestrian rendering
-* physics simulation
-* AI decision logic
-* game-loop scheduling
-* frame clearing responsibility
-* React component layout
+- road rendering
+- vehicle rendering
+- sensor ray rendering
+- traffic light rendering
+- pedestrian rendering
+- physics simulation
+- AI decision logic
+- game-loop scheduling
+- frame clearing responsibility
+- React component layout
 
 Those responsibilities belong to separate renderer or simulation modules.
 
@@ -171,14 +171,14 @@ This allows future debug settings or production builds to turn the grid off with
 
 The grid should:
 
-* cover the full canvas drawing buffer
-* use uniform spacing
-* avoid unnecessary allocations beyond line calculation
-* call `context.save()` before drawing
-* call `context.restore()` after drawing
-* not clear the canvas itself
-* not start animation loops
-* not mutate simulation state
+- cover the full canvas drawing buffer
+- use uniform spacing
+- avoid unnecessary allocations beyond line calculation
+- call `context.save()` before drawing
+- call `context.restore()` after drawing
+- not clear the canvas itself
+- not start animation loops
+- not mutate simulation state
 
 ---
 
@@ -203,12 +203,12 @@ Later camera/world-coordinate work may change how origin markers are displayed.
 
 Verify:
 
-* vertical grid lines are calculated
-* horizontal grid lines are calculated
-* grid spacing is uniform
-* grid lines cover canvas bounds
-* renderer calls canvas drawing methods
-* renderer saves and restores context state
+- vertical grid lines are calculated
+- horizontal grid lines are calculated
+- grid spacing is uniform
+- grid lines cover canvas bounds
+- renderer calls canvas drawing methods
+- renderer saves and restores context state
 
 ---
 
@@ -216,11 +216,11 @@ Verify:
 
 Verify:
 
-* disabled grid returns no lines
-* zero width returns no lines
-* zero height returns no lines
-* invalid spacing uses safe fallback behavior
-* renderer does not throw on safe empty input
+- disabled grid returns no lines
+- zero width returns no lines
+- zero height returns no lines
+- invalid spacing uses safe fallback behavior
+- renderer does not throw on safe empty input
 
 ---
 
@@ -228,12 +228,12 @@ Verify:
 
 Verify:
 
-* spacing larger than canvas width
-* spacing larger than canvas height
-* fractional dimensions
-* small canvas dimensions
-* large canvas dimensions
-* device pixel ratio adjusted spacing
+- spacing larger than canvas width
+- spacing larger than canvas height
+- fractional dimensions
+- small canvas dimensions
+- large canvas dimensions
+- device pixel ratio adjusted spacing
 
 ---
 
@@ -286,11 +286,11 @@ The grid should remain lightweight.
 
 Recommended practices:
 
-* use simple line drawing
-* avoid complex gradients inside the grid renderer
-* calculate only necessary lines
-* keep default spacing reasonable
-* avoid repeated work unless dimensions change or frame redraw is needed
+- use simple line drawing
+- avoid complex gradients inside the grid renderer
+- calculate only necessary lines
+- keep default spacing reasonable
+- avoid repeated work unless dimensions change or frame redraw is needed
 
 ---
 
@@ -298,15 +298,15 @@ Recommended practices:
 
 Possible future additions:
 
-* major/minor grid lines
-* axis labels
-* world-coordinate markers
-* camera-aware grid
-* zoom-aware spacing
-* toggle through debug mode
-* origin crosshair
-* lane-aligned debug grid
-* grid opacity control
+- major/minor grid lines
+- axis labels
+- world-coordinate markers
+- camera-aware grid
+- zoom-aware spacing
+- toggle through debug mode
+- origin crosshair
+- lane-aligned debug grid
+- grid opacity control
 
 These enhancements should remain optional and not turn the grid into the road renderer.
 
@@ -316,37 +316,37 @@ These enhancements should remain optional and not turn the grid into the road re
 
 The background grid is complete when:
 
-* grid lines are calculated consistently
-* grid renders onto the canvas
-* grid covers the visible drawing buffer
-* grid can be disabled
-* invalid dimensions are handled safely
-* tests cover line calculation behavior
-* tests cover draw calls
-* linting passes
-* build passes
-* no physics, AI, or game-loop logic is introduced
+- grid lines are calculated consistently
+- grid renders onto the canvas
+- grid covers the visible drawing buffer
+- grid can be disabled
+- invalid dimensions are handled safely
+- tests cover line calculation behavior
+- tests cover draw calls
+- linting passes
+- build passes
+- no physics, AI, or game-loop logic is introduced
 
 ---
 
 # Related WBS Items
 
-* 0.5.1 — Create Simulation Canvas Surface
-* 0.5.2 — Create Canvas Hook
-* 0.5.3 — Configure Responsive Canvas Dimensions
-* 0.5.4 — Implement Canvas Resize Management
-* 0.5.5 — Render Background Grid
-* 0.5.6 — Establish Render Loop Clearing
+- 0.5.1 — Create Simulation Canvas Surface
+- 0.5.2 — Create Canvas Hook
+- 0.5.3 — Configure Responsive Canvas Dimensions
+- 0.5.4 — Implement Canvas Resize Management
+- 0.5.5 — Render Background Grid
+- 0.5.6 — Establish Render Loop Clearing
 
 ---
 
 # Related Documentation
 
-* `docs/simulation-canvas.md`
-* `docs/use-canvas.md`
-* `docs/canvas-sizing.md`
-* `docs/canvas-resize.md`
-* `docs/canvas-rendering.md`
+- `docs/simulation-canvas.md`
+- `docs/use-canvas.md`
+- `docs/canvas-sizing.md`
+- `docs/canvas-resize.md`
+- `docs/canvas-rendering.md`
 
 ---
 
