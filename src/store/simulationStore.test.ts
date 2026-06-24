@@ -159,4 +159,76 @@ describe("simulationStore", () => {
 
     expect(useSimulationStore.getState().status).toBe("idle");
   });
+
+  it("accepts zero simulation time delta while running", () => {
+    useSimulationStore.getState().startSimulation();
+    useSimulationStore.getState().advanceSimulationTime(0);
+
+    expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBe(0);
+  });
+
+  it("accumulates multiple valid simulation time deltas while running", () => {
+    useSimulationStore.getState().startSimulation();
+
+    useSimulationStore.getState().advanceSimulationTime(0.016);
+    useSimulationStore.getState().advanceSimulationTime(0.034);
+
+    expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBeCloseTo(
+        0.05,
+    );
+  });
+
+  it("resets simulation time from running", () => {
+    useSimulationStore.getState().startSimulation();
+    useSimulationStore.getState().advanceSimulationTime(5);
+
+    useSimulationStore.getState().resetSimulation();
+
+    expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBe(0);
+  });
+
+  it("accepts zero FPS", () => {
+    useSimulationStore.getState().setFps(0);
+
+    expect(useSimulationStore.getState().telemetry.fps).toBe(0);
+  });
+
+  it("accepts decimal FPS values", () => {
+    useSimulationStore.getState().setFps(59.94);
+
+    expect(useSimulationStore.getState().telemetry.fps).toBe(59.94);
+  });
+
+  it("resets FPS to zero", () => {
+    useSimulationStore.getState().setFps(60);
+
+    useSimulationStore.getState().resetSimulation();
+
+    expect(useSimulationStore.getState().telemetry.fps).toBe(0);
+  });
+
+  it("preserves FPS when pausing", () => {
+    useSimulationStore.getState().startSimulation();
+    useSimulationStore.getState().setFps(60);
+    useSimulationStore.getState().pauseSimulation();
+
+    expect(useSimulationStore.getState().telemetry.fps).toBe(60);
+  });
+
+  it("resets from paused to idle", () => {
+    useSimulationStore.getState().startSimulation();
+    useSimulationStore.getState().pauseSimulation();
+
+    useSimulationStore.getState().resetSimulation();
+
+    expect(useSimulationStore.getState().status).toBe("idle");
+  });
+
+  it("does not advance time while paused", () => {
+    useSimulationStore.getState().startSimulation();
+    useSimulationStore.getState().pauseSimulation();
+    useSimulationStore.getState().advanceSimulationTime(1);
+
+    expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBe(0);
+  });
 });
