@@ -49,6 +49,14 @@ export interface CarPosition {
   positionY: number;
 }
 
+export interface HeadingVector {
+  /** Horizontal unit direction component. */
+  x: number;
+
+  /** Vertical unit direction component. */
+  y: number;
+}
+
 /**
  * Runtime state for the simulated car.
  *
@@ -148,6 +156,18 @@ export const DEFAULT_CAR_MAX_REVERSE_SPEED = 80;
 export const DEFAULT_CAR_ACCELERATION = 120;
 
 /**
+ * Default heading angle in radians.
+ *
+ * 0 radians points upward/north on the canvas.
+ */
+export const DEFAULT_CAR_ANGLE = 0;
+
+/**
+ * Full turn in radians.
+ */
+export const TWO_PI = Math.PI * 2;
+
+/**
  * Immutable default configuration for the Phase 1 MVP car.
  *
  * Keeping these defaults centralized prevents components, tests, physics,
@@ -159,7 +179,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
   speed: DEFAULT_CAR_SPEED,
   acceleration: DEFAULT_CAR_ACCELERATION,
 
-  angle: 0,
+  angle: DEFAULT_CAR_ANGLE,
   steeringAngle: 0,
 
   maxSpeed: DEFAULT_CAR_MAX_SPEED,
@@ -222,6 +242,16 @@ export function isValidAccelerationValue(value: number): boolean {
  */
 export function isValidSpeedLimit(value: number): boolean {
   return Number.isFinite(value) && value >= 0;
+}
+
+/**
+ * Returns true when a heading angle is safe for simulation use.
+ *
+ * Any finite radian value is valid. Values outside 0..2π are allowed because
+ * repeated turning may accumulate angle before normalization.
+ */
+export function isValidHeadingAngle(value: number): boolean {
+  return Number.isFinite(value);
 }
 
 /**
@@ -299,4 +329,65 @@ export function applyForwardAcceleration(
   }
 
   return speed + acceleration * deltaTimeSeconds;
+}
+
+/**
+ * Normalizes a heading angle into the range [0, 2π).
+ *
+ * This is useful for dashboard display, debugging, telemetry, and future
+ * serialization. Physics may still work with unnormalized angles, but UI
+ * should prefer normalized values.
+ */
+export function normalizeHeadingAngle(angle: number): number {
+  if (!isValidHeadingAngle(angle)) {
+    throw new RangeError("angle must be a finite radian value.");
+  }
+
+  return ((angle % TWO_PI) + TWO_PI) % TWO_PI;
+}
+
+/**
+ * Converts a heading angle into a canvas-space unit direction vector.
+ *
+ * Convention:
+ * - 0 radians -> { x: 0, y: -1 }
+ * - π / 2 radians -> { x: 1, y: 0 }
+ * - π radians -> { x: 0, y: 1 }
+ * - 3π / 2 radians -> { x: -1, y: 0 }
+ */
+export function getHeadingVector(angle: number): HeadingVector {
+  if (!isValidHeadingAngle(angle)) {
+    throw new RangeError("angle must be a finite radian value.");
+  }
+
+  return {
+    x: Math.sin(angle),
+    y: -Math.cos(angle),
+  };
+}
+
+/**
+ * Converts radians to degrees for display-only use.
+ *
+ * Internal simulation state must continue to use radians.
+ */
+export function radiansToDegrees(radians: number): number {
+  if (!isValidHeadingAngle(radians)) {
+    throw new RangeError("radians must be a finite value.");
+  }
+
+  return (radians * 180) / Math.PI;
+}
+
+/**
+ * Converts degrees to radians for tests, docs, editor tools, or future imports.
+ *
+ * Runtime simulation state should still store radians.
+ */
+export function degreesToRadians(degrees: number): number {
+  if (!Number.isFinite(degrees)) {
+    throw new RangeError("degrees must be a finite value.");
+  }
+
+  return (degrees * Math.PI) / 180;
 }
