@@ -1,82 +1,62 @@
-/**
- * Component tests for DashboardPanel.
- *
- * These tests verify that telemetry labels and values render without depending
- * on simulation engine, physics, AI, or replay implementation.
- */
-
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { render, screen, within } from "../tests/test-utils";
 import { DashboardPanel } from "./DashboardPanel";
 
 describe("DashboardPanel", () => {
-  it("renders the dashboard heading", () => {
-    render(<DashboardPanel />);
+  it("renders lifecycle status", () => {
+    render(<DashboardPanel status="running" simulationTimeSeconds={0} fps={60} />);
 
-    expect(
-      screen.getByRole("heading", { level: 2, name: "Dashboard" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Running")).toBeInTheDocument();
+    expect(screen.getByLabelText("Simulation status: Running")).toBeInTheDocument();
   });
 
-  it("renders all MVP metric labels", () => {
-    render(<DashboardPanel />);
+  it("renders formatted elapsed time and FPS", () => {
+    render(
+      <DashboardPanel status="idle" simulationTimeSeconds={61.5} fps={59.6} />,
+    );
 
-    expect(screen.getAllByRole("term")).toHaveLength(8);
-    expect(screen.getAllByRole("definition")).toHaveLength(8);
-
-    expect(screen.getByText("Speed")).toBeInTheDocument();
-    expect(screen.getByText("Simulation")).toBeInTheDocument();
-    expect(screen.getByText("FPS")).toBeInTheDocument();
-    expect(screen.getByText("Time")).toBeInTheDocument();
-    expect(screen.getByText("Sensors")).toBeInTheDocument();
-    expect(screen.getByText("Traffic Light")).toBeInTheDocument();
-    expect(screen.getByText("Collisions")).toBeInTheDocument();
-    expect(screen.getByText("AI Confidence")).toBeInTheDocument();
+    expect(screen.getByText("00:01:01.500")).toBeInTheDocument();
+    expect(screen.getByText("60")).toBeInTheDocument();
   });
 
-  it("renders placeholder values when telemetry is unavailable", () => {
-    render(<DashboardPanel />);
-
-    expect(screen.getByText("-- km/h")).toBeInTheDocument();
-    expect(screen.getByText("Waiting")).toBeInTheDocument();
-    expect(screen.getByText("Not connected")).toBeInTheDocument();
-    expect(screen.getByText("N/A")).toBeInTheDocument();
-    expect(screen.getByText("--%")).toBeInTheDocument();
-  });
-
-  it("renders provided telemetry values", () => {
+  it("renders canvas diagnostics when provided", () => {
     render(
       <DashboardPanel
-        telemetry={{
-          speed: "42 km/h",
-          currentDecision: "Accelerating",
-          collisionCount: "1",
-          sensorStatus: "Online",
-          simulationTime: "00:12.500",
-          fps: "60",
-          trafficLightState: "Green",
-          aiConfidence: "87%",
+        status="idle"
+        simulationTimeSeconds={0}
+        fps={0}
+        canvasDiagnostics={{
+          width: 1280,
+          height: 720,
+          pixelRatio: 2,
+          bufferWidth: 2560,
+          bufferHeight: 1440,
         }}
       />,
     );
 
-    expect(screen.getByText("42 km/h")).toBeInTheDocument();
-    expect(screen.getByText("Accelerating")).toBeInTheDocument();
-    expect(screen.getByText("1")).toBeInTheDocument();
-    expect(screen.getByText("Online")).toBeInTheDocument();
-    expect(screen.getByText("00:12.500")).toBeInTheDocument();
-    expect(screen.getByText("60")).toBeInTheDocument();
-    expect(screen.getByText("Green")).toBeInTheDocument();
-    expect(screen.getByText("87%")).toBeInTheDocument();
+    expect(screen.getByLabelText("Canvas Diagnostics")).toBeInTheDocument();
+    expect(screen.getByText("1280px")).toBeInTheDocument();
+    expect(screen.getByText("720px")).toBeInTheDocument();
+    expect(screen.getByText("2560 × 1440")).toBeInTheDocument();
   });
 
-  it("keeps every metric as a label-value pair", () => {
-    render(<DashboardPanel />);
+  it("renders vehicle telemetry placeholders", () => {
+    render(<DashboardPanel status="idle" simulationTimeSeconds={0} fps={0} />);
 
-    const dashboard = screen.getByRole("region", {
-        name: /dashboard/i,
-    });
+    expect(screen.getByLabelText("Vehicle Telemetry")).toBeInTheDocument();
 
-    expect(within(dashboard).getByText("Speed")).toBeInTheDocument();
+    expect(screen.getByText("Vehicle Speed")).toBeInTheDocument();
+    expect(screen.getByText("Acceleration")).toBeInTheDocument();
+    expect(screen.getByText("Steering Angle")).toBeInTheDocument();
+    expect(screen.getByText("Heading")).toBeInTheDocument();
+    expect(screen.getByText("AI Decision")).toBeInTheDocument();
+    expect(screen.getByText("Collision Count")).toBeInTheDocument();
+    expect(screen.getByText("Sensor Status")).toBeInTheDocument();
+    expect(screen.getByText("Destination Status")).toBeInTheDocument();
+
+    expect(screen.getByText("Waiting for simulation")).toBeInTheDocument();
+    expect(screen.getByText("Not connected")).toBeInTheDocument();
+    expect(screen.getByText("N/A")).toBeInTheDocument();
   });
 });
