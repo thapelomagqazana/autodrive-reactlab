@@ -6,9 +6,9 @@
  * Responsibilities:
  * - Start the browser animation loop.
  * - Stop/pause the browser animation loop.
- * - Cancel pending animation frames.
- * - Prevent duplicate loops.
  * - Calculate safe delta time.
+ * - Calculate sampled FPS.
+ * - Prevent duplicate loops.
  *
  * Non-responsibilities:
  * - No React.
@@ -16,7 +16,6 @@
  * - No physics.
  * - No AI.
  * - No rendering details.
- * - No simulation reset.
  */
 
 export interface GameLoopTick {
@@ -27,6 +26,13 @@ export interface GameLoopTick {
 export interface GameLoopCallbacks {
   update: (tick: GameLoopTick) => void;
   render: (tick: GameLoopTick) => void;
+
+  /**
+   * Called only after the configured FPS sampling interval.
+   *
+   * This prevents UI integrations from updating every animation frame.
+   */
+  onFps?: (fps: number) => void;
 }
 
 export interface GameLoopScheduler {
@@ -37,6 +43,7 @@ export interface GameLoopScheduler {
 export interface GameLoopOptions {
   scheduler?: GameLoopScheduler;
   maxDeltaTimeSeconds?: number;
+  fpsSampleIntervalMs?: number;
 }
 
 export interface GameLoopController {
@@ -46,6 +53,7 @@ export interface GameLoopController {
 }
 
 const DEFAULT_MAX_DELTA_TIME_SECONDS = 0.1;
+const DEFAULT_FPS_SAMPLE_INTERVAL_MS = 1000;
 
 function createBrowserScheduler(): GameLoopScheduler {
   return {
@@ -54,9 +62,9 @@ function createBrowserScheduler(): GameLoopScheduler {
   };
 }
 
-function normalizeMaxDeltaTime(value: number | undefined): number {
+function normalizePositiveNumber(value: number | undefined, fallback: number): number {
   if (!Number.isFinite(value) || value === undefined || value <= 0) {
-    return DEFAULT_MAX_DELTA_TIME_SECONDS;
+    return fallback;
   }
 
   return value;
@@ -82,14 +90,54 @@ function calculateDeltaTimeSeconds(
 
 export function createGameLoop(options: GameLoopOptions = {}): GameLoopController {
   const scheduler = options.scheduler ?? createBrowserScheduler();
-  const maxDeltaTimeSeconds = normalizeMaxDeltaTime(options.maxDeltaTimeSeconds);
+
+  const maxDeltaTimeSeconds = normalizePositiveNumber(
+    options.maxDeltaTimeSeconds,
+    DEFAULT_MAX_DELTA_TIME_SECONDS,
+  );
+
+  const fpsSampleIntervalMs = normalizePositiveNumber(
+    options.fpsSampleIntervalMs,
+    DEFAULT_FPS_SAMPLE_INTERVAL_MS,
+  );
 
   let running = false;
   let frameId: number | null = null;
   let previousTimestampMs: number | null = null;
 
+  let fpsWindowStartMs: number | null = null;
+  let fpsFrameCount = 0;
+
   function resetTiming(): void {
     previousTimestampMs = null;
+    fpsWindowStartMs = null;
+    fpsFrameCount = 0;
+  }
+
+  function updateFps(timestampMs: number, onFps?: (fps: number) => void): void {
+    if (!Number.isFinite(timestampMs)) {
+      return;
+    }
+
+    if (fpsWindowStartMs === null) {
+      fpsWindowStartMs = timestampMs;
+      fpsFrameCount = 0;
+    }
+
+    fpsFrameCount += 1;
+
+    const elapsedMs = timestampMs - fpsWindowStartMs;
+
+    if (elapsedMs < fpsSampleIntervalMs) {
+      return;
+    }
+
+    const fps = Math.round((fpsFrameCount * 1000) / elapsedMs);
+
+    onFps?.(fps);
+
+    fpsWindowStartMs = timestampMs;
+    fpsFrameCount = 0;
   }
 
   function scheduleNextFrame(callbacks: GameLoopCallbacks): void {
@@ -113,6 +161,7 @@ export function createGameLoop(options: GameLoopOptions = {}): GameLoopControlle
 
       callbacks.update(tick);
       callbacks.render(tick);
+      updateFps(timestampMs, callbacks.onFps);
 
       if (running) {
         scheduleNextFrame(callbacks);
@@ -130,11 +179,6 @@ export function createGameLoop(options: GameLoopOptions = {}): GameLoopControlle
     scheduleNextFrame(callbacks);
   }
 
-  /**
-   * Stops or pauses the animation loop.
-   *
-   * This does not reset simulation state. It only stops frame scheduling.
-   */
   function stop(): void {
     if (!running && frameId === null) {
       return;

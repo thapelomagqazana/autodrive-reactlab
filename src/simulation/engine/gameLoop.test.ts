@@ -195,4 +195,123 @@ describe("createGameLoop start", () => {
       deltaTimeSeconds: 0,
     });
   });
+
+  it("does not report FPS before the sampling interval", () => {
+    const { scheduler, runNextFrame } = createMockScheduler();
+    const onFps = vi.fn();
+
+    const loop = createGameLoop({
+      scheduler,
+      fpsSampleIntervalMs: 1000,
+    });
+
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
+      onFps,
+    });
+
+    runNextFrame(0);
+    runNextFrame(250);
+    runNextFrame(500);
+    runNextFrame(750);
+
+    expect(onFps).not.toHaveBeenCalled();
+  });
+
+  it("reports FPS after the sampling interval", () => {
+    const { scheduler, runNextFrame } = createMockScheduler();
+    const onFps = vi.fn();
+
+    const loop = createGameLoop({
+      scheduler,
+      fpsSampleIntervalMs: 1000,
+    });
+
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
+      onFps,
+    });
+
+    runNextFrame(0);
+    runNextFrame(250);
+    runNextFrame(500);
+    runNextFrame(750);
+    runNextFrame(1000);
+
+    expect(onFps).toHaveBeenCalledWith(5);
+  });
+
+  it("resets FPS counters after reporting", () => {
+    const { scheduler, runNextFrame } = createMockScheduler();
+    const onFps = vi.fn();
+
+    const loop = createGameLoop({
+      scheduler,
+      fpsSampleIntervalMs: 1000,
+    });
+
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
+      onFps,
+    });
+
+    runNextFrame(0);
+    runNextFrame(500);
+    runNextFrame(1000);
+
+    runNextFrame(1500);
+    runNextFrame(2000);
+
+    expect(onFps).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not report FPS after stop", () => {
+    const { scheduler, runNextFrame } = createMockScheduler();
+    const onFps = vi.fn();
+
+    const loop = createGameLoop({
+      scheduler,
+      fpsSampleIntervalMs: 1000,
+    });
+
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
+      onFps,
+    });
+
+    loop.stop();
+
+    runNextFrame(2000);
+
+    expect(onFps).not.toHaveBeenCalled();
+  });
+
+  it("uses the default FPS interval when configured interval is invalid", () => {
+    const { scheduler, runNextFrame } = createMockScheduler();
+    const onFps = vi.fn();
+
+    const loop = createGameLoop({
+      scheduler,
+      fpsSampleIntervalMs: 0,
+    });
+
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
+      onFps,
+    });
+
+    runNextFrame(0);
+    runNextFrame(999);
+
+    expect(onFps).not.toHaveBeenCalled();
+
+    runNextFrame(1000);
+
+    expect(onFps).toHaveBeenCalled();
+  });
 });
