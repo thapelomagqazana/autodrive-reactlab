@@ -119,6 +119,21 @@ export interface CarState extends CarPosition {
 }
 
 /**
+ * Explicit movement limits for the car.
+ *
+ * Keeping this separate from CarState allows physics, AI, scenario loading,
+ * and validation tools to reason about speed constraints without needing the
+ * entire vehicle state object.
+ */
+export interface CarMovementLimits {
+  /** Maximum forward speed in pixels per second. */
+  maxSpeed: number;
+
+  /** Maximum reverse speed magnitude in pixels per second. */
+  maxReverseSpeed: number;
+}
+
+/**
  * Default center position for the Phase 1 MVP car.
  *
  * These values are intentionally centralized to prevent magic numbers from
@@ -146,6 +161,14 @@ export const DEFAULT_CAR_MAX_SPEED = 260;
  * Default maximum reverse speed magnitude in pixels per second.
  */
 export const DEFAULT_CAR_MAX_REVERSE_SPEED = 80;
+
+/**
+ * Canonical default movement limits.
+ */
+export const DEFAULT_CAR_MOVEMENT_LIMITS: Readonly<CarMovementLimits> = Object.freeze({
+  maxSpeed: DEFAULT_CAR_MAX_SPEED,
+  maxReverseSpeed: DEFAULT_CAR_MAX_REVERSE_SPEED,
+});
 
 /**
  * Default acceleration in pixels per second squared.
@@ -188,8 +211,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
   angle: DEFAULT_CAR_ANGLE,
   steeringAngle: DEFAULT_CAR_STEERING_ANGLE,
 
-  maxSpeed: DEFAULT_CAR_MAX_SPEED,
-  maxReverseSpeed: DEFAULT_CAR_MAX_REVERSE_SPEED,
+  ...DEFAULT_CAR_MOVEMENT_LIMITS,
 
   width: 36,
   height: 64,
@@ -277,6 +299,57 @@ export function isValidMaxSteeringAngle(value: number): boolean {
 }
 
 /**
+ * Returns true when a speed limit is valid.
+ *
+ * For production movement limits, positive numbers are required.
+ */
+export function isPositiveSpeedLimit(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
+/**
+ * Validates a full movement limit object.
+ */
+export function isValidCarMovementLimits(limits: CarMovementLimits): boolean {
+  return (
+    isPositiveSpeedLimit(limits.maxSpeed) && isPositiveSpeedLimit(limits.maxReverseSpeed)
+  );
+}
+
+/**
+ * Asserts that movement limits are safe for production physics use.
+ */
+export function assertValidCarMovementLimits(limits: CarMovementLimits): void {
+  if (!isPositiveSpeedLimit(limits.maxSpeed)) {
+    throw new RangeError("maxSpeed must be a finite positive value.");
+  }
+
+  if (!isPositiveSpeedLimit(limits.maxReverseSpeed)) {
+    throw new RangeError("maxReverseSpeed must be a finite positive value.");
+  }
+}
+
+/**
+ * Clamps a signed speed value to explicit movement limits.
+ *
+ * Rule:
+ * - Forward speed cannot exceed `maxSpeed`.
+ * - Reverse speed cannot exceed `-maxReverseSpeed`.
+ */
+export function clampCarSpeedToMovementLimits(
+  speed: number,
+  limits: CarMovementLimits,
+): number {
+  if (!isValidCarSpeedValue(speed)) {
+    throw new RangeError("speed must be a finite pixels-per-second value.");
+  }
+
+  assertValidCarMovementLimits(limits);
+
+  return Math.min(Math.max(speed, -limits.maxReverseSpeed), limits.maxSpeed);
+}
+
+/**
  * Creates a safe car position object.
  *
  * This helper is useful for tests, future scenario loading, reset logic, and
@@ -310,19 +383,10 @@ export function clampCarSpeed(
   maxSpeed: number,
   maxReverseSpeed: number,
 ): number {
-  if (!isValidCarSpeedValue(speed)) {
-    throw new RangeError("speed must be a finite pixels-per-second value.");
-  }
-
-  if (!isValidSpeedLimit(maxSpeed)) {
-    throw new RangeError("maxSpeed must be a finite non-negative value.");
-  }
-
-  if (!isValidSpeedLimit(maxReverseSpeed)) {
-    throw new RangeError("maxReverseSpeed must be a finite non-negative value.");
-  }
-
-  return Math.min(Math.max(speed, -maxReverseSpeed), maxSpeed);
+  return clampCarSpeedToMovementLimits(speed, {
+    maxSpeed,
+    maxReverseSpeed,
+  });
 }
 
 /**
