@@ -38,7 +38,7 @@ export function App() {
       dashboard={
         <DashboardPanel
           telemetry={{
-            simulationTime: `${telemetry.elapsedTimeSeconds}s`,
+            simulationTime: `${telemetry.simulationTimeSeconds.toFixed(1)}s`,
             fps: String(telemetry.fps),
             currentDecision: status,
           }}

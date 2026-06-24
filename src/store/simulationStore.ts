@@ -1,5 +1,24 @@
 /**
  * Global simulation store for AutoDrive ReactLab.
+ *
+ * This store owns UI-visible simulation/runtime state only.
+ *
+ * Responsibilities:
+ * - simulation lifecycle status
+ * - simulation elapsed time
+ * - FPS telemetry
+ * - debug-mode preference
+ * - sensor-visibility preference
+ * - safe lifecycle actions
+ *
+ * Non-responsibilities:
+ * - no canvas rendering context
+ * - no requestAnimationFrame IDs
+ * - no game loop instance
+ * - no heavy physics objects
+ * - no raw sensor arrays
+ * - no large replay history
+ * - no browser-only APIs during store creation
  */
 
 import { create } from "zustand";
@@ -7,12 +26,36 @@ import { create } from "zustand";
 export type SimulationStatus = "idle" | "running" | "paused";
 
 export interface SimulationTelemetry {
-  elapsedTimeSeconds: number;
+  /**
+   * Elapsed simulation time in seconds.
+   *
+   * This is simulation time, not wall-clock time.
+   * It should advance from game-loop delta time only.
+   */
+  simulationTimeSeconds: number;
+
+  /**
+   * Frames per second sampled by the game loop.
+   *
+   * This value should be updated at a controlled telemetry interval,
+   * not every animation frame.
+   */
   fps: number;
 }
 
 export interface SimulationUiPreferences {
+  /**
+   * Enables future development overlays such as:
+   * - grid markers
+   * - canvas bounds
+   * - sensor debug views
+   * - AI reasoning overlays
+   */
   isDebugModeEnabled: boolean;
+
+  /**
+   * Controls whether future sensor rays are visible.
+   */
   areSensorsVisible: boolean;
 }
 
@@ -23,19 +66,68 @@ export interface SimulationState {
 }
 
 export interface SimulationActions {
+  /**
+   * Starts or resumes the simulation lifecycle.
+   *
+   * Valid transitions:
+   * - idle -> running
+   * - paused -> running
+   * - running -> running/no-op
+   */
   startSimulation: () => void;
+
+  /**
+   * Pauses the simulation lifecycle.
+   *
+   * Valid transitions:
+   * - running -> paused
+   * - idle -> idle/no-op
+   * - paused -> paused/no-op
+   */
   pauseSimulation: () => void;
+
+  /**
+   * Resets runtime simulation state to baseline.
+   *
+   * Preserves UI preferences because reset should restart the runtime,
+   * not erase user display choices.
+   */
   resetSimulation: () => void;
-  setElapsedTimeSeconds: (value: number) => void;
+
+  /**
+   * Advances simulation time from game-loop delta time.
+   *
+   * Time only advances while status is running.
+   */
+  advanceSimulationTime: (deltaTimeSeconds: number) => void;
+
+  /**
+   * Directly sets simulation elapsed time.
+   *
+   * Useful for future replay restore/testing.
+   */
+  setSimulationTimeSeconds: (value: number) => void;
+
+  /**
+   * Stores sampled FPS from the game loop telemetry callback.
+   */
   setFps: (value: number) => void;
+
+  /**
+   * Toggles future debug overlays.
+   */
   toggleDebugMode: () => void;
+
+  /**
+   * Toggles future sensor visibility.
+   */
   toggleSensorsVisibility: () => void;
 }
 
 export type SimulationStore = SimulationState & SimulationActions;
 
 const INITIAL_TELEMETRY: SimulationTelemetry = {
-  elapsedTimeSeconds: 0,
+  simulationTimeSeconds: 0,
   fps: 0,
 };
 
@@ -44,28 +136,41 @@ const INITIAL_UI: SimulationUiPreferences = {
   areSensorsVisible: true,
 };
 
-const createInitialState = (): SimulationState => ({
-  status: "idle",
-  telemetry: { ...INITIAL_TELEMETRY },
-  ui: { ...INITIAL_UI },
-});
+function createInitialState(): SimulationState {
+  return {
+    status: "idle",
+    telemetry: { ...INITIAL_TELEMETRY },
+    ui: { ...INITIAL_UI },
+  };
+}
 
-const isValidMetric = (value: number): boolean =>
-  Number.isFinite(value) && value >= 0;
+function isValidNonNegativeFiniteNumber(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
 
 export const useSimulationStore = create<SimulationStore>()((set) => ({
   ...createInitialState(),
 
   startSimulation: () =>
     set((state) => {
-      if (state.status === "running") return state;
-      return { status: "running" };
+      if (state.status === "running") {
+        return state;
+      }
+
+      return {
+        status: "running",
+      };
     }),
 
   pauseSimulation: () =>
     set((state) => {
-      if (state.status !== "running") return state;
-      return { status: "paused" };
+      if (state.status !== "running") {
+        return state;
+      }
+
+      return {
+        status: "paused",
+      };
     }),
 
   resetSimulation: () =>
@@ -75,21 +180,43 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
       ui: state.ui,
     })),
 
-  setElapsedTimeSeconds: (value) =>
+  advanceSimulationTime: (deltaTimeSeconds) =>
     set((state) => {
-      if (!isValidMetric(value)) return state;
+      if (
+        state.status !== "running" ||
+        !isValidNonNegativeFiniteNumber(deltaTimeSeconds)
+      ) {
+        return state;
+      }
 
       return {
         telemetry: {
           ...state.telemetry,
-          elapsedTimeSeconds: value,
+          simulationTimeSeconds:
+            state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
+        },
+      };
+    }),
+
+  setSimulationTimeSeconds: (value) =>
+    set((state) => {
+      if (!isValidNonNegativeFiniteNumber(value)) {
+        return state;
+      }
+
+      return {
+        telemetry: {
+          ...state.telemetry,
+          simulationTimeSeconds: value,
         },
       };
     }),
 
   setFps: (value) =>
     set((state) => {
-      if (!isValidMetric(value)) return state;
+      if (!isValidNonNegativeFiniteNumber(value)) {
+        return state;
+      }
 
       return {
         telemetry: {
@@ -122,6 +249,12 @@ export const useSimulationStatus = () =>
 export const useSimulationTelemetry = () =>
   useSimulationStore((state) => state.telemetry);
 
+export const useSimulationTimeSeconds = () =>
+  useSimulationStore((state) => state.telemetry.simulationTimeSeconds);
+
+export const useSimulationFps = () =>
+  useSimulationStore((state) => state.telemetry.fps);
+
 export const useSimulationUiPreferences = () =>
   useSimulationStore((state) => state.ui);
 
@@ -134,8 +267,11 @@ export const usePauseSimulation = () =>
 export const useResetSimulation = () =>
   useSimulationStore((state) => state.resetSimulation);
 
-export const useSetElapsedTimeSeconds = () =>
-  useSimulationStore((state) => state.setElapsedTimeSeconds);
+export const useAdvanceSimulationTime = () =>
+  useSimulationStore((state) => state.advanceSimulationTime);
+
+export const useSetSimulationTimeSeconds = () =>
+  useSimulationStore((state) => state.setSimulationTimeSeconds);
 
 export const useSetFps = () => useSimulationStore((state) => state.setFps);
 
