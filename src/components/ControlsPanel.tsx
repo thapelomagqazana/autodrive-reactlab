@@ -1,19 +1,8 @@
 /**
  * ControlsPanel component.
  *
- * Presentational control surface for AutoDrive ReactLab.
- *
- * Responsibilities:
- * - Render lifecycle controls.
- * - Apply lifecycle-based disabled rules.
- * - Expose accessible buttons.
- * - Call provided event handlers.
- *
- * Non-responsibilities:
- * - No Zustand imports.
- * - No game loop imports.
- * - No requestAnimationFrame usage.
- * - No simulation physics.
+ * Theme:
+ * Tesla FSD + NASA Mission Control Hybrid
  */
 
 import type { SimulationStatus } from "../store";
@@ -29,20 +18,20 @@ export function ControlsPanel({ status, onStart, onPause, onReset }: ControlsPan
   const isRunning = status === "running";
 
   return (
-    <section aria-labelledby="controls-panel-title" className="arcade-panel p-5">
+    <section aria-labelledby="controls-panel-title" className="mission-panel p-5">
       <div className="relative z-10">
-        <p className="arcade-accent text-xs font-black uppercase tracking-[0.25em]">
+        <p className="mission-accent text-xs font-black uppercase tracking-[0.25em]">
           Driver Console
         </p>
 
-        <h2 id="controls-panel-title" className="mt-1 text-lg font-black text-white">
+        <h2 id="controls-panel-title" className="mt-1 text-lg font-black text-slate-50">
           Controls
         </h2>
 
         <div className="mt-5 grid gap-3">
           <button
             type="button"
-            className="arcade-button rounded-lg px-4 py-2 font-black disabled:cursor-not-allowed disabled:opacity-45"
+            className="mission-button rounded-lg px-4 py-2 font-black disabled:cursor-not-allowed disabled:opacity-45"
             disabled={isRunning}
             onClick={onStart}
           >
@@ -51,7 +40,7 @@ export function ControlsPanel({ status, onStart, onPause, onReset }: ControlsPan
 
           <button
             type="button"
-            className="arcade-button rounded-lg px-4 py-2 font-black disabled:cursor-not-allowed disabled:opacity-45"
+            className="mission-button rounded-lg px-4 py-2 font-black disabled:cursor-not-allowed disabled:opacity-45"
             disabled={!isRunning}
             onClick={onPause}
           >
@@ -60,7 +49,7 @@ export function ControlsPanel({ status, onStart, onPause, onReset }: ControlsPan
 
           <button
             type="button"
-            className="rounded-lg border border-cyan-300/30 px-4 py-2 font-black text-cyan-200 hover:bg-cyan-300/10"
+            className="rounded-lg border border-sky-300/30 bg-slate-950/40 px-4 py-2 font-black text-sky-200 transition hover:border-sky-300/60 hover:bg-sky-300/10 hover:text-sky-100"
             onClick={onReset}
           >
             Reset

@@ -2,14 +2,14 @@
  * AutoDrive ReactLab
  *
  * Theme:
- * Retro Arcade Driving Cabinet
+ * Tesla FSD + NASA Mission Control Hybrid
  *
  * Inspiration:
- * • 1980s arcade cabinets
- * • pixel racers
- * • CRT scanlines
- * • coin-op dashboards
- * • neon road grids
+ * • Tesla-style autonomous driving visualization
+ * • NASA mission-control telemetry
+ * • dark professional engineering dashboards
+ * • real-time safety-critical systems
+ * • clean vehicle perception overlays
  */
 
 @import "tailwindcss";
@@ -17,31 +17,32 @@
 :root {
   color-scheme: dark;
 
-  --adr-bg: #090313;
-  --adr-bg-deep: #03010a;
+  --adr-bg: #070b12;
+  --adr-bg-deep: #02050a;
 
-  --adr-panel: rgb(18 10 34 / 90%);
-  --adr-panel-strong: rgb(28 13 54 / 94%);
+  --adr-panel: rgb(10 16 26 / 88%);
+  --adr-panel-strong: rgb(15 23 42 / 94%);
 
-  --adr-text: #fff7d6;
-  --adr-text-muted: #c6b7ff;
+  --adr-text: #f8fafc;
+  --adr-text-muted: #94a3b8;
 
-  --adr-magenta: #ff2bd6;
-  --adr-cyan: #00eaff;
-  --adr-lime: #b6ff00;
-  --adr-orange: #ff9f1c;
-  --adr-yellow: #ffe600;
-  --adr-purple: #6d28d9;
-  --adr-red: #ff3864;
+  --adr-blue: #38bdf8;
+  --adr-cyan: #22d3ee;
+  --adr-green: #22c55e;
+  --adr-yellow: #facc15;
+  --adr-orange: #fb923c;
+  --adr-red: #ef4444;
+  --adr-slate: #64748b;
+  --adr-white: #ffffff;
 
-  --adr-border: rgb(0 234 255 / 28%);
-  --adr-border-hot: rgb(255 43 214 / 48%);
+  --adr-border: rgb(148 163 184 / 18%);
+  --adr-border-hot: rgb(56 189 248 / 42%);
 
-  --adr-radius: 14px;
+  --adr-radius: 16px;
 
-  --adr-shadow-panel: 0 24px 80px rgb(0 0 0 / 70%), 0 0 28px rgb(0 234 255 / 22%);
+  --adr-shadow-panel: 0 24px 80px rgb(0 0 0 / 62%), 0 0 34px rgb(56 189 248 / 12%);
 
-  --adr-shadow-hot: 0 0 16px rgb(255 43 214 / 55%), 0 0 32px rgb(255 158 28 / 22%);
+  --adr-shadow-hot: 0 0 18px rgb(56 189 248 / 34%), 0 0 42px rgb(34 211 238 / 16%);
 }
 
 html {
@@ -57,55 +58,66 @@ body {
 
   color: var(--adr-text);
 
-  font-family: "Trebuchet MS", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 
   background:
-    radial-gradient(circle at 20% 10%, rgb(255 43 214 / 20%), transparent 26rem),
-    radial-gradient(circle at 80% 18%, rgb(0 234 255 / 18%), transparent 26rem),
-    radial-gradient(circle at 50% 100%, rgb(182 255 0 / 10%), transparent 30rem),
-    linear-gradient(180deg, #05010d 0%, #090313 48%, #17072d 100%);
+    radial-gradient(circle at 18% 8%, rgb(56 189 248 / 16%), transparent 28rem),
+    radial-gradient(circle at 82% 14%, rgb(34 197 94 / 8%), transparent 26rem),
+    radial-gradient(circle at 50% 100%, rgb(14 165 233 / 10%), transparent 34rem),
+    linear-gradient(180deg, #02050a 0%, #07111f 48%, #0f172a 100%);
 }
 
-/* CRT scanlines */
+/* Mission-control technical grid */
 body::before {
   position: fixed;
   inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  content: "";
-
-  background: repeating-linear-gradient(
-    180deg,
-    rgb(255 255 255 / 4%) 0,
-    rgb(255 255 255 / 4%) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-
-  mix-blend-mode: overlay;
-}
-
-/* Arcade grid floor */
-body::after {
-  position: fixed;
-  right: -20vw;
-  bottom: -16vh;
-  left: -20vw;
   z-index: -2;
-  height: 68vh;
   pointer-events: none;
   content: "";
 
   background-image:
-    linear-gradient(rgb(0 234 255 / 22%) 2px, transparent 2px),
-    linear-gradient(90deg, rgb(255 43 214 / 18%) 2px, transparent 2px);
+    linear-gradient(rgb(148 163 184 / 5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 5%) 1px, transparent 1px);
 
-  background-size: 72px 72px;
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgb(0 0 0 / 90%), transparent 78%);
+}
 
-  transform: perspective(720px) rotateX(76deg);
+/* Tesla-style road horizon glow */
+body::after {
+  position: fixed;
+  right: -20vw;
+  bottom: -18vh;
+  left: -20vw;
+  z-index: -3;
+  height: 70vh;
+  pointer-events: none;
+  content: "";
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.7%,
+      rgb(56 189 248 / 22%) 50%,
+      transparent 50.3%
+    ),
+    linear-gradient(rgb(56 189 248 / 10%) 2px, transparent 2px);
+
+  background-size:
+    100% 100%,
+    100% 72px;
+
+  transform: perspective(760px) rotateX(74deg);
   transform-origin: bottom;
 
-  box-shadow: inset 0 80px 100px rgb(9 3 19 / 90%);
+  box-shadow: inset 0 90px 120px rgb(2 5 10 / 96%);
 }
 
 #root {
@@ -113,108 +125,134 @@ body::after {
 }
 
 ::selection {
-  color: #07010d;
-  background: var(--adr-lime);
+  color: #020617;
+  background: var(--adr-blue);
 }
 
 :focus-visible {
-  outline: 3px solid var(--adr-yellow);
+  outline: 3px solid var(--adr-blue);
   outline-offset: 3px;
 }
 
-/* Arcade UI utilities */
+/* Professional autonomous systems UI utilities */
 
-.arcade-panel {
+.arcade-panel,
+.mission-panel {
   position: relative;
   overflow: hidden;
 
-  background: linear-gradient(180deg, rgb(33 16 61 / 92%), rgb(12 5 27 / 92%));
+  background: linear-gradient(180deg, rgb(15 23 42 / 94%), rgb(2 6 23 / 92%));
 
-  border: 2px solid var(--adr-border);
+  border: 1px solid var(--adr-border);
   border-radius: var(--adr-radius);
 
   box-shadow: var(--adr-shadow-panel);
+  backdrop-filter: blur(18px);
 }
 
-.arcade-panel::before {
+.arcade-panel::before,
+.mission-panel::before {
   position: absolute;
   inset: 0;
   pointer-events: none;
   content: "";
 
   background:
-    linear-gradient(90deg, transparent, rgb(255 255 255 / 8%), transparent),
-    radial-gradient(circle at top left, rgb(255 43 214 / 16%), transparent 18rem);
+    linear-gradient(90deg, transparent, rgb(255 255 255 / 5%), transparent),
+    radial-gradient(circle at top left, rgb(56 189 248 / 12%), transparent 18rem);
 
-  opacity: 0.7;
+  opacity: 0.72;
 }
 
-.arcade-title {
-  color: var(--adr-yellow);
-  letter-spacing: -0.04em;
+.arcade-title,
+.mission-title {
+  color: var(--adr-text);
+  letter-spacing: -0.055em;
   text-shadow:
-    3px 3px 0 var(--adr-magenta),
-    0 0 18px rgb(255 230 0 / 45%),
-    0 0 34px rgb(255 43 214 / 35%);
+    0 0 18px rgb(56 189 248 / 28%),
+    0 0 34px rgb(14 165 233 / 16%);
 }
 
-.arcade-accent {
-  color: var(--adr-cyan);
+.arcade-accent,
+.mission-accent {
+  color: var(--adr-blue);
   text-shadow:
-    0 0 8px rgb(0 234 255 / 70%),
-    0 0 20px rgb(0 234 255 / 35%);
+    0 0 10px rgb(56 189 248 / 52%),
+    0 0 24px rgb(34 211 238 / 22%);
 }
 
-.arcade-badge {
-  color: #120313;
-  background: linear-gradient(
-    135deg,
-    var(--adr-lime),
-    var(--adr-yellow),
-    var(--adr-orange)
-  );
+.arcade-badge,
+.mission-badge {
+  color: #020617;
+  background: linear-gradient(135deg, var(--adr-blue), var(--adr-cyan), #e0f2fe);
 
   box-shadow:
-    0 0 18px rgb(182 255 0 / 45%),
-    inset 0 -2px 0 rgb(0 0 0 / 20%);
+    0 0 18px rgb(56 189 248 / 34%),
+    inset 0 -2px 0 rgb(0 0 0 / 18%);
 }
 
-.arcade-button {
+.arcade-button,
+.mission-button {
   color: white;
-  background: linear-gradient(180deg, #ff4fd8 0%, #9d2cff 52%, #4611a8 100%);
+  background: linear-gradient(180deg, #1e40af 0%, #0369a1 52%, #075985 100%);
 
-  border: 2px solid rgb(255 255 255 / 18%);
+  border: 1px solid rgb(255 255 255 / 16%);
   box-shadow:
-    0 5px 0 #21074d,
-    0 0 18px rgb(255 43 214 / 35%);
+    0 6px 0 #082f49,
+    0 0 18px rgb(56 189 248 / 24%);
 
   transition:
     transform 120ms ease,
     box-shadow 120ms ease,
-    filter 120ms ease;
+    filter 120ms ease,
+    border-color 120ms ease;
 }
 
-.arcade-button:hover {
+.arcade-button:hover,
+.mission-button:hover {
   transform: translateY(-2px);
   filter: brightness(1.12);
+  border-color: rgb(125 211 252 / 45%);
 
   box-shadow:
-    0 7px 0 #21074d,
-    0 0 24px rgb(0 234 255 / 35%),
-    0 0 28px rgb(255 43 214 / 35%);
+    0 8px 0 #082f49,
+    0 0 24px rgb(56 189 248 / 34%),
+    0 0 34px rgb(34 211 238 / 18%);
 }
 
-.arcade-button:active {
+.arcade-button:active,
+.mission-button:active {
   transform: translateY(3px);
 
   box-shadow:
-    0 2px 0 #21074d,
-    0 0 14px rgb(255 43 214 / 28%);
+    0 2px 0 #082f49,
+    0 0 14px rgb(56 189 248 / 20%);
 }
 
-.arcade-metric {
-  background: rgb(5 1 13 / 55%);
-  border: 1px solid rgb(0 234 255 / 18%);
+.arcade-metric,
+.mission-metric {
+  background: rgb(2 6 23 / 62%);
+  border: 1px solid rgb(148 163 184 / 16%);
   border-radius: 12px;
-  box-shadow: inset 0 0 18px rgb(0 234 255 / 8%);
+  box-shadow:
+    inset 0 0 18px rgb(56 189 248 / 7%),
+    0 0 14px rgb(0 0 0 / 24%);
+}
+
+/* Status helpers */
+
+.adr-status-clear {
+  color: var(--adr-green);
+}
+
+.adr-status-warning {
+  color: var(--adr-yellow);
+}
+
+.adr-status-danger {
+  color: var(--adr-red);
+}
+
+.adr-status-info {
+  color: var(--adr-blue);
 }

@@ -1,31 +1,16 @@
 /**
  * SimulationCanvas component.
  *
- * Owns the primary HTML canvas rendering surface for AutoDrive ReactLab.
- *
- * Responsibilities:
- * - Render exactly one canvas element.
- * - Own the canvas ref.
- * - Provide accessible canvas labeling.
- * - Provide browser fallback text.
- * - Prepare for future 2D context usage.
- *
- * Non-responsibilities:
- * - No drawing logic.
- * - No physics.
- * - No AI.
- * - No game loop.
- * - No resizing logic.
+ * Theme:
+ * Tesla FSD + NASA Mission Control Hybrid
  */
+
 import { useEffect, useRef } from "react";
 import { useCanvas, useCanvasResize } from "../hooks";
 import { renderBackgroundGrid } from "../simulation/engine/gridRenderer";
 import { beginFrame } from "../simulation/engine/frameRenderer";
 
 export interface SimulationCanvasProps {
-  /**
-   * Accessible label used by assistive technology and tests.
-   */
   label?: string;
   isGridEnabled?: boolean;
 }
@@ -35,12 +20,7 @@ export function SimulationCanvas({
   isGridEnabled = true,
 }: SimulationCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  /**
-   * Owned canvas reference.
-   *
-   * Future canvas hooks/renderers may use this ref to access:
-   * canvasRef.current?.getContext("2d")
-   */
+
   const { canvasRef, context, dimensions, resizeCanvas, initializeContext } = useCanvas();
 
   useCanvasResize({
@@ -75,25 +55,25 @@ export function SimulationCanvas({
   }, [context, dimensions, isGridEnabled]);
 
   return (
-    <section className="arcade-panel min-w-0 overflow-hidden p-4">
+    <section className="mission-panel min-w-0 overflow-hidden p-4">
       <div className="relative z-10">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <p className="arcade-accent text-xs font-black uppercase tracking-[0.3em]">
-              Canvas Port
+            <p className="mission-accent text-xs font-black uppercase tracking-[0.3em]">
+              Perception Viewport
             </p>
 
-            <h2 className="mt-1 text-lg font-black text-white">Simulation Canvas</h2>
+            <h2 className="mt-1 text-lg font-black text-slate-50">Simulation Canvas</h2>
           </div>
 
-          <span className="arcade-badge rounded-full px-3 py-1 text-xs font-black">
+          <span className="mission-badge rounded-full px-3 py-1 text-xs font-black">
             Grid Online
           </span>
         </div>
 
         <div
           ref={containerRef}
-          className="relative h-[28rem] overflow-hidden rounded-xl border border-cyan-300/20 bg-black/45 md:h-[34rem] xl:h-[42rem]"
+          className="relative h-[28rem] overflow-hidden rounded-xl border border-sky-300/20 bg-slate-950/70 shadow-inner md:h-[34rem] xl:h-[42rem]"
         >
           <canvas
             ref={canvasRef}
@@ -105,13 +85,13 @@ export function SimulationCanvas({
           </canvas>
 
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="rounded-xl border border-cyan-300/20 bg-black/60 px-5 py-4 text-center backdrop-blur">
-              <p className="arcade-accent text-sm font-black uppercase tracking-[0.25em]">
+            <div className="rounded-xl border border-sky-300/20 bg-slate-950/70 px-5 py-4 text-center shadow-[0_0_24px_rgb(56_189_248_/_0.12)] backdrop-blur">
+              <p className="mission-accent text-sm font-black uppercase tracking-[0.25em]">
                 Render Surface Ready
               </p>
 
-              <p className="mt-2 text-sm text-violet-100/75">
-                Background grid verifies the canvas rendering pipeline.
+              <p className="mt-2 text-sm text-slate-300">
+                Mission-control grid confirms the canvas rendering pipeline.
               </p>
             </div>
           </div>
