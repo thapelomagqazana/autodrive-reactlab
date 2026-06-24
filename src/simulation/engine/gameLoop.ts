@@ -1,34 +1,30 @@
 /**
  * Browser game loop module for AutoDrive ReactLab.
  *
+ * This module owns loop lifecycle only.
+ *
  * Responsibilities:
- * - Schedule frames using requestAnimationFrame.
- * - Execute update and render callbacks.
- * - Calculate safe delta time in seconds.
- * - Cap large delta-time jumps.
- * - Cancel active animation frames on stop.
+ * - start the browser animation loop
+ * - prevent duplicate loops
+ * - schedule frames with requestAnimationFrame
+ * - calculate safe delta time
+ * - execute update/render callbacks
  *
  * Non-responsibilities:
- * - No React.
- * - No Zustand.
- * - No canvas drawing.
- * - No vehicle physics.
- * - No AI decisions.
+ * - no React
+ * - no Zustand
+ * - no physics
+ * - no AI
+ * - no rendering details
  */
 
 export interface GameLoopTick {
-  /** Current frame timestamp from requestAnimationFrame, in milliseconds. */
   timestampMs: number;
-
-  /** Elapsed time since previous frame, measured in seconds. */
   deltaTimeSeconds: number;
 }
 
 export interface GameLoopCallbacks {
-  /** Runs simulation update work once per frame. */
   update: (tick: GameLoopTick) => void;
-
-  /** Runs rendering work once per frame. */
   render: (tick: GameLoopTick) => void;
 }
 
@@ -83,9 +79,6 @@ function calculateDeltaTimeSeconds(
   return Math.min(rawDeltaSeconds, maxDeltaTimeSeconds);
 }
 
-/**
- * Creates a reusable requestAnimationFrame-based game loop.
- */
 export function createGameLoop(options: GameLoopOptions = {}): GameLoopController {
   const scheduler = options.scheduler ?? createBrowserScheduler();
   const maxDeltaTimeSeconds = normalizeMaxDeltaTime(options.maxDeltaTimeSeconds);
@@ -124,6 +117,12 @@ export function createGameLoop(options: GameLoopOptions = {}): GameLoopControlle
     });
   }
 
+  /**
+   * Starts or resumes the animation loop.
+   *
+   * Calling start repeatedly while running is safe and does not create
+   * duplicate requestAnimationFrame loops.
+   */
   function start(callbacks: GameLoopCallbacks): void {
     if (running) {
       return;
