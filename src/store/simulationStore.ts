@@ -1,12 +1,12 @@
 /**
  * Global simulation store for AutoDrive ReactLab.
  *
- * This store owns UI-visible simulation/runtime state only.
+ * Owns lightweight UI-visible simulation/runtime state only.
  *
  * Responsibilities:
  * - simulation lifecycle status
  * - simulation elapsed time
- * - FPS telemetry
+ * - sampled FPS telemetry
  * - debug-mode preference
  * - sensor-visibility preference
  * - safe lifecycle actions
@@ -25,11 +25,6 @@ import { create } from "zustand";
 
 /**
  * Represents the simulation lifecycle state.
- *
- * Valid states:
- * - idle: simulation has not started or has been reset
- * - running: simulation updates are active
- * - paused: simulation is halted without resetting runtime state
  *
  * Valid transitions:
  * - idle -> running
@@ -51,32 +46,21 @@ export interface SimulationTelemetry {
    * Elapsed simulation time in seconds.
    *
    * This is simulation time, not wall-clock time.
-   * It should advance from game-loop delta time only.
+   * It must be advanced from game-loop delta time only.
    */
   simulationTimeSeconds: number;
 
   /**
    * Frames per second sampled by the game loop.
    *
-   * This value should be updated at a controlled telemetry interval,
+   * This should be updated at a controlled telemetry interval,
    * not every animation frame.
    */
   fps: number;
 }
 
 export interface SimulationUiPreferences {
-  /**
-   * Enables future development overlays such as:
-   * - grid markers
-   * - canvas bounds
-   * - sensor debug views
-   * - AI reasoning overlays
-   */
   isDebugModeEnabled: boolean;
-
-  /**
-   * Controls whether future sensor rays are visible.
-   */
   areSensorsVisible: boolean;
 }
 
@@ -87,61 +71,13 @@ export interface SimulationState {
 }
 
 export interface SimulationActions {
-  /**
-   * Starts or resumes the simulation lifecycle.
-   *
-   * Valid transitions:
-   * - idle -> running
-   * - paused -> running
-   * - running -> running/no-op
-   */
   startSimulation: () => void;
-
-  /**
-   * Pauses the simulation lifecycle.
-   *
-   * Valid transitions:
-   * - running -> paused
-   * - idle -> idle/no-op
-   * - paused -> paused/no-op
-   */
   pauseSimulation: () => void;
-
-  /**
-   * Resets runtime simulation state to baseline.
-   *
-   * Preserves UI preferences because reset should restart the runtime,
-   * not erase user display choices.
-   */
   resetSimulation: () => void;
-
-  /**
-   * Advances simulation time from game-loop delta time.
-   *
-   * Time only advances while status is running.
-   */
   advanceSimulationTime: (deltaTimeSeconds: number) => void;
-
-  /**
-   * Directly sets simulation elapsed time.
-   *
-   * Useful for future replay restore/testing.
-   */
   setSimulationTimeSeconds: (value: number) => void;
-
-  /**
-   * Stores sampled FPS from the game loop telemetry callback.
-   */
   setFps: (value: number) => void;
-
-  /**
-   * Toggles future debug overlays.
-   */
   toggleDebugMode: () => void;
-
-  /**
-   * Toggles future sensor visibility.
-   */
   toggleSensorsVisibility: () => void;
 }
 
@@ -178,9 +114,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         return state;
       }
 
-      return {
-        status: "running",
-      };
+      return { status: "running" };
     }),
 
   pauseSimulation: () =>
@@ -189,15 +123,19 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         return state;
       }
 
-      return {
-        status: "paused",
-      };
+      return { status: "paused" };
     }),
 
   resetSimulation: () =>
     set((state) => ({
       status: "idle",
       telemetry: { ...INITIAL_TELEMETRY },
+
+      /**
+       * Preserve display preferences.
+       *
+       * Reset restores runtime state only. It should not erase user choices.
+       */
       ui: state.ui,
     })),
 
