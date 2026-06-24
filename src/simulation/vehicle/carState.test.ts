@@ -1,16 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_CAR_ACCELERATION,
   DEFAULT_CAR_STATE,
   DEFAULT_CAR_MAX_REVERSE_SPEED,
   DEFAULT_CAR_MAX_SPEED,
   DEFAULT_CAR_SPEED,
   DEFAULT_CAR_POSITION,
+  applyForwardAcceleration,
   clampCarSpeed,
   createCarPosition,
   createInitialCarState,
   isValidCarSpeedValue,
   isValidSpeedLimit,
   isValidCanvasPositionValue,
+  isValidAccelerationValue,
 } from "./carState";
 
 describe("createInitialCarState", () => {
@@ -229,5 +232,73 @@ describe("car speed field", () => {
     expect(() => clampCarSpeed(10, 260, -1)).toThrow(RangeError);
     expect(() => clampCarSpeed(10, 260, Number.NaN)).toThrow(RangeError);
     expect(() => clampCarSpeed(10, 260, Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  });
+});
+
+describe("car acceleration capability", () => {
+  it("defines a positive default acceleration", () => {
+    const car = createInitialCarState();
+
+    expect(car.acceleration).toBe(DEFAULT_CAR_ACCELERATION);
+    expect(car.acceleration).toBeGreaterThan(0);
+  });
+
+  it("keeps acceleration separate from current speed", () => {
+    const car = createInitialCarState();
+
+    expect(car.speed).toBe(0);
+    expect(car.acceleration).toBe(120);
+    expect(car.speed).not.toBe(car.acceleration);
+  });
+
+  it("applies acceleration using delta time", () => {
+    expect(applyForwardAcceleration(0, 120, 1)).toBe(120);
+    expect(applyForwardAcceleration(10, 120, 0.5)).toBe(70);
+    expect(applyForwardAcceleration(50, 120, 0)).toBe(50);
+  });
+
+  it("supports zero acceleration for locked movement scenarios", () => {
+    expect(applyForwardAcceleration(50, 0, 1)).toBe(50);
+  });
+
+  it("validates acceleration values", () => {
+    expect(isValidAccelerationValue(0)).toBe(true);
+    expect(isValidAccelerationValue(120)).toBe(true);
+    expect(isValidAccelerationValue(0.5)).toBe(true);
+
+    expect(isValidAccelerationValue(-1)).toBe(false);
+    expect(isValidAccelerationValue(Number.NaN)).toBe(false);
+    expect(isValidAccelerationValue(Number.POSITIVE_INFINITY)).toBe(false);
+    expect(isValidAccelerationValue(Number.NEGATIVE_INFINITY)).toBe(false);
+  });
+
+  it("rejects invalid acceleration values", () => {
+    expect(() => applyForwardAcceleration(0, -1, 1)).toThrow(RangeError);
+    expect(() => applyForwardAcceleration(0, Number.NaN, 1)).toThrow(RangeError);
+    expect(() => applyForwardAcceleration(0, Number.POSITIVE_INFINITY, 1)).toThrow(
+      RangeError,
+    );
+  });
+
+  it("rejects invalid speed values", () => {
+    expect(() => applyForwardAcceleration(Number.NaN, 120, 1)).toThrow(RangeError);
+
+    expect(() => applyForwardAcceleration(Number.POSITIVE_INFINITY, 120, 1)).toThrow(
+      RangeError,
+    );
+  });
+
+  it("rejects invalid delta time values", () => {
+    expect(() => applyForwardAcceleration(0, 120, -1)).toThrow(RangeError);
+    expect(() => applyForwardAcceleration(0, 120, Number.NaN)).toThrow(RangeError);
+
+    expect(() => applyForwardAcceleration(0, 120, Number.POSITIVE_INFINITY)).toThrow(
+      RangeError,
+    );
+  });
+
+  it("handles fractional delta time for frame-rate independent motion", () => {
+    expect(applyForwardAcceleration(0, 120, 1 / 60)).toBeCloseTo(2);
+    expect(applyForwardAcceleration(0, 120, 1 / 30)).toBeCloseTo(4);
   });
 });
