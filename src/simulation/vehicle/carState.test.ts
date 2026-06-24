@@ -7,8 +7,11 @@ import {
   DEFAULT_CAR_SPEED,
   DEFAULT_CAR_POSITION,
   DEFAULT_CAR_ANGLE,
+  DEFAULT_CAR_STEERING_ANGLE,
+  DEFAULT_MAX_STEERING_ANGLE,
   TWO_PI,
   applyForwardAcceleration,
+  clampSteeringAngle,
   clampCarSpeed,
   createCarPosition,
   createInitialCarState,
@@ -16,11 +19,14 @@ import {
   isValidSpeedLimit,
   isValidCanvasPositionValue,
   isValidAccelerationValue,
+  isValidMaxSteeringAngle,
+  isValidSteeringAngle,
   degreesToRadians,
   getHeadingVector,
   isValidHeadingAngle,
   normalizeHeadingAngle,
   radiansToDegrees,
+  steeringInputToAngle,
 } from "./carState";
 
 describe("createInitialCarState", () => {
@@ -383,5 +389,96 @@ describe("vehicle heading angle", () => {
   it("rejects invalid degree values", () => {
     expect(() => degreesToRadians(Number.NaN)).toThrow(RangeError);
     expect(() => degreesToRadians(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  });
+});
+
+describe("vehicle steering angle", () => {
+  it("starts with steering angle set to zero", () => {
+    const car = createInitialCarState();
+
+    expect(car.steeringAngle).toBe(DEFAULT_CAR_STEERING_ANGLE);
+    expect(car.steeringAngle).toBe(0);
+  });
+
+  it("keeps steering angle separate from vehicle heading angle", () => {
+    const car = createInitialCarState();
+
+    expect(car.angle).toBe(0);
+    expect(car.steeringAngle).toBe(0);
+  });
+
+  it("uses negative steering angle for left steering", () => {
+    const left = steeringInputToAngle(-1);
+
+    expect(left).toBeCloseTo(-DEFAULT_MAX_STEERING_ANGLE);
+  });
+
+  it("uses positive steering angle for right steering", () => {
+    const right = steeringInputToAngle(1);
+
+    expect(right).toBeCloseTo(DEFAULT_MAX_STEERING_ANGLE);
+  });
+
+  it("uses zero steering angle for straight wheels", () => {
+    expect(steeringInputToAngle(0)).toBe(0);
+  });
+
+  it("clamps steering angle to maximum steering range", () => {
+    expect(clampSteeringAngle(Math.PI, Math.PI / 6)).toBeCloseTo(Math.PI / 6);
+    expect(clampSteeringAngle(-Math.PI, Math.PI / 6)).toBeCloseTo(-Math.PI / 6);
+  });
+
+  it("allows steering exactly at both boundaries", () => {
+    expect(clampSteeringAngle(Math.PI / 6, Math.PI / 6)).toBeCloseTo(Math.PI / 6);
+    expect(clampSteeringAngle(-Math.PI / 6, Math.PI / 6)).toBeCloseTo(-Math.PI / 6);
+  });
+
+  it("clamps normalized steering input to the range -1 to 1", () => {
+    expect(steeringInputToAngle(99, Math.PI / 6)).toBeCloseTo(Math.PI / 6);
+    expect(steeringInputToAngle(-99, Math.PI / 6)).toBeCloseTo(-Math.PI / 6);
+  });
+
+  it("supports zero maximum steering angle for locked steering scenarios", () => {
+    expect(clampSteeringAngle(Math.PI / 6, 0)).toBe(0);
+    expect(steeringInputToAngle(1, 0)).toBe(0);
+  });
+
+  it("validates steering angles", () => {
+    expect(isValidSteeringAngle(0)).toBe(true);
+    expect(isValidSteeringAngle(Math.PI / 12)).toBe(true);
+    expect(isValidSteeringAngle(-Math.PI / 12)).toBe(true);
+
+    expect(isValidSteeringAngle(Number.NaN)).toBe(false);
+    expect(isValidSteeringAngle(Number.POSITIVE_INFINITY)).toBe(false);
+    expect(isValidSteeringAngle(Number.NEGATIVE_INFINITY)).toBe(false);
+  });
+
+  it("validates maximum steering angles", () => {
+    expect(isValidMaxSteeringAngle(0)).toBe(true);
+    expect(isValidMaxSteeringAngle(Math.PI / 6)).toBe(true);
+
+    expect(isValidMaxSteeringAngle(-1)).toBe(false);
+    expect(isValidMaxSteeringAngle(Number.NaN)).toBe(false);
+    expect(isValidMaxSteeringAngle(Number.POSITIVE_INFINITY)).toBe(false);
+  });
+
+  it("rejects invalid steering angle values", () => {
+    expect(() => clampSteeringAngle(Number.NaN)).toThrow(RangeError);
+    expect(() => clampSteeringAngle(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  });
+
+  it("rejects invalid maximum steering angle values", () => {
+    expect(() => clampSteeringAngle(0, -1)).toThrow(RangeError);
+    expect(() => steeringInputToAngle(0, Number.NaN)).toThrow(RangeError);
+  });
+
+  it("rejects invalid normalized steering input values", () => {
+    expect(() => steeringInputToAngle(Number.NaN)).toThrow(RangeError);
+    expect(() => steeringInputToAngle(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  });
+
+  it("documents default maximum steering angle as 30 degrees", () => {
+    expect(radiansToDegrees(DEFAULT_MAX_STEERING_ANGLE)).toBeCloseTo(30);
+    expect(degreesToRadians(30)).toBeCloseTo(DEFAULT_MAX_STEERING_ANGLE);
   });
 });
