@@ -36,18 +36,26 @@ export type CarDecision =
   | "turning-right";
 
 /**
+ * Center-point position of the simulated vehicle.
+ *
+ * This small type exists so rendering, physics, sensors, and future collision
+ * systems can pass around position data without depending on the full CarState.
+ */
+export interface CarPosition {
+  /** Horizontal center position in canvas pixels. */
+  positionX: number;
+
+  /** Vertical center position in canvas pixels. */
+  positionY: number;
+}
+
+/**
  * Runtime state for the simulated car.
  *
  * This interface intentionally keeps rendering, physics, telemetry, and future
  * AI consumers aligned around one canonical state shape.
  */
-export interface CarState {
-  /** Horizontal center position of the car in canvas pixels. */
-  positionX: number;
-
-  /** Vertical center position of the car in canvas pixels. */
-  positionY: number;
-
+export interface CarState extends CarPosition {
   /**
    * Current vehicle speed in pixels per second.
    *
@@ -103,14 +111,24 @@ export interface CarState {
 }
 
 /**
+ * Default center position for the Phase 1 MVP car.
+ *
+ * These values are intentionally centralized to prevent magic numbers from
+ * leaking into renderers, stores, tests, and future reset logic.
+ */
+export const DEFAULT_CAR_POSITION: Readonly<CarPosition> = Object.freeze({
+  positionX: 400,
+  positionY: 600,
+});
+
+/**
  * Immutable default configuration for the Phase 1 MVP car.
  *
  * Keeping these defaults centralized prevents components, tests, physics,
  * and store reset logic from duplicating magic numbers.
  */
 export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
-  positionX: 400,
-  positionY: 600,
+  ...DEFAULT_CAR_POSITION,
 
   speed: 0,
   acceleration: 120,
@@ -139,5 +157,36 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
 export function createInitialCarState(): CarState {
   return {
     ...DEFAULT_CAR_STATE,
+  };
+}
+
+/**
+ * Returns true when a position value is safe for simulation use.
+ *
+ * This intentionally rejects NaN and Infinity because those values can poison
+ * canvas rendering, physics calculations, and telemetry displays.
+ */
+export function isValidCanvasPositionValue(value: number): boolean {
+  return Number.isFinite(value);
+}
+
+/**
+ * Creates a safe car position object.
+ *
+ * This helper is useful for tests, future scenario loading, reset logic, and
+ * future editor tools where position data may come from user-authored JSON.
+ */
+export function createCarPosition(positionX: number, positionY: number): CarPosition {
+  if (!isValidCanvasPositionValue(positionX)) {
+    throw new RangeError("positionX must be a finite canvas pixel value.");
+  }
+
+  if (!isValidCanvasPositionValue(positionY)) {
+    throw new RangeError("positionY must be a finite canvas pixel value.");
+  }
+
+  return {
+    positionX,
+    positionY,
   };
 }

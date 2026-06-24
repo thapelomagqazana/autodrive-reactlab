@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CAR_STATE, createInitialCarState } from "./carState";
+import {
+  DEFAULT_CAR_STATE,
+  createCarPosition,
+  createInitialCarState,
+  DEFAULT_CAR_POSITION,
+  isValidCanvasPositionValue,
+} from "./carState";
 
 describe("createInitialCarState", () => {
   it("creates the default Phase 1 MVP car state", () => {
@@ -71,5 +77,68 @@ describe("createInitialCarState", () => {
     expect(car.distanceTravelled).toBe(0);
     expect(car.collisionCount).toBe(0);
     expect(car.decision).toBe("idle");
+  });
+});
+
+describe("car position fields", () => {
+  it("defines the default car position in canvas pixels", () => {
+    expect(DEFAULT_CAR_POSITION).toEqual({
+      positionX: 400,
+      positionY: 600,
+    });
+  });
+
+  it("creates initial car state with positionX and positionY", () => {
+    const car = createInitialCarState();
+
+    expect(car.positionX).toBe(400);
+    expect(car.positionY).toBe(600);
+  });
+
+  it("returns position fields as finite numbers", () => {
+    const car = createInitialCarState();
+
+    expect(Number.isFinite(car.positionX)).toBe(true);
+    expect(Number.isFinite(car.positionY)).toBe(true);
+  });
+
+  it("creates a valid custom car position", () => {
+    expect(createCarPosition(120, 240)).toEqual({
+      positionX: 120,
+      positionY: 240,
+    });
+  });
+
+  it("allows zero as a valid canvas position edge case", () => {
+    expect(createCarPosition(0, 0)).toEqual({
+      positionX: 0,
+      positionY: 0,
+    });
+  });
+
+  it("allows negative values for future world-space/camera scenarios", () => {
+    expect(createCarPosition(-50, -100)).toEqual({
+      positionX: -50,
+      positionY: -100,
+    });
+  });
+
+  it("rejects NaN position values", () => {
+    expect(() => createCarPosition(Number.NaN, 100)).toThrow(RangeError);
+    expect(() => createCarPosition(100, Number.NaN)).toThrow(RangeError);
+  });
+
+  it("rejects infinite position values", () => {
+    expect(() => createCarPosition(Number.POSITIVE_INFINITY, 100)).toThrow(RangeError);
+
+    expect(() => createCarPosition(100, Number.NEGATIVE_INFINITY)).toThrow(RangeError);
+  });
+
+  it("validates finite canvas position values", () => {
+    expect(isValidCanvasPositionValue(0)).toBe(true);
+    expect(isValidCanvasPositionValue(400)).toBe(true);
+    expect(isValidCanvasPositionValue(-400)).toBe(true);
+    expect(isValidCanvasPositionValue(Number.NaN)).toBe(false);
+    expect(isValidCanvasPositionValue(Number.POSITIVE_INFINITY)).toBe(false);
   });
 });
