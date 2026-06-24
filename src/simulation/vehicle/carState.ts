@@ -1,0 +1,143 @@
+/**
+ * Car runtime domain model for AutoDrive ReactLab.
+ *
+ * This module is the single source of truth for the simulated vehicle's
+ * core runtime state during Phase 1: MVP moving car on road.
+ *
+ * Coordinate system:
+ * - Units are canvas pixels unless otherwise stated.
+ * - Origin is the top-left of the canvas.
+ * - Positive X moves right.
+ * - Positive Y moves down.
+ *
+ * Angle system:
+ * - Angles are stored in radians.
+ * - 0 radians means the car faces upward/north on the canvas.
+ * - Positive angle rotation is clockwise.
+ *
+ * Design rule:
+ * This file must not import React, Zustand, canvas APIs, physics functions,
+ * rendering functions, or browser APIs. It is a pure domain model.
+ */
+
+/**
+ * Explains the car's current high-level decision/state.
+ *
+ * Phase 1 starts with manual/runtime movement states only. Future phases can
+ * extend this union for AI behaviour such as obstacle avoidance, parking,
+ * lane following, and red-light stopping.
+ */
+export type CarDecision =
+  | "idle"
+  | "accelerating"
+  | "braking"
+  | "reversing"
+  | "turning-left"
+  | "turning-right";
+
+/**
+ * Runtime state for the simulated car.
+ *
+ * This interface intentionally keeps rendering, physics, telemetry, and future
+ * AI consumers aligned around one canonical state shape.
+ */
+export interface CarState {
+  /** Horizontal center position of the car in canvas pixels. */
+  positionX: number;
+
+  /** Vertical center position of the car in canvas pixels. */
+  positionY: number;
+
+  /**
+   * Current vehicle speed in pixels per second.
+   *
+   * Positive values move the car forward.
+   * Negative values move the car in reverse.
+   * Zero means stationary.
+   */
+  speed: number;
+
+  /**
+   * Forward acceleration capability in pixels per second squared.
+   *
+   * This is not current speed. Physics uses this value to change speed over time.
+   */
+  acceleration: number;
+
+  /**
+   * Current vehicle heading in radians.
+   *
+   * 0 means facing upward/north on the canvas.
+   */
+  angle: number;
+
+  /**
+   * Current steering angle in radians.
+   *
+   * 0 means wheels are straight.
+   * Negative means steering left.
+   * Positive means steering right.
+   */
+  steeringAngle: number;
+
+  /** Maximum forward speed in pixels per second. */
+  maxSpeed: number;
+
+  /** Maximum reverse speed magnitude in pixels per second. */
+  maxReverseSpeed: number;
+
+  /** Render and collision width in pixels. */
+  width: number;
+
+  /** Render and collision height in pixels. */
+  height: number;
+
+  /** Total distance travelled in pixels. Used for telemetry. */
+  distanceTravelled: number;
+
+  /** Number of detected collisions. Used for telemetry and scoring. */
+  collisionCount: number;
+
+  /** Current high-level vehicle decision/state. */
+  decision: CarDecision;
+}
+
+/**
+ * Immutable default configuration for the Phase 1 MVP car.
+ *
+ * Keeping these defaults centralized prevents components, tests, physics,
+ * and store reset logic from duplicating magic numbers.
+ */
+export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
+  positionX: 400,
+  positionY: 600,
+
+  speed: 0,
+  acceleration: 120,
+
+  angle: 0,
+  steeringAngle: 0,
+
+  maxSpeed: 260,
+  maxReverseSpeed: 80,
+
+  width: 36,
+  height: 64,
+
+  distanceTravelled: 0,
+  collisionCount: 0,
+
+  decision: "idle",
+});
+
+/**
+ * Creates a fresh initial car state.
+ *
+ * A new object is returned every time so callers can safely mutate their own
+ * runtime copy without changing the shared defaults.
+ */
+export function createInitialCarState(): CarState {
+  return {
+    ...DEFAULT_CAR_STATE,
+  };
+}
