@@ -158,59 +158,59 @@ export function DashboardPanel({
           </section>
         ) : null}
         <section aria-label="Vehicle Telemetry" className="mt-5">
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-violet-100/70">
-                Vehicle Telemetry
-            </h3>
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-violet-100/70">
+            Vehicle Telemetry
+          </h3>
 
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <TelemetryCard
-                label="Vehicle Speed"
-                value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.speed}
-                isPlaceholder
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <TelemetryCard
+              label="Vehicle Speed"
+              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.speed}
+              isPlaceholder
             />
 
-                <TelemetryCard
-                    label="Acceleration"
-                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.acceleration}
-                    isPlaceholder
-                />
+            <TelemetryCard
+              label="Acceleration"
+              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.acceleration}
+              isPlaceholder
+            />
 
-                <TelemetryCard
-                    label="Steering Angle"
-                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.steeringAngle}
-                    isPlaceholder
-                />
+            <TelemetryCard
+              label="Steering Angle"
+              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.steeringAngle}
+              isPlaceholder
+            />
 
-                <TelemetryCard
-                    label="Heading"
-                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.heading}
-                    isPlaceholder
-                />
+            <TelemetryCard
+              label="Heading"
+              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.heading}
+              isPlaceholder
+            />
 
-                <TelemetryCard
-                    label="AI Decision"
-                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.aiDecision}
-                    isPlaceholder
-                />
+            <TelemetryCard
+              label="AI Decision"
+              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.aiDecision}
+              isPlaceholder
+            />
 
-                <TelemetryCard
-                    label="Collision Count"
-                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.collisionCount}
-                    isPlaceholder
-                />
+            <TelemetryCard
+              label="Collision Count"
+              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.collisionCount}
+              isPlaceholder
+            />
 
-                <TelemetryCard
-                    label="Sensor Status"
-                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.sensorStatus}
-                    isPlaceholder
-                />
+            <TelemetryCard
+              label="Sensor Status"
+              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.sensorStatus}
+              isPlaceholder
+            />
 
-                <TelemetryCard
-                    label="Destination Status"
-                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.destinationStatus}
-                    isPlaceholder
-                />
-            </div>
+            <TelemetryCard
+              label="Destination Status"
+              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.destinationStatus}
+              isPlaceholder
+            />
+          </div>
         </section>
       </div>
     </section>

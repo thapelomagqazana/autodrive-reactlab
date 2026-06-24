@@ -39,13 +39,9 @@
 
   --adr-radius: 14px;
 
-  --adr-shadow-panel:
-    0 24px 80px rgb(0 0 0 / 70%),
-    0 0 28px rgb(0 234 255 / 22%);
+  --adr-shadow-panel: 0 24px 80px rgb(0 0 0 / 70%), 0 0 28px rgb(0 234 255 / 22%);
 
-  --adr-shadow-hot:
-    0 0 16px rgb(255 43 214 / 55%),
-    0 0 32px rgb(255 158 28 / 22%);
+  --adr-shadow-hot: 0 0 16px rgb(255 43 214 / 55%), 0 0 32px rgb(255 158 28 / 22%);
 }
 
 html {
@@ -61,12 +57,7 @@ body {
 
   color: var(--adr-text);
 
-  font-family:
-    "Trebuchet MS",
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    sans-serif;
+  font-family: "Trebuchet MS", Inter, ui-sans-serif, system-ui, sans-serif;
 
   background:
     radial-gradient(circle at 20% 10%, rgb(255 43 214 / 20%), transparent 26rem),
@@ -83,14 +74,13 @@ body::before {
   pointer-events: none;
   content: "";
 
-  background:
-    repeating-linear-gradient(
-      180deg,
-      rgb(255 255 255 / 4%) 0,
-      rgb(255 255 255 / 4%) 1px,
-      transparent 1px,
-      transparent 4px
-    );
+  background: repeating-linear-gradient(
+    180deg,
+    rgb(255 255 255 / 4%) 0,
+    rgb(255 255 255 / 4%) 1px,
+    transparent 1px,
+    transparent 4px
+  );
 
   mix-blend-mode: overlay;
 }
@@ -138,8 +128,7 @@ body::after {
   position: relative;
   overflow: hidden;
 
-  background:
-    linear-gradient(180deg, rgb(33 16 61 / 92%), rgb(12 5 27 / 92%));
+  background: linear-gradient(180deg, rgb(33 16 61 / 92%), rgb(12 5 27 / 92%));
 
   border: 2px solid var(--adr-border);
   border-radius: var(--adr-radius);
@@ -178,8 +167,12 @@ body::after {
 
 .arcade-badge {
   color: #120313;
-  background:
-    linear-gradient(135deg, var(--adr-lime), var(--adr-yellow), var(--adr-orange));
+  background: linear-gradient(
+    135deg,
+    var(--adr-lime),
+    var(--adr-yellow),
+    var(--adr-orange)
+  );
 
   box-shadow:
     0 0 18px rgb(182 255 0 / 45%),
@@ -188,8 +181,7 @@ body::after {
 
 .arcade-button {
   color: white;
-  background:
-    linear-gradient(180deg, #ff4fd8 0%, #9d2cff 52%, #4611a8 100%);
+  background: linear-gradient(180deg, #ff4fd8 0%, #9d2cff 52%, #4611a8 100%);
 
   border: 2px solid rgb(255 255 255 / 18%);
   box-shadow:

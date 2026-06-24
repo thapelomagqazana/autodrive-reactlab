@@ -25,12 +25,7 @@ export interface ControlsPanelProps {
   onReset?: () => void;
 }
 
-export function ControlsPanel({
-  status,
-  onStart,
-  onPause,
-  onReset,
-}: ControlsPanelProps) {
+export function ControlsPanel({ status, onStart, onPause, onReset }: ControlsPanelProps) {
   const isRunning = status === "running";
 
   return (

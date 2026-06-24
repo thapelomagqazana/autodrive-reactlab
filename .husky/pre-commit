@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+# Pre-commit quality gate.
+#
+# Purpose:
+#   Prevent obviously broken code from entering local Git history.
+#
+# Runs:
+#   - TypeScript typecheck
+#   - Prettier format check
+#   - ESLint
+#   - Vitest unit/component tests
+#
+# Non-responsibilities:
+#   - No production build
+#   - No deployment
+#   - No E2E tests
+
+set -eu
+
+echo "Running pre-commit checks..."
+
+npm run verify:staged
+
+echo "Pre-commit checks passed."

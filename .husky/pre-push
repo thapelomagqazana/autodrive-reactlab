@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+# Pre-push quality gate.
+#
+# Purpose:
+#   Catch production-readiness issues before code reaches GitHub.
+#
+# Runs:
+#   - Full local verification pipeline
+#
+# Non-responsibilities:
+#   - No deployment
+#   - No release tagging
+#   - No secret access
+
+set -eu
+
+echo "Running pre-push checks..."
+
+npm run verify:push
+
+echo "Pre-push checks passed."

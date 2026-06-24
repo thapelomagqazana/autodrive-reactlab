@@ -26,6 +26,7 @@ npm run test:e2e:report
 ## Browser coverage
 
 The project runs E2E tests against:
+
 - Chromium
 - Firefox
 - WebKit
@@ -33,11 +34,13 @@ The project runs E2E tests against:
 ## Artifacts
 
 On failure, Playwright may capture:
+
 - screenshots
 - videos
 - traces
 
 Reports are written to:
+
 ```
 playwright-report/
 test-results/
@@ -46,10 +49,12 @@ test-results/
 ## Locator rules
 
 Prefer stable, user-facing locators:
+
 ```ts
 page.getByRole("button", { name: /start/i });
 page.getByRole("heading", { name: /AutoDrive ReactLab/i });
 ```
+
 Avoid brittle CSS selectors unless the element has no semantic role.
 
 ## Quality rule

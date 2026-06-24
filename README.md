@@ -1,75 +1,123 @@
-# React + TypeScript + Vite
+# AutoDrive Lab
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Retro-inspired autonomous driving simulation lab built with React, TypeScript, Vite, Tailwind CSS, Zustand, Vitest, and Playwright.
 
-Currently, two official plugins are available:
+## Purpose
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+AutoDrive Lab is a learning-first engineering project for building a browser-based autonomous driving simulator step by step.
 
-## React Compiler
+The project is structured to grow from a professional UI foundation into a full simulation system with:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- canvas rendering
+- game loop timing
+- simulation state
+- controls
+- telemetry dashboard
+- vehicle movement
+- sensors
+- AI decisions
+- replay and diagnostics
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Zustand
+- Vitest
+- Testing Library
+- Playwright
+- ESLint
+- Prettier
+- GitHub Actions
+- Husky
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run typecheck
+npm run format:check
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+npm run verify
+npm run verify:full
 ```
+
+## Project Structure
+
+```text
+src/
+  app/
+  components/
+  hooks/
+  simulation/
+    engine/
+  store/
+  styles/
+  types/
+  utils/
+tests/
+docs/
+.github/
+  workflows/
+```
+
+## Current Features
+
+- AppShell layout
+- Header
+- SimulationCanvas
+- ControlsPanel
+- DashboardPanel
+- Zustand simulation store
+- Start / Pause / Reset lifecycle controls
+- Elapsed time display
+- FPS display
+- Canvas diagnostics support
+- Vehicle telemetry placeholders
+- GitHub Actions CI
+- Husky quality hooks
+
+## Quality Gates
+
+Local verification:
+
+```bash
+npm run verify
+```
+
+Full verification:
+
+```bash
+npm run verify:full
+```
+
+CI runs on pull requests and pushes to `main`.
+
+## Design Principles
+
+- Keep UI components presentational where possible.
+- Keep Zustand as lightweight shared state only.
+- Keep game loop logic outside React components.
+- Keep dashboard read-only.
+- Keep canvas rendering separate from layout.
+- Prefer small, testable modules.
+- Avoid premature coupling between physics, AI, rendering, and UI.
+
+## Documentation
+
+See `docs/` for implementation notes and phase-specific architecture decisions.
+
+## License
+
+MIT

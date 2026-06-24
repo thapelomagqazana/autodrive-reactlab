@@ -151,8 +151,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
       return {
         telemetry: {
           ...state.telemetry,
-          simulationTimeSeconds:
-            state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
+          simulationTimeSeconds: state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
         },
       };
     }),
@@ -202,8 +201,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
     })),
 }));
 
-export const useSimulationStatus = () =>
-  useSimulationStore((state) => state.status);
+export const useSimulationStatus = () => useSimulationStore((state) => state.status);
 
 export const useSimulationTelemetry = () =>
   useSimulationStore((state) => state.telemetry);
@@ -211,11 +209,9 @@ export const useSimulationTelemetry = () =>
 export const useSimulationTimeSeconds = () =>
   useSimulationStore((state) => state.telemetry.simulationTimeSeconds);
 
-export const useSimulationFps = () =>
-  useSimulationStore((state) => state.telemetry.fps);
+export const useSimulationFps = () => useSimulationStore((state) => state.telemetry.fps);
 
-export const useSimulationUiPreferences = () =>
-  useSimulationStore((state) => state.ui);
+export const useSimulationUiPreferences = () => useSimulationStore((state) => state.ui);
 
 export const useStartSimulation = () =>
   useSimulationStore((state) => state.startSimulation);

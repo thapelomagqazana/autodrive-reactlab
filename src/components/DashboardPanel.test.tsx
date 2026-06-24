@@ -11,9 +11,7 @@ describe("DashboardPanel", () => {
   });
 
   it("renders formatted elapsed time and FPS", () => {
-    render(
-      <DashboardPanel status="idle" simulationTimeSeconds={61.5} fps={59.6} />,
-    );
+    render(<DashboardPanel status="idle" simulationTimeSeconds={61.5} fps={59.6} />);
 
     expect(screen.getByText("00:01:01.500")).toBeInTheDocument();
     expect(screen.getByText("60")).toBeInTheDocument();

@@ -14,17 +14,11 @@ function TestCanvas() {
 
   return (
     <div>
-      <canvas
-        ref={canvasRef}
-        aria-label="Test canvas"
-        data-testid="test-canvas"
-      >
+      <canvas ref={canvasRef} aria-label="Test canvas" data-testid="test-canvas">
         Canvas fallback
       </canvas>
 
-      <p data-testid="context-status">
-        {isContextReady ? "ready" : "not-ready"}
-      </p>
+      <p data-testid="context-status">{isContextReady ? "ready" : "not-ready"}</p>
 
       <button type="button" onClick={initializeContext}>
         Initialize context
@@ -38,9 +32,7 @@ function TestWithoutAttachedCanvas() {
 
   return (
     <div>
-      <p data-testid="context-status">
-        {isContextReady ? "ready" : "not-ready"}
-      </p>
+      <p data-testid="context-status">{isContextReady ? "ready" : "not-ready"}</p>
 
       <button type="button" onClick={initializeContext}>
         Initialize context

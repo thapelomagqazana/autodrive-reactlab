@@ -11,9 +11,7 @@ describe("formatCanvasResolution", () => {
   });
 
   it("guards invalid dimensions", () => {
-    expect(formatCanvasResolution(Number.NaN, Number.POSITIVE_INFINITY)).toBe(
-      "0 × 0",
-    );
+    expect(formatCanvasResolution(Number.NaN, Number.POSITIVE_INFINITY)).toBe("0 × 0");
   });
 
   it("guards negative dimensions", () => {

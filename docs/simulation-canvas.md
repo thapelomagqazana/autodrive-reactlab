@@ -14,10 +14,10 @@ This component is intentionally simple in Phase 0. It prepares the rendering sur
 
 The SimulationCanvas exists to establish a clear boundary between:
 
-* application layout
-* rendering surface ownership
-* future canvas rendering logic
-* simulation engine behavior
+- application layout
+- rendering surface ownership
+- future canvas rendering logic
+- simulation engine behavior
 
 The component answers one question:
 
@@ -29,13 +29,13 @@ The component answers one question:
 
 The SimulationCanvas owns:
 
-* HTML `<canvas>` element
-* local canvas reference
-* accessible canvas label
-* placeholder rendering surface
-* fallback canvas text
-* visual canvas container
-* responsive canvas area
+- HTML `<canvas>` element
+- local canvas reference
+- accessible canvas label
+- placeholder rendering surface
+- fallback canvas text
+- visual canvas container
+- responsive canvas area
 
 ---
 
@@ -43,16 +43,16 @@ The SimulationCanvas owns:
 
 The SimulationCanvas must not contain:
 
-* vehicle physics
-* AI decisions
-* pathfinding
-* collision detection
-* sensor raycasting
-* traffic light behavior
-* animation loop scheduling
-* Zustand state mutation
-* telemetry calculations
-* scenario loading
+- vehicle physics
+- AI decisions
+- pathfinding
+- collision detection
+- sensor raycasting
+- traffic light behavior
+- animation loop scheduling
+- Zustand state mutation
+- telemetry calculations
+- scenario loading
 
 Those responsibilities belong to dedicated simulation modules.
 
@@ -105,11 +105,11 @@ This helps tests and assistive technologies identify the canvas.
 
 During Phase 0, the component renders:
 
-* a visible canvas area
-* placeholder text
-* arcade-themed visual frame
-* canvas fallback text
-* local canvas ref
+- a visible canvas area
+- placeholder text
+- arcade-themed visual frame
+- canvas fallback text
+- local canvas ref
 
 It does not yet render real simulation objects.
 
@@ -119,17 +119,17 @@ It does not yet render real simulation objects.
 
 Future phases may extend this component or connect it with:
 
-* `useCanvas`
-* high-DPI canvas scaling
-* resize observer
-* renderer module
-* `requestAnimationFrame` game loop
-* road rendering
-* car rendering
-* sensor ray overlays
-* debug overlays
-* camera transforms
-* world-to-screen coordinate mapping
+- `useCanvas`
+- high-DPI canvas scaling
+- resize observer
+- renderer module
+- `requestAnimationFrame` game loop
+- road rendering
+- car rendering
+- sensor ray overlays
+- debug overlays
+- camera transforms
+- world-to-screen coordinate mapping
 
 ---
 
@@ -163,9 +163,9 @@ It should not cause horizontal overflow.
 
 The canvas should include:
 
-* an accessible label
-* fallback text
-* stable test identifier
+- an accessible label
+- fallback text
+- stable test identifier
 
 ---
 
@@ -175,11 +175,11 @@ The canvas should include:
 
 Verify:
 
-* SimulationCanvas renders.
-* Canvas element exists.
-* Accessible label exists.
-* Placeholder text appears.
-* Component renders without crashing.
+- SimulationCanvas renders.
+- Canvas element exists.
+- Accessible label exists.
+- Placeholder text appears.
+- Component renders without crashing.
 
 ---
 
@@ -187,10 +187,10 @@ Verify:
 
 Verify:
 
-* Component does not import physics modules.
-* Component does not import AI modules.
-* Component does not mutate Zustand state.
-* Component does not start a game loop.
+- Component does not import physics modules.
+- Component does not import AI modules.
+- Component does not mutate Zustand state.
+- Component does not start a game loop.
 
 ---
 
@@ -198,10 +198,10 @@ Verify:
 
 Verify:
 
-* Component renders in a constrained parent.
-* Placeholder remains visible.
-* Canvas fallback text exists.
-* Small viewport does not produce horizontal overflow.
+- Component renders in a constrained parent.
+- Placeholder remains visible.
+- Canvas fallback text exists.
+- Small viewport does not produce horizontal overflow.
 
 ---
 
@@ -271,35 +271,35 @@ This keeps responsibilities separate and testable.
 
 The SimulationCanvas is complete for this phase when:
 
-* the component exists
-* a canvas element renders
-* the component owns a canvas ref
-* the canvas has an accessible label
-* fallback text exists
-* the canvas area is visually distinct
-* the canvas does not overflow the layout
-* tests verify the component renders
-* linting passes
-* build passes
+- the component exists
+- a canvas element renders
+- the component owns a canvas ref
+- the canvas has an accessible label
+- fallback text exists
+- the canvas area is visually distinct
+- the canvas does not overflow the layout
+- tests verify the component renders
+- linting passes
+- build passes
 
 ---
 
 # Related WBS Items
 
-* 0.4.1 — Create AppShell Component
-* 0.4.3 — Create SimulationCanvas Component
-* 0.5 — Canvas Foundation
-* 0.6 — Game Loop Foundation
-* Phase 1 — MVP: Moving Car on Road
+- 0.4.1 — Create AppShell Component
+- 0.4.3 — Create SimulationCanvas Component
+- 0.5 — Canvas Foundation
+- 0.6 — Game Loop Foundation
+- Phase 1 — MVP: Moving Car on Road
 
 ---
 
 # Related Documentation
 
-* `docs/app-shell.md`
-* `docs/header.md`
-* `docs/testing.md`
-* `docs/state-management.md`
+- `docs/app-shell.md`
+- `docs/header.md`
+- `docs/testing.md`
+- `docs/state-management.md`
 
 ---
 
