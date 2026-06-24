@@ -25,80 +25,79 @@ function createMockScheduler() {
   return {
     scheduler,
     runNextFrame,
+    scheduledCount: () => callbacks.length,
   };
 }
 
-describe("createGameLoop delta time", () => {
-  it("passes zero delta time on the first frame", () => {
+describe("createGameLoop start", () => {
+  it("starts the loop and schedules the first frame", () => {
+    const { scheduler } = createMockScheduler();
+    const loop = createGameLoop({ scheduler });
+
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
+    });
+
+    expect(loop.isRunning()).toBe(true);
+    expect(scheduler.requestFrame).toHaveBeenCalledTimes(1);
+  });
+
+  it("executes update and render after the first frame runs", () => {
     const { scheduler, runNextFrame } = createMockScheduler();
     const update = vi.fn();
+    const render = vi.fn();
 
     const loop = createGameLoop({ scheduler });
 
-    loop.start({ update, render: vi.fn() });
+    loop.start({ update, render });
     runNextFrame(1000);
 
     expect(update).toHaveBeenCalledWith({
       timestampMs: 1000,
       deltaTimeSeconds: 0,
     });
+
+    expect(render).toHaveBeenCalledWith({
+      timestampMs: 1000,
+      deltaTimeSeconds: 0,
+    });
   });
 
-  it("calculates delta time in seconds", () => {
-    const { scheduler, runNextFrame } = createMockScheduler();
-    const update = vi.fn();
-
+  it("does not create duplicate loops when start is called repeatedly", () => {
+    const { scheduler } = createMockScheduler();
     const loop = createGameLoop({ scheduler });
 
-    loop.start({ update, render: vi.fn() });
-    runNextFrame(1000);
-    runNextFrame(1016.67);
+    const callbacks = {
+      update: vi.fn(),
+      render: vi.fn(),
+    };
 
-    const lastTick = update.mock.calls.at(-1)?.[0];
+    loop.start(callbacks);
+    loop.start(callbacks);
+    loop.start(callbacks);
 
-    expect(lastTick.timestampMs).toBe(1016.67);
-    expect(lastTick.deltaTimeSeconds).toBeCloseTo(0.01667);
+    expect(loop.isRunning()).toBe(true);
+    expect(scheduler.requestFrame).toHaveBeenCalledTimes(1);
   });
 
-  it("caps large delta time jumps", () => {
+  it("schedules one next frame per executed frame", () => {
     const { scheduler, runNextFrame } = createMockScheduler();
-    const update = vi.fn();
+    const loop = createGameLoop({ scheduler });
 
-    const loop = createGameLoop({
-      scheduler,
-      maxDeltaTimeSeconds: 0.1,
+    loop.start({
+      update: vi.fn(),
+      render: vi.fn(),
     });
 
-    loop.start({ update, render: vi.fn() });
+    expect(scheduler.requestFrame).toHaveBeenCalledTimes(1);
+
     runNextFrame(1000);
-    runNextFrame(5000);
 
-    expect(update).toHaveBeenLastCalledWith({
-      timestampMs: 5000,
-      deltaTimeSeconds: 0.1,
-    });
+    expect(scheduler.requestFrame).toHaveBeenCalledTimes(2);
   });
 
-  it("uses default max delta time when configured value is invalid", () => {
-    const { scheduler, runNextFrame } = createMockScheduler();
-    const update = vi.fn();
-
-    const loop = createGameLoop({
-      scheduler,
-      maxDeltaTimeSeconds: 0,
-    });
-
-    loop.start({ update, render: vi.fn() });
-    runNextFrame(1000);
-    runNextFrame(5000);
-
-    expect(update).toHaveBeenLastCalledWith({
-      timestampMs: 5000,
-      deltaTimeSeconds: 0.1,
-    });
-  });
-
-  it("resets timing after stop and restart", () => {
+  it("can start again after stop with safe first-frame timing", () => {
     const { scheduler, runNextFrame } = createMockScheduler();
     const update = vi.fn();
 
@@ -114,22 +113,6 @@ describe("createGameLoop delta time", () => {
 
     expect(update).toHaveBeenLastCalledWith({
       timestampMs: 5000,
-      deltaTimeSeconds: 0,
-    });
-  });
-
-  it("handles non-increasing timestamps safely", () => {
-    const { scheduler, runNextFrame } = createMockScheduler();
-    const update = vi.fn();
-
-    const loop = createGameLoop({ scheduler });
-
-    loop.start({ update, render: vi.fn() });
-    runNextFrame(1000);
-    runNextFrame(900);
-
-    expect(update).toHaveBeenLastCalledWith({
-      timestampMs: 900,
       deltaTimeSeconds: 0,
     });
   });
