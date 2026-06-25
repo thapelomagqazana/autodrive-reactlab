@@ -8,6 +8,7 @@ import {
   assertValidRoad,
   assertValidRoadHorizontalGeometry,
   createInitialRoad,
+  createLaneDividerLine,
   createRoadBoundaryLine,
   getAllLaneGeometries,
   getDefaultStartLaneCenterX,
@@ -629,5 +630,123 @@ describe("road boundary lines", () => {
         bottomY: 900,
       }),
     ).toThrow(RangeError);
+  });
+});
+
+describe("lane divider lines", () => {
+  it("creates a vertical lane divider line", () => {
+    expect(createLaneDividerLine(340, 0, 900)).toEqual({
+      startX: 340,
+      startY: 0,
+      endX: 340,
+      endY: 900,
+      kind: "divider",
+    });
+  });
+
+  it("calculates divider count from lane count", () => {
+    expect(getLaneDividerCount(1)).toBe(0);
+    expect(getLaneDividerCount(2)).toBe(1);
+    expect(getLaneDividerCount(3)).toBe(2);
+    expect(getLaneDividerCount(4)).toBe(3);
+  });
+
+  it("creates two divider lines for the default three-lane road", () => {
+    const road = createInitialRoad();
+
+    expect(getLaneDividerLines(road)).toEqual([
+      {
+        startX: 340,
+        startY: -2000,
+        endX: 340,
+        endY: 900,
+        kind: "divider",
+      },
+      {
+        startX: 460,
+        startY: -2000,
+        endX: 460,
+        endY: 900,
+        kind: "divider",
+      },
+    ]);
+  });
+
+  it("does not create divider lines for a one-lane road", () => {
+    const road = {
+      centerX: 400,
+      width: 360,
+      laneCount: 1,
+      topY: 0,
+      bottomY: 900,
+    };
+
+    expect(getLaneDividerLines(road)).toEqual([]);
+  });
+
+  it("marks every lane divider line with kind divider", () => {
+    const lines = getLaneDividerLines(createInitialRoad());
+
+    expect(lines).toHaveLength(2);
+    expect(lines.every((line) => line.kind === "divider")).toBe(true);
+  });
+
+  it("places divider lines between adjacent lanes", () => {
+    const road = {
+      centerX: 400,
+      width: 400,
+      laneCount: 4,
+      topY: 0,
+      bottomY: 900,
+    };
+
+    expect(getLaneDividerLines(road).map((line) => line.startX)).toEqual([300, 400, 500]);
+  });
+
+  it("supports fractional divider positions", () => {
+    const road = {
+      centerX: 100,
+      width: 100,
+      laneCount: 3,
+      topY: 0,
+      bottomY: 900,
+    };
+
+    const [firstDivider, secondDivider] = getLaneDividerLines(road);
+
+    expect(firstDivider?.startX).toBeCloseTo(83.333333);
+    expect(secondDivider?.startX).toBeCloseTo(116.666666);
+  });
+
+  it("includes boundaries before dividers in road lines", () => {
+    const lines = getRoadLines(createInitialRoad());
+
+    expect(lines.map((line) => line.kind)).toEqual([
+      "boundary",
+      "boundary",
+      "divider",
+      "divider",
+    ]);
+  });
+
+  it("rejects invalid lane count when calculating divider count", () => {
+    expect(() => getLaneDividerCount(0)).toThrow(RangeError);
+    expect(() => getLaneDividerCount(-1)).toThrow(RangeError);
+    expect(() => getLaneDividerCount(1.5)).toThrow(RangeError);
+    expect(() => getLaneDividerCount(Number.NaN)).toThrow(RangeError);
+  });
+
+  it("rejects invalid divider coordinates", () => {
+    expect(() => createLaneDividerLine(Number.NaN, 0, 900)).toThrow(RangeError);
+    expect(() => createLaneDividerLine(Number.POSITIVE_INFINITY, 0, 900)).toThrow(
+      RangeError,
+    );
+  });
+
+  it("rejects invalid vertical bounds for divider lines", () => {
+    expect(() => createLaneDividerLine(340, Number.NaN, 900)).toThrow(RangeError);
+
+    expect(() => createLaneDividerLine(340, 900, 900)).toThrow(RangeError);
+    expect(() => createLaneDividerLine(340, 900, 0)).toThrow(RangeError);
   });
 });
