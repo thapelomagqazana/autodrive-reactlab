@@ -43,12 +43,11 @@ describe("drawCar", () => {
 
     drawCar(context, car);
 
-    expect(context.roundRect).toHaveBeenCalledWith(
+    expect(context.rect).toHaveBeenCalledWith(
       -car.width / 2,
       -car.height / 2,
       car.width,
       car.height,
-      expect.any(Number),
     );
   });
 
@@ -122,5 +121,32 @@ describe("drawCar", () => {
         width: 0,
       }),
     ).toThrow(RangeError);
+  });
+});
+
+describe("drawCar rectangle body integration", () => {
+  it("translates to car center before drawing body", () => {
+    const context = createMockContext();
+    const car = createInitialCar(createInitialRoad());
+
+    drawCar(context, car);
+
+    expect(context.translate).toHaveBeenCalledWith(car.positionX, car.positionY);
+    expect(context.rect).toHaveBeenCalledWith(
+      -car.width / 2,
+      -car.height / 2,
+      car.width,
+      car.height,
+    );
+  });
+
+  it("does not mutate car state", () => {
+    const context = createMockContext();
+    const car = createInitialCar(createInitialRoad());
+    const snapshot = structuredClone(car);
+
+    drawCar(context, car);
+
+    expect(car).toEqual(snapshot);
   });
 });

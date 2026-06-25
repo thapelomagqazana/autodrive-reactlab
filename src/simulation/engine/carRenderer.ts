@@ -44,13 +44,7 @@ export const DEFAULT_DRAW_CAR_OPTIONS: Required<DrawCarOptions> = {
 };
 
 /**
- * Draws the car using its center position, dimensions, and heading angle.
- *
- * Coordinate convention:
- * - car.positionX and car.positionY represent the car center.
- * - car.width and car.height are measured in pixels.
- * - car.angle is radians.
- * - angle = 0 means facing upward/north on the canvas.
+ * Draws the full MVP car.
  */
 export function drawCar(
   context: CanvasRenderingContext2D,
@@ -69,24 +63,40 @@ export function drawCar(
   context.translate(car.positionX, car.positionY);
   context.rotate(car.angle);
 
-  context.fillStyle = resolvedOptions.bodyFillColor;
-  context.strokeStyle = resolvedOptions.bodyStrokeColor;
-  context.lineWidth = resolvedOptions.bodyLineWidth;
-  context.shadowColor = resolvedOptions.shadowColor;
-  context.shadowBlur = resolvedOptions.shadowBlur;
+  drawCarBody(context, car, resolvedOptions);
+  drawCarFrontIndicator(context, car, resolvedOptions);
+
+  context.restore();
+}
+
+/**
+ * Draws the rectangular car body in local vehicle coordinates.
+ *
+ * This function assumes the caller has already translated the context to the
+ * car center and applied the car heading rotation.
+ */
+export function drawCarBody(
+  context: CanvasRenderingContext2D,
+  car: Pick<CarState, "width" | "height">,
+  options: Pick<
+    Required<DrawCarOptions>,
+    "bodyFillColor" | "bodyStrokeColor" | "bodyLineWidth" | "shadowColor" | "shadowBlur"
+  > = DEFAULT_DRAW_CAR_OPTIONS,
+): void {
+  assertDrawableCarDimensions(car);
+
+  context.save();
+
+  context.fillStyle = options.bodyFillColor;
+  context.strokeStyle = options.bodyStrokeColor;
+  context.lineWidth = options.bodyLineWidth;
+  context.shadowColor = options.shadowColor;
+  context.shadowBlur = options.shadowBlur;
 
   context.beginPath();
-  context.roundRect(
-    -car.width / 2,
-    -car.height / 2,
-    car.width,
-    car.height,
-    Math.min(8, car.width / 4, car.height / 4),
-  );
+  context.rect(-car.width / 2, -car.height / 2, car.width, car.height);
   context.fill();
   context.stroke();
-
-  drawCarFrontIndicator(context, car, resolvedOptions);
 
   context.restore();
 }
@@ -139,6 +149,29 @@ export function assertDrawableCarState(car: CarState): void {
     if (!Number.isFinite(value)) {
       throw new RangeError(`car.${label} must be finite for rendering.`);
     }
+  }
+
+  if (car.width <= 0) {
+    throw new RangeError("car.width must be greater than 0 for rendering.");
+  }
+
+  if (car.height <= 0) {
+    throw new RangeError("car.height must be greater than 0 for rendering.");
+  }
+}
+
+/**
+ * Validates car dimensions required by body/front rendering.
+ */
+export function assertDrawableCarDimensions(
+  car: Pick<CarState, "width" | "height">,
+): void {
+  if (!Number.isFinite(car.width)) {
+    throw new RangeError("car.width must be finite for rendering.");
+  }
+
+  if (!Number.isFinite(car.height)) {
+    throw new RangeError("car.height must be finite for rendering.");
   }
 
   if (car.width <= 0) {
