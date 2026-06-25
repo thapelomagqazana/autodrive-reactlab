@@ -3,11 +3,14 @@ export type { Road, RoadHorizontalGeometry, RoadLine, RoadLineKind } from "./roa
 export {
   DEFAULT_ROAD,
   DEFAULT_ROAD_CENTER_X,
+  DEFAULT_ROAD_LANE_COUNT,
   DEFAULT_ROAD_WIDTH,
+  assertValidLaneCount,
   assertValidRoad,
   assertValidRoadHorizontalGeometry,
   createInitialRoad,
   getLaneCenterX,
+  getLaneDividerCount,
   getLaneDividerLines,
   getLaneWidth,
   getRoadBoundaryLines,
@@ -19,4 +22,5 @@ export {
   isPositiveRoadSize,
   isValidLaneCount,
   isValidRoadWidth,
+  normalizeLaneCount,
 } from "./road";
