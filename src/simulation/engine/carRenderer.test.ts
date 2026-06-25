@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { createInitialRoad } from "../world";
 import { createInitialCar } from "../vehicle";
-import { DEFAULT_DRAW_CAR_OPTIONS, assertDrawableCarState, drawCar } from "./carRenderer";
+import {
+  DEFAULT_DRAW_CAR_OPTIONS,
+  assertDrawableCarState,
+  applyCarTransform,
+  assertDrawableCarTransform,
+  drawCar,
+} from "./carRenderer";
 
 function createMockContext(): CanvasRenderingContext2D {
   return {
@@ -143,6 +149,122 @@ describe("drawCar rectangle body integration", () => {
   it("does not mutate car state", () => {
     const context = createMockContext();
     const car = createInitialCar(createInitialRoad());
+    const snapshot = structuredClone(car);
+
+    drawCar(context, car);
+
+    expect(car).toEqual(snapshot);
+  });
+});
+
+describe("car heading transform", () => {
+  it("applies transform using car center and angle", () => {
+    const context = createMockContext();
+
+    applyCarTransform(context, {
+      positionX: 400,
+      positionY: 600,
+      angle: Math.PI / 2,
+    });
+
+    expect(context.translate).toHaveBeenCalledWith(400, 600);
+    expect(context.rotate).toHaveBeenCalledWith(Math.PI / 2);
+  });
+
+  it("does not convert radians to degrees", () => {
+    const context = createMockContext();
+
+    applyCarTransform(context, {
+      positionX: 400,
+      positionY: 600,
+      angle: Math.PI,
+    });
+
+    expect(context.rotate).toHaveBeenCalledWith(Math.PI);
+    expect(context.rotate).not.toHaveBeenCalledWith(180);
+  });
+
+  it("drawCar saves before transform and restores after drawing", () => {
+    const context = createMockContext();
+    const car = createInitialCar(createInitialRoad(), {
+      angle: Math.PI / 4,
+    });
+
+    drawCar(context, car);
+
+    expect(context.save).toHaveBeenCalled();
+    expect(context.translate).toHaveBeenCalledWith(car.positionX, car.positionY);
+    expect(context.rotate).toHaveBeenCalledWith(Math.PI / 4);
+    expect(context.restore).toHaveBeenCalled();
+  });
+
+  it("drawCar rotates around the car center", () => {
+    const context = createMockContext();
+    const car = createInitialCar(createInitialRoad(), {
+      positionX: 280,
+      positionY: 500,
+      angle: Math.PI / 2,
+    });
+
+    drawCar(context, car);
+
+    expect(context.translate).toHaveBeenCalledWith(280, 500);
+    expect(context.rotate).toHaveBeenCalledWith(Math.PI / 2);
+    expect(context.rect).toHaveBeenCalledWith(
+      -car.width / 2,
+      -car.height / 2,
+      car.width,
+      car.height,
+    );
+  });
+
+  it("supports negative finite angles", () => {
+    const context = createMockContext();
+
+    applyCarTransform(context, {
+      positionX: 400,
+      positionY: 600,
+      angle: -Math.PI / 2,
+    });
+
+    expect(context.rotate).toHaveBeenCalledWith(-Math.PI / 2);
+  });
+
+  it("supports large finite angles without normalization", () => {
+    const context = createMockContext();
+
+    applyCarTransform(context, {
+      positionX: 400,
+      positionY: 600,
+      angle: Math.PI * 8,
+    });
+
+    expect(context.rotate).toHaveBeenCalledWith(Math.PI * 8);
+  });
+
+  it("rejects invalid transform values", () => {
+    expect(() =>
+      assertDrawableCarTransform({
+        positionX: Number.NaN,
+        positionY: 600,
+        angle: 0,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      assertDrawableCarTransform({
+        positionX: 400,
+        positionY: 600,
+        angle: Number.POSITIVE_INFINITY,
+      }),
+    ).toThrow(RangeError);
+  });
+
+  it("does not mutate car state while rotating", () => {
+    const context = createMockContext();
+    const car = createInitialCar(createInitialRoad(), {
+      angle: Math.PI / 3,
+    });
     const snapshot = structuredClone(car);
 
     drawCar(context, car);

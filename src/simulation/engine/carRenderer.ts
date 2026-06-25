@@ -70,6 +70,22 @@ export function drawCar(
 }
 
 /**
+ * Applies the vehicle-local transform.
+ *
+ * This function intentionally does not call save() or restore().
+ * The caller owns canvas state boundaries.
+ */
+export function applyCarTransform(
+  context: CanvasRenderingContext2D,
+  car: Pick<CarState, "positionX" | "positionY" | "angle">,
+): void {
+  assertDrawableCarTransform(car);
+
+  context.translate(car.positionX, car.positionY);
+  context.rotate(car.angle);
+}
+
+/**
  * Draws the rectangular car body in local vehicle coordinates.
  *
  * This function assumes the caller has already translated the context to the
@@ -103,15 +119,14 @@ export function drawCarBody(
 
 /**
  * Draws a small forward-facing indicator near the front of the car.
- *
- * Because the car is already translated and rotated by drawCar(), the indicator
- * can be drawn in local vehicle coordinates.
  */
 export function drawCarFrontIndicator(
   context: CanvasRenderingContext2D,
-  car: CarState,
+  car: Pick<CarState, "width" | "height">,
   options: Pick<Required<DrawCarOptions>, "frontIndicatorColor">,
 ): void {
+  assertDrawableCarDimensions(car);
+
   const indicatorWidth = car.width * 0.45;
   const indicatorHeight = Math.max(3, car.height * 0.08);
 
@@ -131,17 +146,22 @@ export function drawCarFrontIndicator(
 }
 
 /**
- * Validates values required for rendering.
- *
- * Rendering with NaN or Infinity can poison the canvas state and create
- * extremely difficult visual bugs. Fail early instead.
+ * Validates complete car state required by drawCar().
  */
 export function assertDrawableCarState(car: CarState): void {
+  assertDrawableCarTransform(car);
+  assertDrawableCarDimensions(car);
+}
+
+/**
+ * Validates car transform fields required by drawCar().
+ */
+export function assertDrawableCarTransform(
+  car: Pick<CarState, "positionX" | "positionY" | "angle">,
+): void {
   const valuesToCheck: Array<[string, number]> = [
     ["positionX", car.positionX],
     ["positionY", car.positionY],
-    ["width", car.width],
-    ["height", car.height],
     ["angle", car.angle],
   ];
 
@@ -149,14 +169,6 @@ export function assertDrawableCarState(car: CarState): void {
     if (!Number.isFinite(value)) {
       throw new RangeError(`car.${label} must be finite for rendering.`);
     }
-  }
-
-  if (car.width <= 0) {
-    throw new RangeError("car.width must be greater than 0 for rendering.");
-  }
-
-  if (car.height <= 0) {
-    throw new RangeError("car.height must be greater than 0 for rendering.");
   }
 }
 
