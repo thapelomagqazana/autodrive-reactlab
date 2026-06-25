@@ -4,6 +4,7 @@ import {
   DEFAULT_DRAW_ROAD_OPTIONS,
   drawRoad,
   drawRoadLine,
+  drawRoadBoundaries,
   drawRoadSurface,
   getRoadSurfaceRect,
 } from "./roadRenderer";
@@ -204,6 +205,112 @@ describe("road surface rendering", () => {
 
     expect(() =>
       drawRoadSurface(
+        context,
+        {
+          centerX: 400,
+          width: 0,
+          laneCount: 3,
+          topY: 0,
+          bottomY: 900,
+        },
+        DEFAULT_DRAW_ROAD_OPTIONS,
+      ),
+    ).toThrow(RangeError);
+  });
+});
+
+describe("road boundary rendering", () => {
+  it("draws exactly two road boundary lines", () => {
+    const context = createMockContext();
+
+    drawRoadBoundaries(context, createInitialRoad(), DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(context.beginPath).toHaveBeenCalledTimes(2);
+    expect(context.stroke).toHaveBeenCalledTimes(2);
+  });
+
+  it("draws the left boundary at the generated left road edge", () => {
+    const context = createMockContext();
+
+    drawRoadBoundaries(context, createInitialRoad(), DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(1, 220, -2000);
+    expect(context.lineTo).toHaveBeenNthCalledWith(1, 220, 900);
+  });
+
+  it("draws the right boundary at the generated right road edge", () => {
+    const context = createMockContext();
+
+    drawRoadBoundaries(context, createInitialRoad(), DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(2, 580, -2000);
+    expect(context.lineTo).toHaveBeenNthCalledWith(2, 580, 900);
+  });
+
+  it("uses boundary styling instead of divider styling", () => {
+    const context = createMockContext();
+
+    drawRoadBoundaries(context, createInitialRoad(), {
+      boundaryColor: "white",
+      boundaryLineWidth: 4,
+      boundaryGlowColor: "cyan",
+      showBoundaryGlow: false,
+    });
+
+    expect(context.strokeStyle).toBe("white");
+    expect(context.lineWidth).toBe(4);
+    expect(context.setLineDash).toHaveBeenCalledWith([]);
+  });
+
+  it("can apply optional subtle boundary glow", () => {
+    const context = createMockContext();
+
+    drawRoadBoundaries(context, createInitialRoad(), {
+      boundaryColor: "white",
+      boundaryLineWidth: 3,
+      boundaryGlowColor: "rgb(96 165 250 / 0.35)",
+      showBoundaryGlow: true,
+    });
+
+    expect(context.shadowColor).toBe("rgb(96 165 250 / 0.35)");
+    expect(context.shadowBlur).toBe(8);
+  });
+
+  it("saves and restores canvas state for each boundary line", () => {
+    const context = createMockContext();
+
+    drawRoadBoundaries(context, createInitialRoad(), DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(context.save).toHaveBeenCalledTimes(2);
+    expect(context.restore).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not mutate the road model", () => {
+    const context = createMockContext();
+    const road = createInitialRoad();
+    const snapshot = structuredClone(road);
+
+    drawRoadBoundaries(context, road, DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(road).toEqual(snapshot);
+  });
+
+  it("draws boundaries before divider lines inside drawRoad", () => {
+    const context = createMockContext();
+
+    drawRoad(context, createInitialRoad());
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(1, 220, -2000);
+    expect(context.moveTo).toHaveBeenNthCalledWith(2, 580, -2000);
+    expect(context.moveTo).toHaveBeenNthCalledWith(3, 340, -2000);
+    expect(context.moveTo).toHaveBeenNthCalledWith(4, 460, -2000);
+  });
+
+  it("rejects invalid road geometry before drawing boundaries", () => {
+    const context = createMockContext();
+
+    expect(() =>
+      drawRoadBoundaries(
         context,
         {
           centerX: 400,
