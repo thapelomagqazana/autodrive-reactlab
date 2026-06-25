@@ -8,6 +8,7 @@ import {
   drawRoadSurface,
   getRoadSurfaceRect,
   drawLaneDividers,
+  drawRoadCenterGuide,
 } from "./roadRenderer";
 
 function createMockContext(): CanvasRenderingContext2D {
@@ -419,5 +420,78 @@ describe("lane divider rendering", () => {
         DEFAULT_DRAW_ROAD_OPTIONS,
       ),
     ).toThrow(RangeError);
+  });
+});
+
+describe("road center guide rendering", () => {
+  it("does not draw the center guide by default", () => {
+    const context = createMockContext();
+
+    drawRoadCenterGuide(context, createInitialRoad(), DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(context.beginPath).not.toHaveBeenCalled();
+    expect(context.stroke).not.toHaveBeenCalled();
+  });
+
+  it("draws the center guide when enabled", () => {
+    const context = createMockContext();
+
+    drawRoadCenterGuide(context, createInitialRoad(), {
+      ...DEFAULT_DRAW_ROAD_OPTIONS,
+      showCenterGuide: true,
+    });
+
+    expect(context.beginPath).toHaveBeenCalledOnce();
+    expect(context.moveTo).toHaveBeenCalledWith(400, -2000);
+    expect(context.lineTo).toHaveBeenCalledWith(400, 900);
+    expect(context.stroke).toHaveBeenCalledOnce();
+  });
+
+  it("uses diagnostic center guide styling", () => {
+    const context = createMockContext();
+
+    drawRoadCenterGuide(context, createInitialRoad(), {
+      ...DEFAULT_DRAW_ROAD_OPTIONS,
+      showCenterGuide: true,
+      centerGuideColor: "rgb(56 189 248)",
+      centerGuideLineWidth: 1,
+    });
+
+    expect(context.strokeStyle).toBe("rgb(56 189 248)");
+    expect(context.lineWidth).toBe(1);
+    expect(context.setLineDash).toHaveBeenCalledWith([8, 12]);
+  });
+
+  it("does not mutate road state", () => {
+    const context = createMockContext();
+    const road = createInitialRoad();
+    const snapshot = structuredClone(road);
+
+    drawRoadCenterGuide(context, road, {
+      ...DEFAULT_DRAW_ROAD_OPTIONS,
+      showCenterGuide: true,
+    });
+
+    expect(road).toEqual(snapshot);
+  });
+
+  it("adds one extra line to full road rendering when enabled", () => {
+    const context = createMockContext();
+
+    drawRoad(context, createInitialRoad(), {
+      showCenterGuide: true,
+    });
+
+    expect(context.stroke).toHaveBeenCalledTimes(5);
+    expect(context.moveTo).toHaveBeenLastCalledWith(400, -2000);
+    expect(context.lineTo).toHaveBeenLastCalledWith(400, 900);
+  });
+
+  it("does not add the center guide to full road rendering when disabled", () => {
+    const context = createMockContext();
+
+    drawRoad(context, createInitialRoad());
+
+    expect(context.stroke).toHaveBeenCalledTimes(4);
   });
 });
