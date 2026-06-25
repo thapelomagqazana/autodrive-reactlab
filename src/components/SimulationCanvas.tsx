@@ -1,18 +1,35 @@
 /**
  * SimulationCanvas component.
- *
- * Theme:
- * Tesla FSD + NASA Mission Control Hybrid
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useCanvas, useCanvasResize } from "../hooks";
-import { renderBackgroundGrid } from "../simulation/engine/gridRenderer";
 import { beginFrame } from "../simulation/engine/frameRenderer";
+import { renderBackgroundGrid } from "../simulation/engine/gridRenderer";
+import { drawRoad } from "../simulation/engine/roadRenderer";
+import { createFixedRoadForViewport } from "../simulation/world/roadViewport";
 
 export interface SimulationCanvasProps {
   label?: string;
   isGridEnabled?: boolean;
+}
+
+interface CanvasDimensions {
+  width: number;
+  height: number;
+  pixelRatio?: number;
+}
+
+function hasValidCanvasDimensions(
+  dimensions: CanvasDimensions | null,
+): dimensions is CanvasDimensions {
+  return (
+    dimensions !== null &&
+    Number.isFinite(dimensions.width) &&
+    Number.isFinite(dimensions.height) &&
+    dimensions.width > 0 &&
+    dimensions.height > 0
+  );
 }
 
 export function SimulationCanvas({
@@ -32,8 +49,19 @@ export function SimulationCanvas({
     initializeContext();
   }, [initializeContext]);
 
+  const road = useMemo(() => {
+    if (!hasValidCanvasDimensions(dimensions)) {
+      return null;
+    }
+
+    return createFixedRoadForViewport({
+      width: dimensions.width,
+      height: dimensions.height,
+    });
+  }, [dimensions]);
+
   useEffect(() => {
-    if (!context || !dimensions) {
+    if (!context || !hasValidCanvasDimensions(dimensions)) {
       return;
     }
 
@@ -42,17 +70,19 @@ export function SimulationCanvas({
       height: dimensions.height,
     });
 
-    if (!isGridEnabled) {
-      return;
+    if (isGridEnabled) {
+      renderBackgroundGrid(context, {
+        width: dimensions.width,
+        height: dimensions.height,
+        spacing: 40 * (dimensions.pixelRatio ?? 1),
+        enabled: isGridEnabled,
+      });
     }
 
-    renderBackgroundGrid(context, {
-      width: dimensions.width,
-      height: dimensions.height,
-      spacing: 40 * dimensions.pixelRatio,
-      enabled: isGridEnabled,
-    });
-  }, [context, dimensions, isGridEnabled]);
+    if (road) {
+      drawRoad(context, road);
+    }
+  }, [context, dimensions, isGridEnabled, road]);
 
   return (
     <section className="mission-panel min-w-0 overflow-hidden p-4">

@@ -39,3 +39,14 @@ export {
   isValidRoadWidth,
   normalizeLaneCount,
 } from "./road";
+
+export type { CreateFixedRoadOptions, RoadViewportDimensions } from "./roadViewport";
+
+export {
+  DEFAULT_ROAD_BOTTOM_EXTENSION,
+  DEFAULT_ROAD_TOP_EXTENSION,
+  assertValidRoadViewportDimensions,
+  createFixedRoadForViewport,
+  isRoadCenteredInViewport,
+  isValidViewportDimension,
+} from "./roadViewport";

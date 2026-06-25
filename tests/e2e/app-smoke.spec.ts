@@ -28,11 +28,34 @@ test.describe("AutoDrive ReactLab startup", () => {
       }),
     ).toBeVisible();
 
-    await expect(page.getByText("Autonomous Simulation Lab")).toBeVisible();
+    await expect(page.getByText("Autonomous Vehicle Mission Control")).toBeVisible();
 
     await expect(page.getByRole("heading", { name: "Simulation Canvas" })).toBeVisible();
 
-    await expect(page.getByTestId("simulation-canvas")).toBeVisible();
+    const canvas = page.getByTestId("simulation-canvas");
+    await expect(canvas).toBeVisible();
+
+    await expect(page.getByText("Grid Online")).toBeVisible();
+
+    const hasRenderedPixels = await canvas.evaluate((element) => {
+      const canvasElement = element as HTMLCanvasElement;
+      const context = canvasElement.getContext("2d");
+
+      if (!context || canvasElement.width === 0 || canvasElement.height === 0) {
+        return false;
+      }
+
+      const imageData = context.getImageData(
+        0,
+        0,
+        canvasElement.width,
+        canvasElement.height,
+      );
+
+      return imageData.data.some((value) => value !== 0);
+    });
+
+    expect(hasRenderedPixels).toBe(true);
 
     await expect(page.getByRole("heading", { name: "Controls" })).toBeVisible();
 
