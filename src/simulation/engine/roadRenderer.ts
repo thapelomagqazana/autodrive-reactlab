@@ -33,6 +33,12 @@ export interface DrawRoadOptions {
   /** Road boundary line color. */
   boundaryColor?: string;
 
+  /** Optional boundary glow color. */
+  boundaryGlowColor?: string;
+
+  /** Whether boundary glow should be rendered. */
+  showBoundaryGlow?: boolean;
+
   /** Lane divider line color. */
   dividerColor?: string;
 
@@ -61,6 +67,8 @@ export interface DrawRoadOptions {
 export const DEFAULT_DRAW_ROAD_OPTIONS: Required<DrawRoadOptions> = {
   surfaceColor: "rgb(15 23 42)",
   boundaryColor: "rgb(226 232 240)",
+  boundaryGlowColor: "rgb(96 165 250 / 0.35)",
+  showBoundaryGlow: false,
   dividerColor: "rgb(148 163 184)",
   boundaryLineWidth: 3,
   dividerLineWidth: 2,
@@ -96,6 +104,31 @@ export function getRoadSurfaceRect(road: Road): RoadSurfaceRect {
 }
 
 /**
+ * Draws only the left and right road boundary lines.
+ *
+ * This function exists so frame renderers and tests can verify road edge
+ * rendering independently from the complete drawRoad() pipeline.
+ */
+export function drawRoadBoundaries(
+  context: CanvasRenderingContext2D,
+  road: Road,
+  options: Pick<
+    Required<DrawRoadOptions>,
+    "boundaryColor" | "boundaryLineWidth" | "boundaryGlowColor" | "showBoundaryGlow"
+  > = DEFAULT_DRAW_ROAD_OPTIONS,
+): void {
+  const boundaryLines = getRoadBoundaryLines(road);
+
+  drawRoadLines(context, boundaryLines, {
+    color: options.boundaryColor,
+    lineWidth: options.boundaryLineWidth,
+    dash: [],
+    shadowColor: options.showBoundaryGlow ? options.boundaryGlowColor : undefined,
+    shadowBlur: options.showBoundaryGlow ? 8 : 0,
+  });
+}
+
+/**
  * Draws the full MVP road.
  */
 export function drawRoad(
@@ -111,12 +144,7 @@ export function drawRoad(
   context.save();
 
   drawRoadSurface(context, road, resolvedOptions);
-
-  drawRoadLines(context, getRoadBoundaryLines(road), {
-    color: resolvedOptions.boundaryColor,
-    lineWidth: resolvedOptions.boundaryLineWidth,
-    dash: [],
-  });
+  drawRoadBoundaries(context, road, resolvedOptions);
 
   drawRoadLines(context, getLaneDividerLines(road), {
     color: resolvedOptions.dividerColor,
@@ -168,6 +196,8 @@ export interface DrawLineStyle {
   color: string;
   lineWidth: number;
   dash: number[];
+  shadowColor?: string;
+  shadowBlur?: number;
 }
 
 /**
@@ -196,6 +226,11 @@ export function drawRoadLine(
   context.strokeStyle = style.color;
   context.lineWidth = style.lineWidth;
   context.setLineDash(style.dash);
+
+  if (style.shadowColor && style.shadowBlur && style.shadowBlur > 0) {
+    context.shadowColor = style.shadowColor;
+    context.shadowBlur = style.shadowBlur;
+  }
 
   context.beginPath();
   context.moveTo(line.startX, line.startY);
