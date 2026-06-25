@@ -129,6 +129,44 @@ export function drawRoadBoundaries(
 }
 
 /**
+ * Draws the optional road center guide line.
+ *
+ * This is a debug-only visual used to verify road alignment, car spawn
+ * alignment, camera alignment, and lane geometry.
+ *
+ * It is hidden by default and only renders when explicitly enabled through
+ * `showCenterGuide`.
+ */
+export function drawRoadCenterGuide(
+  context: CanvasRenderingContext2D,
+  road: Road,
+  options: Pick<
+    Required<DrawRoadOptions>,
+    "showCenterGuide" | "centerGuideColor" | "centerGuideLineWidth"
+  > = DEFAULT_DRAW_ROAD_OPTIONS,
+): void {
+  if (!options.showCenterGuide) {
+    return;
+  }
+
+  drawRoadLine(
+    context,
+    {
+      startX: road.centerX,
+      startY: road.topY,
+      endX: road.centerX,
+      endY: road.bottomY,
+      kind: "divider",
+    },
+    {
+      color: options.centerGuideColor,
+      lineWidth: options.centerGuideLineWidth,
+      dash: [8, 12],
+    },
+  );
+}
+
+/**
  * Draws only lane divider markings.
  *
  * Lane dividers are visual road markings, not collision boundaries.
@@ -169,24 +207,7 @@ export function drawRoad(
   drawRoadSurface(context, road, resolvedOptions);
   drawRoadBoundaries(context, road, resolvedOptions);
   drawLaneDividers(context, road, resolvedOptions);
-
-  if (resolvedOptions.showCenterGuide) {
-    drawRoadLine(
-      context,
-      {
-        startX: road.centerX,
-        startY: road.topY,
-        endX: road.centerX,
-        endY: road.bottomY,
-        kind: "divider",
-      },
-      {
-        color: resolvedOptions.centerGuideColor,
-        lineWidth: resolvedOptions.centerGuideLineWidth,
-        dash: [8, 12],
-      },
-    );
-  }
+  drawRoadCenterGuide(context, road, resolvedOptions);
 
   context.restore();
 }
