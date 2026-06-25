@@ -372,3 +372,52 @@ describe("createInitialCar dimensions", () => {
     ).toThrow(RangeError);
   });
 });
+
+describe("createInitialCar stationary initial speed", () => {
+  it("starts with exactly zero speed", () => {
+    const car = createInitialCar(createInitialRoad());
+
+    expect(car.speed).toBe(0);
+  });
+
+  it("creates reset-safe cars with zero speed every time", () => {
+    const road = createInitialRoad();
+
+    const first = createInitialCar(road);
+    const second = createInitialCar(road);
+
+    expect(first.speed).toBe(0);
+    expect(second.speed).toBe(0);
+    expect(first).not.toBe(second);
+  });
+
+  it("does not create default drift before simulation start", () => {
+    const car = createInitialCar(createInitialRoad());
+
+    expect(car.speed).toBe(0);
+    expect(car.decision).toBe("idle");
+    expect(car.distanceTravelled).toBe(0);
+  });
+
+  it("allows explicit speed override only for controlled tests or tooling", () => {
+    const car = createInitialCar(createInitialRoad(), {
+      speed: 25,
+    });
+
+    expect(car.speed).toBe(25);
+  });
+
+  it("rejects invalid initial speed values", () => {
+    expect(() =>
+      createInitialCar(createInitialRoad(), {
+        speed: Number.NaN,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      createInitialCar(createInitialRoad(), {
+        speed: Number.POSITIVE_INFINITY,
+      }),
+    ).toThrow(RangeError);
+  });
+});
