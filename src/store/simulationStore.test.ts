@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useSimulationStore } from "./simulationStore";
+import { createInitialRoad } from "../simulation/world";
+import { createInitialCar } from "../simulation/vehicle";
 
 function resetStore() {
+  const road = createInitialRoad();
+
   useSimulationStore.setState({
     status: "idle",
     telemetry: {
@@ -12,6 +16,8 @@ function resetStore() {
       isDebugModeEnabled: false,
       areSensorsVisible: true,
     },
+    road,
+    car: createInitialCar(road),
   });
 }
 
@@ -230,5 +236,52 @@ describe("simulationStore", () => {
     useSimulationStore.getState().advanceSimulationTime(1);
 
     expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBe(0);
+  });
+
+  it("initializes road and car state", () => {
+    const state = useSimulationStore.getState();
+
+    expect(state.road.centerX).toBe(400);
+    expect(state.car.positionX).toBe(400);
+    expect(state.car.speed).toBe(0);
+    expect(state.car.angle).toBe(0);
+    expect(state.car.steeringAngle).toBe(0);
+    expect(state.car.decision).toBe("idle");
+    expect(state.car.collisionCount).toBe(0);
+    expect(state.car.distanceTravelled).toBe(0);
+  });
+
+  it("resetSimulation restores car state", () => {
+    useSimulationStore.getState().setCar({
+      ...useSimulationStore.getState().car,
+      positionX: 123,
+      speed: 99,
+      angle: Math.PI,
+      steeringAngle: 0.5,
+      decision: "accelerating",
+      collisionCount: 7,
+      distanceTravelled: 1000,
+    });
+
+    useSimulationStore.getState().resetSimulation();
+
+    const state = useSimulationStore.getState();
+
+    expect(state.car.positionX).toBe(400);
+    expect(state.car.speed).toBe(0);
+    expect(state.car.angle).toBe(0);
+    expect(state.car.steeringAngle).toBe(0);
+    expect(state.car.decision).toBe("idle");
+    expect(state.car.collisionCount).toBe(0);
+    expect(state.car.distanceTravelled).toBe(0);
+  });
+
+  it("updateCar applies immutable updates", () => {
+    useSimulationStore.getState().updateCar((car) => ({
+      ...car,
+      speed: 50,
+    }));
+
+    expect(useSimulationStore.getState().car.speed).toBe(50);
   });
 });

@@ -2,60 +2,16 @@
  * Global simulation store for AutoDrive ReactLab.
  *
  * Owns lightweight UI-visible simulation/runtime state only.
- *
- * Responsibilities:
- * - simulation lifecycle status
- * - simulation elapsed time
- * - sampled FPS telemetry
- * - debug-mode preference
- * - sensor-visibility preference
- * - safe lifecycle actions
- *
- * Non-responsibilities:
- * - no canvas rendering context
- * - no requestAnimationFrame IDs
- * - no game loop instance
- * - no heavy physics objects
- * - no raw sensor arrays
- * - no large replay history
- * - no browser-only APIs during store creation
  */
 
 import { create } from "zustand";
+import { createInitialRoad, type Road } from "../simulation/world";
+import { createInitialCar, type CarState } from "../simulation/vehicle";
 
-/**
- * Represents the simulation lifecycle state.
- *
- * Valid transitions:
- * - idle -> running
- * - running -> paused
- * - paused -> running
- * - running -> idle
- * - paused -> idle
- * - idle -> idle
- *
- * Invalid transitions:
- * - idle -> paused is ignored
- * - running -> running is safe/no-op
- * - paused -> paused is safe/no-op
- */
 export type SimulationStatus = "idle" | "running" | "paused";
 
 export interface SimulationTelemetry {
-  /**
-   * Elapsed simulation time in seconds.
-   *
-   * This is simulation time, not wall-clock time.
-   * It must be advanced from game-loop delta time only.
-   */
   simulationTimeSeconds: number;
-
-  /**
-   * Frames per second sampled by the game loop.
-   *
-   * This should be updated at a controlled telemetry interval,
-   * not every animation frame.
-   */
   fps: number;
 }
 
@@ -68,15 +24,23 @@ export interface SimulationState {
   status: SimulationStatus;
   telemetry: SimulationTelemetry;
   ui: SimulationUiPreferences;
+
+  road: Road;
+  car: CarState;
 }
 
 export interface SimulationActions {
   startSimulation: () => void;
   pauseSimulation: () => void;
   resetSimulation: () => void;
+
   advanceSimulationTime: (deltaTimeSeconds: number) => void;
   setSimulationTimeSeconds: (value: number) => void;
   setFps: (value: number) => void;
+
+  setCar: (car: CarState) => void;
+  updateCar: (updater: (car: CarState) => CarState) => void;
+
   toggleDebugMode: () => void;
   toggleSensorsVisibility: () => void;
 }
@@ -94,10 +58,14 @@ const INITIAL_UI: SimulationUiPreferences = {
 };
 
 function createInitialState(): SimulationState {
+  const road = createInitialRoad();
+
   return {
     status: "idle",
     telemetry: { ...INITIAL_TELEMETRY },
     ui: { ...INITIAL_UI },
+    road,
+    car: createInitialCar(road),
   };
 }
 
@@ -105,7 +73,7 @@ function isValidNonNegativeFiniteNumber(value: number): boolean {
   return Number.isFinite(value) && value >= 0;
 }
 
-export const useSimulationStore = create<SimulationStore>()((set) => ({
+export const useSimulationStore = create<SimulationStore>()((set, _) => ({
   ...createInitialState(),
 
   startSimulation: () =>
@@ -127,17 +95,17 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
     }),
 
   resetSimulation: () =>
-    set((state) => ({
-      status: "idle",
-      telemetry: { ...INITIAL_TELEMETRY },
+    set((state) => {
+      const road = createInitialRoad();
 
-      /**
-       * Preserve display preferences.
-       *
-       * Reset restores runtime state only. It should not erase user choices.
-       */
-      ui: state.ui,
-    })),
+      return {
+        status: "idle",
+        telemetry: { ...INITIAL_TELEMETRY },
+        ui: state.ui,
+        road,
+        car: createInitialCar(road),
+      };
+    }),
 
   advanceSimulationTime: (deltaTimeSeconds) =>
     set((state) => {
@@ -184,6 +152,16 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
       };
     }),
 
+  setCar: (car) =>
+    set(() => ({
+      car,
+    })),
+
+  updateCar: (updater) =>
+    set((state) => ({
+      car: updater(state.car),
+    })),
+
   toggleDebugMode: () =>
     set((state) => ({
       ui: {
@@ -213,6 +191,10 @@ export const useSimulationFps = () => useSimulationStore((state) => state.teleme
 
 export const useSimulationUiPreferences = () => useSimulationStore((state) => state.ui);
 
+export const useSimulationRoad = () => useSimulationStore((state) => state.road);
+
+export const useSimulationCar = () => useSimulationStore((state) => state.car);
+
 export const useStartSimulation = () =>
   useSimulationStore((state) => state.startSimulation);
 
@@ -229,6 +211,10 @@ export const useSetSimulationTimeSeconds = () =>
   useSimulationStore((state) => state.setSimulationTimeSeconds);
 
 export const useSetFps = () => useSimulationStore((state) => state.setFps);
+
+export const useSetCar = () => useSimulationStore((state) => state.setCar);
+
+export const useUpdateCar = () => useSimulationStore((state) => state.updateCar);
 
 export const useToggleDebugMode = () =>
   useSimulationStore((state) => state.toggleDebugMode);
