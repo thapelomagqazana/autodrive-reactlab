@@ -66,10 +66,18 @@ export interface Road extends RoadHorizontalGeometry {
 export const DEFAULT_ROAD_CENTER_X = 400;
 export const DEFAULT_ROAD_WIDTH = 360;
 
+/**
+ * Default MVP lane count.
+ *
+ * Three lanes are useful for MVP because the middle lane gives a clear default
+ * car starting lane, while side lanes make lane-center calculations visible.
+ */
+export const DEFAULT_ROAD_LANE_COUNT = 3;
+
 export const DEFAULT_ROAD: Readonly<Road> = Object.freeze({
   centerX: DEFAULT_ROAD_CENTER_X,
   width: DEFAULT_ROAD_WIDTH,
-  laneCount: 3,
+  laneCount: DEFAULT_ROAD_LANE_COUNT,
   topY: -2000,
   bottomY: 900,
 });
@@ -114,6 +122,49 @@ export function isValidLaneCount(value: number): boolean {
 }
 
 /**
+ * Asserts that a lane count is valid.
+ */
+export function assertValidLaneCount(laneCount: number): void {
+  if (!isValidLaneCount(laneCount)) {
+    throw new RangeError("laneCount must be a positive integer.");
+  }
+}
+
+/**
+ * Normalizes user/scenario input into a valid lane count.
+ *
+ * This is useful for future scenario editors or imported JSON.
+ *
+ * Rule:
+ * - finite positive numbers are floored
+ * - values below 1 become fallback
+ * - invalid values become fallback
+ */
+export function normalizeLaneCount(
+  value: number,
+  fallback = DEFAULT_ROAD_LANE_COUNT,
+): number {
+  assertValidLaneCount(fallback);
+
+  if (!Number.isFinite(value) || value < 1) {
+    return fallback;
+  }
+
+  return Math.floor(value);
+}
+
+/**
+ * Returns the number of lane divider lines required.
+ *
+ * Divider count is always laneCount - 1.
+ */
+export function getLaneDividerCount(laneCount: number): number {
+  assertValidLaneCount(laneCount);
+
+  return laneCount - 1;
+}
+
+/**
  * Validates only the horizontal road geometry.
  *
  * This is useful for helpers that only require centerX and width.
@@ -135,10 +186,7 @@ export function assertValidRoadHorizontalGeometry(
  */
 export function assertValidRoad(road: Road): void {
   assertValidRoadHorizontalGeometry(road);
-
-  if (!isValidLaneCount(road.laneCount)) {
-    throw new RangeError("road.laneCount must be a positive integer.");
-  }
+  assertValidLaneCount(road.laneCount);
 
   if (!isFiniteRoadNumber(road.topY)) {
     throw new RangeError("road.topY must be finite.");
@@ -250,7 +298,7 @@ export function getLaneDividerLines(road: Road): RoadLine[] {
 
   const laneWidth = getLaneWidth(road);
   const leftEdgeX = getRoadLeftEdgeX(road);
-  const dividerCount = road.laneCount - 1;
+  const dividerCount = getLaneDividerCount(road.laneCount);
 
   return Array.from({ length: dividerCount }, (_, index) => {
     const dividerX = leftEdgeX + laneWidth * (index + 1);

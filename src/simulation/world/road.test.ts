@@ -3,10 +3,13 @@ import {
   DEFAULT_ROAD,
   DEFAULT_ROAD_CENTER_X,
   DEFAULT_ROAD_WIDTH,
+  DEFAULT_ROAD_LANE_COUNT,
+  assertValidLaneCount,
   assertValidRoad,
   assertValidRoadHorizontalGeometry,
   createInitialRoad,
   getLaneCenterX,
+  getLaneDividerCount,
   getLaneDividerLines,
   getLaneWidth,
   getRoadBoundaryLines,
@@ -17,6 +20,7 @@ import {
   isPositiveRoadSize,
   isValidLaneCount,
   isValidRoadWidth,
+  normalizeLaneCount,
 } from "./road";
 
 describe("road domain model", () => {
@@ -254,5 +258,91 @@ describe("road width and horizontal position", () => {
         width: 360,
       }),
     ).toThrow(RangeError);
+  });
+});
+
+describe("road lane count", () => {
+  it("defines the default MVP lane count", () => {
+    const road = createInitialRoad();
+
+    expect(road.laneCount).toBe(DEFAULT_ROAD_LANE_COUNT);
+    expect(road.laneCount).toBe(3);
+  });
+
+  it("requires lane count to be a positive integer", () => {
+    expect(isValidLaneCount(1)).toBe(true);
+    expect(isValidLaneCount(2)).toBe(true);
+    expect(isValidLaneCount(3)).toBe(true);
+
+    expect(isValidLaneCount(0)).toBe(false);
+    expect(isValidLaneCount(-1)).toBe(false);
+    expect(isValidLaneCount(1.5)).toBe(false);
+    expect(isValidLaneCount(Number.NaN)).toBe(false);
+    expect(isValidLaneCount(Number.POSITIVE_INFINITY)).toBe(false);
+  });
+
+  it("throws for invalid lane counts", () => {
+    expect(() => assertValidLaneCount(0)).toThrow(RangeError);
+    expect(() => assertValidLaneCount(-1)).toThrow(RangeError);
+    expect(() => assertValidLaneCount(1.5)).toThrow(RangeError);
+    expect(() => assertValidLaneCount(Number.NaN)).toThrow(RangeError);
+  });
+
+  it("normalizes lane counts for future scenario inputs", () => {
+    expect(normalizeLaneCount(1)).toBe(1);
+    expect(normalizeLaneCount(3)).toBe(3);
+    expect(normalizeLaneCount(3.9)).toBe(3);
+
+    expect(normalizeLaneCount(0)).toBe(DEFAULT_ROAD_LANE_COUNT);
+    expect(normalizeLaneCount(-5)).toBe(DEFAULT_ROAD_LANE_COUNT);
+    expect(normalizeLaneCount(Number.NaN)).toBe(DEFAULT_ROAD_LANE_COUNT);
+  });
+
+  it("uses a custom fallback when normalizing invalid values", () => {
+    expect(normalizeLaneCount(0, 2)).toBe(2);
+    expect(normalizeLaneCount(Number.POSITIVE_INFINITY, 4)).toBe(4);
+  });
+
+  it("rejects invalid fallback lane counts", () => {
+    expect(() => normalizeLaneCount(0, 0)).toThrow(RangeError);
+    expect(() => normalizeLaneCount(0, -1)).toThrow(RangeError);
+    expect(() => normalizeLaneCount(0, 1.5)).toThrow(RangeError);
+  });
+
+  it("derives lane width from lane count", () => {
+    const road = {
+      centerX: 400,
+      width: 360,
+      laneCount: 3,
+      topY: 0,
+      bottomY: 900,
+    };
+
+    expect(getLaneWidth(road)).toBe(120);
+  });
+
+  it("derives divider count from lane count", () => {
+    expect(getLaneDividerCount(1)).toBe(0);
+    expect(getLaneDividerCount(2)).toBe(1);
+    expect(getLaneDividerCount(3)).toBe(2);
+    expect(getLaneDividerCount(4)).toBe(3);
+  });
+
+  it("creates no lane divider lines for a one-lane road", () => {
+    const road = {
+      centerX: 400,
+      width: 360,
+      laneCount: 1,
+      topY: 0,
+      bottomY: 900,
+    };
+
+    expect(getLaneDividerLines(road)).toEqual([]);
+  });
+
+  it("creates laneCount - 1 divider lines", () => {
+    const road = createInitialRoad();
+
+    expect(getLaneDividerLines(road)).toHaveLength(road.laneCount - 1);
   });
 });
