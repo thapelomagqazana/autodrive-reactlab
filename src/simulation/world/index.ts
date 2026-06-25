@@ -16,6 +16,7 @@ export {
   assertValidRoad,
   assertValidRoadHorizontalGeometry,
   createInitialRoad,
+  createRoadBoundaryLine,
   getAllLaneGeometries,
   getDefaultStartLaneCenterX,
   getDefaultStartLaneIndex,
