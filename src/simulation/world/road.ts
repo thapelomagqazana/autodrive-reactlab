@@ -202,6 +202,42 @@ export function getLaneDividerCount(laneCount: number): number {
 }
 
 /**
+ * Creates one vertical lane divider line.
+ *
+ * Divider lines are visual lane markings and should not be treated as hard road
+ * collision boundaries in the MVP.
+ */
+export function createLaneDividerLine(
+  dividerX: number,
+  topY: number,
+  bottomY: number,
+): RoadLine {
+  if (!isFiniteRoadNumber(dividerX)) {
+    throw new RangeError("dividerX must be finite.");
+  }
+
+  if (!isFiniteRoadNumber(topY)) {
+    throw new RangeError("topY must be finite.");
+  }
+
+  if (!isFiniteRoadNumber(bottomY)) {
+    throw new RangeError("bottomY must be finite.");
+  }
+
+  if (bottomY <= topY) {
+    throw new RangeError("bottomY must be greater than topY.");
+  }
+
+  return {
+    startX: dividerX,
+    startY: topY,
+    endX: dividerX,
+    endY: bottomY,
+    kind: "divider",
+  };
+}
+
+/**
  * Validates only the horizontal road geometry.
  *
  * This is useful for helpers that only require centerX and width.
@@ -408,27 +444,27 @@ export function getRoadBoundaryLines(road: Road): RoadLine[] {
 }
 
 /**
- * Creates lane divider lines between lanes.
+ * Returns lane divider lines between adjacent lanes.
  *
- * For laneCount = 1, no divider lines are returned.
- * For laneCount = 3, two divider lines are returned.
+ * For laneCount = 1:
+ * - returns []
+ *
+ * For laneCount = 3:
+ * - returns two divider lines:
+ *   - between lane 0 and lane 1
+ *   - between lane 1 and lane 2
  */
 export function getLaneDividerLines(road: Road): RoadLine[] {
   assertValidRoad(road);
 
-  const dividerCount = getLaneDividerCount(road.laneCount);
+  return Array.from(
+    { length: getLaneDividerCount(road.laneCount) },
+    (_, dividerIndex) => {
+      const dividerX = getLaneRightEdgeX(road, dividerIndex);
 
-  return Array.from({ length: dividerCount }, (_, index) => {
-    const dividerX = getLaneRightEdgeX(road, index);
-
-    return {
-      startX: dividerX,
-      startY: road.topY,
-      endX: dividerX,
-      endY: road.bottomY,
-      kind: "divider",
-    };
-  });
+      return createLaneDividerLine(dividerX, road.topY, road.bottomY);
+    },
+  );
 }
 
 /**
