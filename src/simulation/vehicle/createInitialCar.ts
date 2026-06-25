@@ -15,7 +15,7 @@
  */
 
 import type { Road } from "../world";
-import { getDefaultStartLaneCenterX } from "../world";
+import { getDefaultStartLaneIndex, getLaneCenterX, isValidLaneIndex } from "../world";
 import {
   DEFAULT_CAR_ACCELERATION,
   DEFAULT_CAR_ANGLE,
@@ -34,9 +34,37 @@ import {
   isValidSteeringAngle,
 } from "./carState";
 
+/**
+ * Optional overrides for initial car creation.
+ */
 export interface CreateInitialCarOptions {
+  /**
+   * Zero-based lane index where the car should spawn.
+   *
+   * If omitted, the default start lane is used:
+   * - odd lane count: true center lane
+   * - even lane count: left-middle lane
+   */
+  startLaneIndex?: number;
+
+  /**
+   * Distance in pixels from road.bottomY to the car center.
+   *
+   * Larger values place the car higher up the road.
+   */
+  startOffsetFromBottom?: number;
+
+  /**
+   * Explicit X override.
+   *
+   * Prefer startLaneIndex for normal simulation spawning. This is mainly for
+   * tests, scenario editors, and future replay tooling.
+   */
   positionX?: number;
+
+  /** Explicit Y override. */
   positionY?: number;
+
   width?: number;
   height?: number;
   speed?: number;
@@ -50,9 +78,16 @@ export interface CreateInitialCarOptions {
   distanceTravelled?: number;
 }
 
-export const DEFAULT_INITIAL_CAR_POSITION_Y = 600;
 export const DEFAULT_INITIAL_CAR_WIDTH = 36;
 export const DEFAULT_INITIAL_CAR_HEIGHT = 64;
+
+/**
+ * Default distance from road.bottomY to the car center.
+ *
+ * With the current MVP road, this keeps the car visible near the lower part of
+ * the canvas while still fully inside the road.
+ */
+export const DEFAULT_START_OFFSET_FROM_BOTTOM = 300;
 
 function assertPositiveDimension(value: number, label: string): void {
   if (!Number.isFinite(value) || value <= 0) {
@@ -66,15 +101,37 @@ function assertNonNegativeFinite(value: number, label: string): void {
   }
 }
 
+function resolveStartLaneIndex(road: Road, startLaneIndex?: number): number {
+  const laneIndex = startLaneIndex ?? getDefaultStartLaneIndex(road);
+
+  if (!isValidLaneIndex(road, laneIndex)) {
+    throw new RangeError(
+      `startLaneIndex must be an integer between 0 and ${road.laneCount - 1}.`,
+    );
+  }
+
+  return laneIndex;
+}
+
+function resolveInitialPosition(
+  road: Road,
+  options: CreateInitialCarOptions,
+): { positionX: number; positionY: number } {
+  const startOffsetFromBottom =
+    options.startOffsetFromBottom ?? DEFAULT_START_OFFSET_FROM_BOTTOM;
+
+  assertNonNegativeFinite(startOffsetFromBottom, "startOffsetFromBottom");
+
+  const laneIndex = resolveStartLaneIndex(road, options.startLaneIndex);
+
+  return {
+    positionX: options.positionX ?? getLaneCenterX(road, laneIndex),
+    positionY: options.positionY ?? road.bottomY - startOffsetFromBottom,
+  };
+}
+
 /**
  * Creates a complete initial CarState using road-derived spawn geometry.
- *
- * By default:
- * - X position comes from the road's default start lane center.
- * - Y position uses the MVP spawn Y.
- * - Speed and steering start at zero.
- * - Heading faces upward/north.
- * - Telemetry starts clean.
  */
 export function createInitialCar(
   road: Road,
@@ -82,25 +139,19 @@ export function createInitialCar(
 ): CarState {
   const baseCar = createInitialCarState();
 
-  const positionX = options.positionX ?? getDefaultStartLaneCenterX(road);
-  const positionY = options.positionY ?? DEFAULT_INITIAL_CAR_POSITION_Y;
+  const { positionX, positionY } = resolveInitialPosition(road, options);
+  const position = createCarPosition(positionX, positionY);
 
   const width = options.width ?? DEFAULT_INITIAL_CAR_WIDTH;
   const height = options.height ?? DEFAULT_INITIAL_CAR_HEIGHT;
-
   const speed = options.speed ?? DEFAULT_CAR_SPEED;
   const acceleration = options.acceleration ?? DEFAULT_CAR_ACCELERATION;
-
   const angle = options.angle ?? DEFAULT_CAR_ANGLE;
   const steeringAngle = options.steeringAngle ?? DEFAULT_CAR_STEERING_ANGLE;
-
   const maxSpeed = options.maxSpeed ?? DEFAULT_CAR_MAX_SPEED;
   const maxReverseSpeed = options.maxReverseSpeed ?? DEFAULT_CAR_MAX_REVERSE_SPEED;
-
   const distanceTravelled = options.distanceTravelled ?? 0;
   const collisionCount = options.collisionCount ?? 0;
-
-  const position = createCarPosition(positionX, positionY);
 
   assertPositiveDimension(width, "width");
   assertPositiveDimension(height, "height");
@@ -135,22 +186,16 @@ export function createInitialCar(
   return {
     ...baseCar,
     ...position,
-
     width,
     height,
-
     speed,
     acceleration,
-
     angle,
     steeringAngle,
-
     maxSpeed,
     maxReverseSpeed,
-
     distanceTravelled,
     collisionCount,
-
     decision: options.decision ?? "idle",
   };
 }

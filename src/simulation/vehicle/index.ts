@@ -51,7 +51,7 @@ export type { CreateInitialCarOptions } from "./createInitialCar";
 
 export {
   DEFAULT_INITIAL_CAR_HEIGHT,
-  DEFAULT_INITIAL_CAR_POSITION_Y,
+  DEFAULT_START_OFFSET_FROM_BOTTOM,
   DEFAULT_INITIAL_CAR_WIDTH,
   createInitialCar,
 } from "./createInitialCar";

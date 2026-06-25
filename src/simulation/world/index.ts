@@ -37,6 +37,7 @@ export {
   isPositiveRoadSize,
   isValidLaneCount,
   isValidRoadWidth,
+  isValidLaneIndex,
   normalizeLaneCount,
 } from "./road";
 
