@@ -7,6 +7,7 @@ import {
   applyCarTransform,
   assertDrawableCarTransform,
   drawCar,
+  drawCarFrontIndicator,
 } from "./carRenderer";
 
 function createMockContext(): CanvasRenderingContext2D {
@@ -270,5 +271,109 @@ describe("car heading transform", () => {
     drawCar(context, car);
 
     expect(car).toEqual(snapshot);
+  });
+});
+
+describe("car front indicator", () => {
+  it("draws the indicator near the front edge of the car", () => {
+    const context = createMockContext();
+
+    drawCarFrontIndicator(
+      context,
+      {
+        width: 36,
+        height: 64,
+      },
+      DEFAULT_DRAW_CAR_OPTIONS,
+    );
+
+    expect(context.fillRect).toHaveBeenCalledWith(-8.1, -26, 16.2, 5.12);
+  });
+
+  it("uses car dimensions instead of hardcoded world coordinates", () => {
+    const context = createMockContext();
+
+    drawCarFrontIndicator(
+      context,
+      {
+        width: 40,
+        height: 80,
+      },
+      DEFAULT_DRAW_CAR_OPTIONS,
+    );
+
+    expect(context.fillRect).toHaveBeenCalledWith(-9, -34, 18, 6.4);
+  });
+
+  it("applies a distinct front-indicator color", () => {
+    const context = createMockContext();
+
+    drawCarFrontIndicator(
+      context,
+      {
+        width: 36,
+        height: 64,
+      },
+      {
+        frontIndicatorColor: "rgb(14 165 233)",
+      },
+    );
+
+    expect(context.fillStyle).toBe("rgb(14 165 233)");
+  });
+
+  it("saves and restores canvas state while drawing the indicator", () => {
+    const context = createMockContext();
+
+    drawCarFrontIndicator(
+      context,
+      {
+        width: 36,
+        height: 64,
+      },
+      DEFAULT_DRAW_CAR_OPTIONS,
+    );
+
+    expect(context.save).toHaveBeenCalledOnce();
+    expect(context.restore).toHaveBeenCalledOnce();
+  });
+
+  it("drawCar renders the front indicator after body transform is applied", () => {
+    const context = createMockContext();
+    const car = createInitialCar(createInitialRoad(), {
+      angle: Math.PI / 2,
+    });
+
+    drawCar(context, car);
+
+    expect(context.translate).toHaveBeenCalledWith(car.positionX, car.positionY);
+    expect(context.rotate).toHaveBeenCalledWith(Math.PI / 2);
+    expect(context.fillRect).toHaveBeenCalled();
+  });
+
+  it("rejects invalid dimensions before drawing indicator", () => {
+    const context = createMockContext();
+
+    expect(() =>
+      drawCarFrontIndicator(
+        context,
+        {
+          width: 0,
+          height: 64,
+        },
+        DEFAULT_DRAW_CAR_OPTIONS,
+      ),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      drawCarFrontIndicator(
+        context,
+        {
+          width: 36,
+          height: Number.NaN,
+        },
+        DEFAULT_DRAW_CAR_OPTIONS,
+      ),
+    ).toThrow(RangeError);
   });
 });

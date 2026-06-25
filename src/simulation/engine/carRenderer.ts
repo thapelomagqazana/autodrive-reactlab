@@ -118,7 +118,17 @@ export function drawCarBody(
 }
 
 /**
- * Draws a small forward-facing indicator near the front of the car.
+ * Draws a forward-facing indicator near the front edge of the car.
+ *
+ * Front convention:
+ * - The car is drawn in local coordinates after the context is translated to
+ *   the car center and rotated by car.angle.
+ * - Local Y = -height / 2 is the front edge.
+ * - Because this is drawn after the car transform is applied, the indicator
+ *   naturally rotates with the car body.
+ *
+ * This function does not mutate car state and does not know about world
+ * coordinates.
  */
 export function drawCarFrontIndicator(
   context: CanvasRenderingContext2D,
@@ -130,17 +140,15 @@ export function drawCarFrontIndicator(
   const indicatorWidth = car.width * 0.45;
   const indicatorHeight = Math.max(3, car.height * 0.08);
 
+  const indicatorX = -indicatorWidth / 2;
+  const indicatorY = -car.height / 2 + 6;
+
   context.save();
 
   context.fillStyle = options.frontIndicatorColor;
   context.shadowBlur = 0;
 
-  context.fillRect(
-    -indicatorWidth / 2,
-    -car.height / 2 + 6,
-    indicatorWidth,
-    indicatorHeight,
-  );
+  context.fillRect(indicatorX, indicatorY, indicatorWidth, indicatorHeight);
 
   context.restore();
 }
