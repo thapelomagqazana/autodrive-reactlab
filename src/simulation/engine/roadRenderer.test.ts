@@ -7,6 +7,7 @@ import {
   drawRoadBoundaries,
   drawRoadSurface,
   getRoadSurfaceRect,
+  drawLaneDividers,
 } from "./roadRenderer";
 
 function createMockContext(): CanvasRenderingContext2D {
@@ -316,6 +317,102 @@ describe("road boundary rendering", () => {
           centerX: 400,
           width: 0,
           laneCount: 3,
+          topY: 0,
+          bottomY: 900,
+        },
+        DEFAULT_DRAW_ROAD_OPTIONS,
+      ),
+    ).toThrow(RangeError);
+  });
+});
+
+describe("lane divider rendering", () => {
+  it("draws two dashed divider lines for the default three-lane road", () => {
+    const context = createMockContext();
+
+    drawLaneDividers(context, createInitialRoad(), DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(context.beginPath).toHaveBeenCalledTimes(2);
+    expect(context.stroke).toHaveBeenCalledTimes(2);
+    expect(context.moveTo).toHaveBeenNthCalledWith(1, 340, -2000);
+    expect(context.moveTo).toHaveBeenNthCalledWith(2, 460, -2000);
+  });
+
+  it("draws no divider lines for a one-lane road", () => {
+    const context = createMockContext();
+
+    drawLaneDividers(
+      context,
+      {
+        centerX: 400,
+        width: 360,
+        laneCount: 1,
+        topY: 0,
+        bottomY: 900,
+      },
+      DEFAULT_DRAW_ROAD_OPTIONS,
+    );
+
+    expect(context.beginPath).not.toHaveBeenCalled();
+    expect(context.stroke).not.toHaveBeenCalled();
+  });
+
+  it("uses dashed divider styling", () => {
+    const context = createMockContext();
+
+    drawLaneDividers(context, createInitialRoad(), {
+      dividerColor: "rgb(148 163 184)",
+      dividerLineWidth: 2,
+      dividerDash: [18, 18],
+    });
+
+    expect(context.strokeStyle).toBe("rgb(148 163 184)");
+    expect(context.lineWidth).toBe(2);
+    expect(context.setLineDash).toHaveBeenCalledWith([18, 18]);
+  });
+
+  it("resets line dash after drawing divider lines", () => {
+    const context = createMockContext();
+
+    drawLaneDividers(context, createInitialRoad(), DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(context.setLineDash).toHaveBeenCalledWith([]);
+  });
+
+  it("keeps dividers visually distinct from boundaries inside drawRoad", () => {
+    const context = createMockContext();
+
+    drawRoad(context, createInitialRoad());
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(1, 220, -2000);
+    expect(context.moveTo).toHaveBeenNthCalledWith(2, 580, -2000);
+    expect(context.moveTo).toHaveBeenNthCalledWith(3, 340, -2000);
+    expect(context.moveTo).toHaveBeenNthCalledWith(4, 460, -2000);
+
+    expect(context.setLineDash).toHaveBeenCalledWith([]);
+    expect(context.setLineDash).toHaveBeenCalledWith([18, 18]);
+  });
+
+  it("does not mutate the road model", () => {
+    const context = createMockContext();
+    const road = createInitialRoad();
+    const snapshot = structuredClone(road);
+
+    drawLaneDividers(context, road, DEFAULT_DRAW_ROAD_OPTIONS);
+
+    expect(road).toEqual(snapshot);
+  });
+
+  it("rejects invalid road geometry before drawing dividers", () => {
+    const context = createMockContext();
+
+    expect(() =>
+      drawLaneDividers(
+        context,
+        {
+          centerX: 400,
+          width: 360,
+          laneCount: 0,
           topY: 0,
           bottomY: 900,
         },

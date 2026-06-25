@@ -129,6 +129,29 @@ export function drawRoadBoundaries(
 }
 
 /**
+ * Draws only lane divider markings.
+ *
+ * Lane dividers are visual road markings, not collision boundaries.
+ * They must be generated from Road lane data, not hardcoded renderer values.
+ */
+export function drawLaneDividers(
+  context: CanvasRenderingContext2D,
+  road: Road,
+  options: Pick<
+    Required<DrawRoadOptions>,
+    "dividerColor" | "dividerLineWidth" | "dividerDash"
+  > = DEFAULT_DRAW_ROAD_OPTIONS,
+): void {
+  const dividerLines = getLaneDividerLines(road);
+
+  drawRoadLines(context, dividerLines, {
+    color: options.dividerColor,
+    lineWidth: options.dividerLineWidth,
+    dash: options.dividerDash,
+  });
+}
+
+/**
  * Draws the full MVP road.
  */
 export function drawRoad(
@@ -145,12 +168,7 @@ export function drawRoad(
 
   drawRoadSurface(context, road, resolvedOptions);
   drawRoadBoundaries(context, road, resolvedOptions);
-
-  drawRoadLines(context, getLaneDividerLines(road), {
-    color: resolvedOptions.dividerColor,
-    lineWidth: resolvedOptions.dividerLineWidth,
-    dash: resolvedOptions.dividerDash,
-  });
+  drawLaneDividers(context, road, resolvedOptions);
 
   if (resolvedOptions.showCenterGuide) {
     drawRoadLine(
