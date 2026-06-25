@@ -8,6 +8,7 @@ import {
   assertValidRoad,
   assertValidRoadHorizontalGeometry,
   createInitialRoad,
+  createRoadBoundaryLine,
   getAllLaneGeometries,
   getDefaultStartLaneCenterX,
   getDefaultStartLaneIndex,
@@ -495,5 +496,138 @@ describe("lane center calculations", () => {
     expect(() => getLaneCenterX(road, road.laneCount)).toThrow(RangeError);
     expect(() => getLaneCenterX(road, 1.5)).toThrow(RangeError);
     expect(() => getLaneCenterX(road, Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe("road boundary lines", () => {
+  it("creates a vertical boundary line", () => {
+    expect(createRoadBoundaryLine(220, 0, 900)).toEqual({
+      startX: 220,
+      startY: 0,
+      endX: 220,
+      endY: 900,
+      kind: "boundary",
+    });
+  });
+
+  it("derives left and right boundary lines from road dimensions", () => {
+    const road = createInitialRoad();
+    const lines = getRoadBoundaryLines(road);
+
+    expect(lines).toEqual([
+      {
+        startX: 220,
+        startY: -2000,
+        endX: 220,
+        endY: 900,
+        kind: "boundary",
+      },
+      {
+        startX: 580,
+        startY: -2000,
+        endX: 580,
+        endY: 900,
+        kind: "boundary",
+      },
+    ]);
+  });
+
+  it("marks every boundary line with kind boundary", () => {
+    const lines = getRoadBoundaryLines(createInitialRoad());
+
+    expect(lines).toHaveLength(2);
+    expect(lines.every((line) => line.kind === "boundary")).toBe(true);
+  });
+
+  it("matches boundary X values to derived road edge helpers", () => {
+    const road = createInitialRoad();
+    const [leftBoundary, rightBoundary] = getRoadBoundaryLines(road);
+
+    expect(leftBoundary?.startX).toBe(getRoadLeftEdgeX(road));
+    expect(leftBoundary?.endX).toBe(getRoadLeftEdgeX(road));
+
+    expect(rightBoundary?.startX).toBe(getRoadRightEdgeX(road));
+    expect(rightBoundary?.endX).toBe(getRoadRightEdgeX(road));
+  });
+
+  it("supports non-default road dimensions", () => {
+    const road = {
+      centerX: 500,
+      width: 200,
+      laneCount: 2,
+      topY: 10,
+      bottomY: 1000,
+    };
+
+    expect(getRoadBoundaryLines(road)).toEqual([
+      {
+        startX: 400,
+        startY: 10,
+        endX: 400,
+        endY: 1000,
+        kind: "boundary",
+      },
+      {
+        startX: 600,
+        startY: 10,
+        endX: 600,
+        endY: 1000,
+        kind: "boundary",
+      },
+    ]);
+  });
+
+  it("supports fractional road boundary values", () => {
+    const road = {
+      centerX: 100.5,
+      width: 50.5,
+      laneCount: 1,
+      topY: 0.5,
+      bottomY: 900.5,
+    };
+
+    const [leftBoundary, rightBoundary] = getRoadBoundaryLines(road);
+
+    expect(leftBoundary?.startX).toBeCloseTo(75.25);
+    expect(leftBoundary?.endX).toBeCloseTo(75.25);
+
+    expect(rightBoundary?.startX).toBeCloseTo(125.75);
+    expect(rightBoundary?.endX).toBeCloseTo(125.75);
+  });
+
+  it("rejects invalid edge coordinates when creating a boundary line", () => {
+    expect(() => createRoadBoundaryLine(Number.NaN, 0, 900)).toThrow(RangeError);
+    expect(() => createRoadBoundaryLine(Number.POSITIVE_INFINITY, 0, 900)).toThrow(
+      RangeError,
+    );
+  });
+
+  it("rejects invalid vertical bounds when creating a boundary line", () => {
+    expect(() => createRoadBoundaryLine(220, Number.NaN, 900)).toThrow(RangeError);
+
+    expect(() => createRoadBoundaryLine(220, 900, 0)).toThrow(RangeError);
+    expect(() => createRoadBoundaryLine(220, 900, 900)).toThrow(RangeError);
+  });
+
+  it("rejects invalid road dimensions before generating boundary lines", () => {
+    expect(() =>
+      getRoadBoundaryLines({
+        centerX: 400,
+        width: 0,
+        laneCount: 3,
+        topY: 0,
+        bottomY: 900,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      getRoadBoundaryLines({
+        centerX: 400,
+        width: 360,
+        laneCount: 0,
+        topY: 0,
+        bottomY: 900,
+      }),
+    ).toThrow(RangeError);
   });
 });

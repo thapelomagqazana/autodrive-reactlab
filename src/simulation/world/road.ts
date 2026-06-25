@@ -270,6 +270,41 @@ export function getRoadHorizontalEdges(geometry: RoadHorizontalGeometry): {
 }
 
 /**
+ * Creates a road boundary line from one edge X coordinate.
+ *
+ * Keeping this as a helper makes boundary generation consistent and testable.
+ */
+export function createRoadBoundaryLine(
+  edgeX: number,
+  topY: number,
+  bottomY: number,
+): RoadLine {
+  if (!isFiniteRoadNumber(edgeX)) {
+    throw new RangeError("edgeX must be finite.");
+  }
+
+  if (!isFiniteRoadNumber(topY)) {
+    throw new RangeError("topY must be finite.");
+  }
+
+  if (!isFiniteRoadNumber(bottomY)) {
+    throw new RangeError("bottomY must be finite.");
+  }
+
+  if (bottomY <= topY) {
+    throw new RangeError("bottomY must be greater than topY.");
+  }
+
+  return {
+    startX: edgeX,
+    startY: topY,
+    endX: edgeX,
+    endY: bottomY,
+    kind: "boundary",
+  };
+}
+
+/**
  * Returns the width of one lane in pixels.
  */
 export function getLaneWidth(road: Road): number {
@@ -355,29 +390,20 @@ export function getDefaultStartLaneCenterX(road: Road): number {
 }
 
 /**
- * Creates visual and future-sensor boundary lines for road edges.
+ * Returns boundary line data for the left and right road edges.
+ *
+ * Order:
+ * 1. Left boundary
+ * 2. Right boundary
  */
 export function getRoadBoundaryLines(road: Road): RoadLine[] {
   assertValidRoad(road);
 
-  const leftEdgeX = getRoadLeftEdgeX(road);
-  const rightEdgeX = getRoadRightEdgeX(road);
+  const { leftEdgeX, rightEdgeX } = getRoadHorizontalEdges(road);
 
   return [
-    {
-      startX: leftEdgeX,
-      startY: road.topY,
-      endX: leftEdgeX,
-      endY: road.bottomY,
-      kind: "boundary",
-    },
-    {
-      startX: rightEdgeX,
-      startY: road.topY,
-      endX: rightEdgeX,
-      endY: road.bottomY,
-      kind: "boundary",
-    },
+    createRoadBoundaryLine(leftEdgeX, road.topY, road.bottomY),
+    createRoadBoundaryLine(rightEdgeX, road.topY, road.bottomY),
   ];
 }
 
