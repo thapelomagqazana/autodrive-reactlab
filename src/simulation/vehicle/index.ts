@@ -47,11 +47,20 @@ export {
   steeringInputToAngle,
 } from "./carState";
 
-export type { CreateInitialCarOptions } from "./createInitialCar";
+export type {
+  CarBounds,
+  CarDimensions,
+  CreateInitialCarOptions,
+} from "./createInitialCar";
 
 export {
+  DEFAULT_INITIAL_CAR_DIMENSIONS,
   DEFAULT_INITIAL_CAR_HEIGHT,
-  DEFAULT_START_OFFSET_FROM_BOTTOM,
   DEFAULT_INITIAL_CAR_WIDTH,
+  DEFAULT_START_OFFSET_FROM_BOTTOM,
+  assertCarFitsInsideLane,
+  assertValidCarDimensions,
   createInitialCar,
+  getCarBoundsFromCenter,
+  isValidCarDimension,
 } from "./createInitialCar";

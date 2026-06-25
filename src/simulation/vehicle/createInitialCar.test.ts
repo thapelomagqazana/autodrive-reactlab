@@ -4,7 +4,12 @@ import {
   DEFAULT_INITIAL_CAR_HEIGHT,
   DEFAULT_START_OFFSET_FROM_BOTTOM,
   DEFAULT_INITIAL_CAR_WIDTH,
+  DEFAULT_INITIAL_CAR_DIMENSIONS,
   createInitialCar,
+  assertCarFitsInsideLane,
+  assertValidCarDimensions,
+  getCarBoundsFromCenter,
+  isValidCarDimension,
 } from "./createInitialCar";
 
 describe("createInitialCar", () => {
@@ -262,5 +267,108 @@ describe("createInitialCar starting position", () => {
 
     expect(car.positionX).toBe(123);
     expect(car.positionY).toBe(456);
+  });
+});
+
+describe("createInitialCar dimensions", () => {
+  it("uses default car dimensions", () => {
+    const car = createInitialCar(createInitialRoad());
+
+    expect(car.width).toBe(36);
+    expect(car.height).toBe(64);
+    expect({ width: car.width, height: car.height }).toEqual(
+      DEFAULT_INITIAL_CAR_DIMENSIONS,
+    );
+  });
+
+  it("allows valid custom dimensions", () => {
+    const car = createInitialCar(createInitialRoad(), {
+      width: 32,
+      height: 70,
+    });
+
+    expect(car.width).toBe(32);
+    expect(car.height).toBe(70);
+  });
+
+  it("rejects invalid dimensions", () => {
+    expect(isValidCarDimension(1)).toBe(true);
+    expect(isValidCarDimension(36)).toBe(true);
+
+    expect(isValidCarDimension(0)).toBe(false);
+    expect(isValidCarDimension(-1)).toBe(false);
+    expect(isValidCarDimension(Number.NaN)).toBe(false);
+    expect(isValidCarDimension(Number.POSITIVE_INFINITY)).toBe(false);
+
+    expect(() => assertValidCarDimensions({ width: 0, height: 64 })).toThrow(RangeError);
+
+    expect(() => assertValidCarDimensions({ width: 36, height: -1 })).toThrow(RangeError);
+  });
+
+  it("derives collision/render bounds from center point and dimensions", () => {
+    expect(
+      getCarBoundsFromCenter(400, 600, {
+        width: 36,
+        height: 64,
+      }),
+    ).toEqual({
+      left: 382,
+      right: 418,
+      top: 568,
+      bottom: 632,
+    });
+  });
+
+  it("rejects invalid bounds inputs", () => {
+    expect(() =>
+      getCarBoundsFromCenter(Number.NaN, 600, {
+        width: 36,
+        height: 64,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      getCarBoundsFromCenter(400, 600, {
+        width: 0,
+        height: 64,
+      }),
+    ).toThrow(RangeError);
+  });
+
+  it("verifies default car width fits inside the selected lane", () => {
+    const road = createInitialRoad();
+    const car = createInitialCar(road);
+
+    expect(car.width).toBeLessThan(120);
+  });
+
+  it("rejects car width that does not fit inside selected lane", () => {
+    expect(() =>
+      createInitialCar(createInitialRoad(), {
+        width: 120,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      createInitialCar(createInitialRoad(), {
+        width: 999,
+      }),
+    ).toThrow(RangeError);
+  });
+
+  it("validates lane fit explicitly", () => {
+    expect(() =>
+      assertCarFitsInsideLane(createInitialRoad(), 1, {
+        width: 36,
+        height: 64,
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertCarFitsInsideLane(createInitialRoad(), 1, {
+        width: 120,
+        height: 64,
+      }),
+    ).toThrow(RangeError);
   });
 });

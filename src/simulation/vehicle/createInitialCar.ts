@@ -15,7 +15,12 @@
  */
 
 import type { Road } from "../world";
-import { getDefaultStartLaneIndex, getLaneCenterX, isValidLaneIndex } from "../world";
+import {
+  getDefaultStartLaneIndex,
+  getLaneCenterX,
+  getLaneWidth,
+  isValidLaneIndex,
+} from "../world";
 import {
   DEFAULT_CAR_ACCELERATION,
   DEFAULT_CAR_ANGLE,
@@ -78,6 +83,21 @@ export interface CreateInitialCarOptions {
   distanceTravelled?: number;
 }
 
+export interface CarDimensions {
+  /** Car visual/collision width in pixels. */
+  width: number;
+
+  /** Car visual/collision height in pixels. */
+  height: number;
+}
+
+export interface CarBounds {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 export const DEFAULT_INITIAL_CAR_WIDTH = 36;
 export const DEFAULT_INITIAL_CAR_HEIGHT = 64;
 
@@ -88,6 +108,70 @@ export const DEFAULT_INITIAL_CAR_HEIGHT = 64;
  * the canvas while still fully inside the road.
  */
 export const DEFAULT_START_OFFSET_FROM_BOTTOM = 300;
+
+export const DEFAULT_INITIAL_CAR_DIMENSIONS: Readonly<CarDimensions> = Object.freeze({
+  width: DEFAULT_INITIAL_CAR_WIDTH,
+  height: DEFAULT_INITIAL_CAR_HEIGHT,
+});
+
+export function isValidCarDimension(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
+export function assertValidCarDimensions(dimensions: CarDimensions): void {
+  if (!isValidCarDimension(dimensions.width)) {
+    throw new RangeError("Car width must be a finite positive pixel value.");
+  }
+
+  if (!isValidCarDimension(dimensions.height)) {
+    throw new RangeError("Car height must be a finite positive pixel value.");
+  }
+}
+
+export function getCarBoundsFromCenter(
+  positionX: number,
+  positionY: number,
+  dimensions: CarDimensions,
+): CarBounds {
+  assertValidCarDimensions(dimensions);
+
+  if (!Number.isFinite(positionX)) {
+    throw new RangeError("positionX must be finite.");
+  }
+
+  if (!Number.isFinite(positionY)) {
+    throw new RangeError("positionY must be finite.");
+  }
+
+  return {
+    left: positionX - dimensions.width / 2,
+    right: positionX + dimensions.width / 2,
+    top: positionY - dimensions.height / 2,
+    bottom: positionY + dimensions.height / 2,
+  };
+}
+
+export function assertCarFitsInsideLane(
+  road: Road,
+  laneIndex: number,
+  dimensions: CarDimensions,
+): void {
+  assertValidCarDimensions(dimensions);
+
+  const laneWidth = getLaneWidth(road);
+
+  if (dimensions.width >= laneWidth) {
+    throw new RangeError(
+      `Car width must be less than selected lane width. Received car width ${dimensions.width}px for lane width ${laneWidth}px.`,
+    );
+  }
+
+  if (!isValidLaneIndex(road, laneIndex)) {
+    throw new RangeError(
+      `laneIndex must be an integer between 0 and ${road.laneCount - 1}.`,
+    );
+  }
+}
 
 function assertPositiveDimension(value: number, label: string): void {
   if (!Number.isFinite(value) || value <= 0) {
@@ -116,7 +200,7 @@ function resolveStartLaneIndex(road: Road, startLaneIndex?: number): number {
 function resolveInitialPosition(
   road: Road,
   options: CreateInitialCarOptions,
-): { positionX: number; positionY: number } {
+): { laneIndex: number; positionX: number; positionY: number } {
   const startOffsetFromBottom =
     options.startOffsetFromBottom ?? DEFAULT_START_OFFSET_FROM_BOTTOM;
 
@@ -125,6 +209,7 @@ function resolveInitialPosition(
   const laneIndex = resolveStartLaneIndex(road, options.startLaneIndex);
 
   return {
+    laneIndex,
     positionX: options.positionX ?? getLaneCenterX(road, laneIndex),
     positionY: options.positionY ?? road.bottomY - startOffsetFromBottom,
   };
@@ -139,11 +224,19 @@ export function createInitialCar(
 ): CarState {
   const baseCar = createInitialCarState();
 
-  const { positionX, positionY } = resolveInitialPosition(road, options);
+  const { laneIndex, positionX, positionY } = resolveInitialPosition(road, options);
   const position = createCarPosition(positionX, positionY);
 
   const width = options.width ?? DEFAULT_INITIAL_CAR_WIDTH;
   const height = options.height ?? DEFAULT_INITIAL_CAR_HEIGHT;
+
+  const dimensions = {
+    width,
+    height,
+  };
+
+  assertValidCarDimensions(dimensions);
+  assertCarFitsInsideLane(road, laneIndex, dimensions);
   const speed = options.speed ?? DEFAULT_CAR_SPEED;
   const acceleration = options.acceleration ?? DEFAULT_CAR_ACCELERATION;
   const angle = options.angle ?? DEFAULT_CAR_ANGLE;
