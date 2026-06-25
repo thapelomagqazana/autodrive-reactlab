@@ -70,6 +70,31 @@ export const DEFAULT_DRAW_ROAD_OPTIONS: Required<DrawRoadOptions> = {
   centerGuideLineWidth: 1,
 };
 
+export interface RoadSurfaceRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Calculates the road surface rectangle from Road domain geometry.
+ *
+ * This helper is pure and testable. It exists to prevent renderers from
+ * duplicating road-bound calculations.
+ */
+export function getRoadSurfaceRect(road: Road): RoadSurfaceRect {
+  const leftEdgeX = getRoadLeftEdgeX(road);
+  const height = road.bottomY - road.topY;
+
+  return {
+    x: leftEdgeX,
+    y: road.topY,
+    width: road.width,
+    height,
+  };
+}
+
 /**
  * Draws the full MVP road.
  */
@@ -86,6 +111,7 @@ export function drawRoad(
   context.save();
 
   drawRoadSurface(context, road, resolvedOptions);
+
   drawRoadLines(context, getRoadBoundaryLines(road), {
     color: resolvedOptions.boundaryColor,
     lineWidth: resolvedOptions.boundaryLineWidth,
@@ -120,18 +146,22 @@ export function drawRoad(
 }
 
 /**
- * Draws the road surface rectangle from model-derived geometry.
+ * Draws only the filled road background surface.
+ *
+ * This function does not draw lane dividers, boundaries, vehicles, sensors,
+ * HUD elements, or debug overlays.
  */
 export function drawRoadSurface(
   context: CanvasRenderingContext2D,
   road: Road,
-  options: Required<DrawRoadOptions>,
+  options: Pick<Required<DrawRoadOptions>, "surfaceColor"> = DEFAULT_DRAW_ROAD_OPTIONS,
 ): void {
-  const leftEdgeX = getRoadLeftEdgeX(road);
-  const height = road.bottomY - road.topY;
+  const surface = getRoadSurfaceRect(road);
 
+  context.save();
   context.fillStyle = options.surfaceColor;
-  context.fillRect(leftEdgeX, road.topY, road.width, height);
+  context.fillRect(surface.x, surface.y, surface.width, surface.height);
+  context.restore();
 }
 
 export interface DrawLineStyle {
