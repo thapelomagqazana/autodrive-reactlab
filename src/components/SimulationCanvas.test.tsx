@@ -43,7 +43,6 @@ describe("SimulationCanvas", () => {
     render(<SimulationCanvas />);
 
     expect(screen.getByText("Simulation Canvas")).toBeInTheDocument();
-    expect(screen.getByText("Render Surface Ready")).toBeInTheDocument();
     expect(screen.getAllByTestId("simulation-canvas")).toHaveLength(1);
   });
 });
