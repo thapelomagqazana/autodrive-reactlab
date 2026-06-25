@@ -63,6 +63,23 @@ export interface Road extends RoadHorizontalGeometry {
   bottomY: number;
 }
 
+export interface LaneGeometry {
+  /** Zero-based lane index. */
+  laneIndex: number;
+
+  /** Horizontal center of the lane in pixels. */
+  centerX: number;
+
+  /** Lane width in pixels. */
+  width: number;
+
+  /** Left edge of the lane in pixels. */
+  leftEdgeX: number;
+
+  /** Right edge of the lane in pixels. */
+  rightEdgeX: number;
+}
+
 export const DEFAULT_ROAD_CENTER_X = 400;
 export const DEFAULT_ROAD_WIDTH = 360;
 
@@ -127,6 +144,26 @@ export function isValidLaneCount(value: number): boolean {
 export function assertValidLaneCount(laneCount: number): void {
   if (!isValidLaneCount(laneCount)) {
     throw new RangeError("laneCount must be a positive integer.");
+  }
+}
+
+/**
+ * Returns true when the lane index exists on the road.
+ */
+export function isValidLaneIndex(road: Road, laneIndex: number): boolean {
+  assertValidRoad(road);
+
+  return Number.isInteger(laneIndex) && laneIndex >= 0 && laneIndex < road.laneCount;
+}
+
+/**
+ * Asserts that the lane index exists on the road.
+ */
+export function assertValidLaneIndex(road: Road, laneIndex: number): void {
+  if (!isValidLaneIndex(road, laneIndex)) {
+    throw new RangeError(
+      `laneIndex must be an integer between 0 and ${road.laneCount - 1}.`,
+    );
   }
 }
 
@@ -242,22 +279,79 @@ export function getLaneWidth(road: Road): number {
 }
 
 /**
+ * Returns the left edge X position for a zero-based lane index.
+ */
+export function getLaneLeftEdgeX(road: Road, laneIndex: number): number {
+  assertValidLaneIndex(road, laneIndex);
+
+  return getRoadLeftEdgeX(road) + getLaneWidth(road) * laneIndex;
+}
+
+/**
+ * Returns the right edge X position for a zero-based lane index.
+ */
+export function getLaneRightEdgeX(road: Road, laneIndex: number): number {
+  assertValidLaneIndex(road, laneIndex);
+
+  return getLaneLeftEdgeX(road, laneIndex) + getLaneWidth(road);
+}
+
+/**
  * Returns the center X coordinate for a zero-based lane index.
  *
  * laneIndex = 0 means the leftmost lane.
  */
 export function getLaneCenterX(road: Road, laneIndex: number): number {
+  assertValidLaneIndex(road, laneIndex);
+
+  return getLaneLeftEdgeX(road, laneIndex) + getLaneWidth(road) / 2;
+}
+
+/**
+ * Returns complete geometry for one lane.
+ */
+export function getLaneGeometry(road: Road, laneIndex: number): LaneGeometry {
+  assertValidLaneIndex(road, laneIndex);
+
+  return {
+    laneIndex,
+    centerX: getLaneCenterX(road, laneIndex),
+    width: getLaneWidth(road),
+    leftEdgeX: getLaneLeftEdgeX(road, laneIndex),
+    rightEdgeX: getLaneRightEdgeX(road, laneIndex),
+  };
+}
+
+/**
+ * Returns geometry for every lane from left to right.
+ */
+export function getAllLaneGeometries(road: Road): LaneGeometry[] {
   assertValidRoad(road);
 
-  if (!Number.isInteger(laneIndex)) {
-    throw new RangeError("laneIndex must be an integer.");
-  }
+  return Array.from({ length: road.laneCount }, (_, laneIndex) =>
+    getLaneGeometry(road, laneIndex),
+  );
+}
 
-  if (laneIndex < 0 || laneIndex >= road.laneCount) {
-    throw new RangeError("laneIndex must be within the road lane range.");
-  }
+/**
+ * Returns the default starting lane index.
+ *
+ * For odd lane counts, this is the true center lane.
+ * For even lane counts, this chooses the left-middle lane for determinism.
+ */
+export function getDefaultStartLaneIndex(road: Road): number {
+  assertValidRoad(road);
 
-  return getRoadLeftEdgeX(road) + getLaneWidth(road) * (laneIndex + 0.5);
+  return Math.floor((road.laneCount - 1) / 2);
+}
+
+/**
+ * Returns the default starting lane center X position.
+ *
+ * Car spawning should use this instead of hardcoded X coordinates.
+ */
+export function getDefaultStartLaneCenterX(road: Road): number {
+  return getLaneCenterX(road, getDefaultStartLaneIndex(road));
 }
 
 /**
@@ -296,12 +390,10 @@ export function getRoadBoundaryLines(road: Road): RoadLine[] {
 export function getLaneDividerLines(road: Road): RoadLine[] {
   assertValidRoad(road);
 
-  const laneWidth = getLaneWidth(road);
-  const leftEdgeX = getRoadLeftEdgeX(road);
   const dividerCount = getLaneDividerCount(road.laneCount);
 
   return Array.from({ length: dividerCount }, (_, index) => {
-    const dividerX = leftEdgeX + laneWidth * (index + 1);
+    const dividerX = getLaneRightEdgeX(road, index);
 
     return {
       startX: dividerX,

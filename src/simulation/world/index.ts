@@ -1,4 +1,10 @@
-export type { Road, RoadHorizontalGeometry, RoadLine, RoadLineKind } from "./road";
+export type {
+  LaneGeometry,
+  Road,
+  RoadHorizontalGeometry,
+  RoadLine,
+  RoadLineKind,
+} from "./road";
 
 export {
   DEFAULT_ROAD,
@@ -6,12 +12,19 @@ export {
   DEFAULT_ROAD_LANE_COUNT,
   DEFAULT_ROAD_WIDTH,
   assertValidLaneCount,
+  assertValidLaneIndex,
   assertValidRoad,
   assertValidRoadHorizontalGeometry,
   createInitialRoad,
+  getAllLaneGeometries,
+  getDefaultStartLaneCenterX,
+  getDefaultStartLaneIndex,
   getLaneCenterX,
   getLaneDividerCount,
   getLaneDividerLines,
+  getLaneGeometry,
+  getLaneLeftEdgeX,
+  getLaneRightEdgeX,
   getLaneWidth,
   getRoadBoundaryLines,
   getRoadHorizontalEdges,

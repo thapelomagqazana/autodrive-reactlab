@@ -8,7 +8,13 @@ import {
   assertValidRoad,
   assertValidRoadHorizontalGeometry,
   createInitialRoad,
+  getAllLaneGeometries,
+  getDefaultStartLaneCenterX,
+  getDefaultStartLaneIndex,
   getLaneCenterX,
+  getLaneGeometry,
+  getLaneLeftEdgeX,
+  getLaneRightEdgeX,
   getLaneDividerCount,
   getLaneDividerLines,
   getLaneWidth,
@@ -20,6 +26,7 @@ import {
   isPositiveRoadSize,
   isValidLaneCount,
   isValidRoadWidth,
+  isValidLaneIndex,
   normalizeLaneCount,
 } from "./road";
 
@@ -344,5 +351,149 @@ describe("road lane count", () => {
     const road = createInitialRoad();
 
     expect(getLaneDividerLines(road)).toHaveLength(road.laneCount - 1);
+  });
+});
+
+describe("lane center calculations", () => {
+  it("calculates lane width from road width and lane count", () => {
+    const road = createInitialRoad();
+
+    expect(getLaneWidth(road)).toBe(120);
+  });
+
+  it("calculates lane centers for the default three-lane road", () => {
+    const road = createInitialRoad();
+
+    expect(getLaneCenterX(road, 0)).toBe(280);
+    expect(getLaneCenterX(road, 1)).toBe(400);
+    expect(getLaneCenterX(road, 2)).toBe(520);
+  });
+
+  it("uses zero-based indexing with lane 0 as the leftmost lane", () => {
+    const road = createInitialRoad();
+
+    expect(getLaneLeftEdgeX(road, 0)).toBe(220);
+    expect(getLaneRightEdgeX(road, 0)).toBe(340);
+    expect(getLaneCenterX(road, 0)).toBe(280);
+  });
+
+  it("uses laneCount - 1 as the rightmost lane", () => {
+    const road = createInitialRoad();
+    const rightmostLaneIndex = road.laneCount - 1;
+
+    expect(rightmostLaneIndex).toBe(2);
+    expect(getLaneLeftEdgeX(road, rightmostLaneIndex)).toBe(460);
+    expect(getLaneRightEdgeX(road, rightmostLaneIndex)).toBe(580);
+    expect(getLaneCenterX(road, rightmostLaneIndex)).toBe(520);
+  });
+
+  it("returns complete lane geometry", () => {
+    const road = createInitialRoad();
+
+    expect(getLaneGeometry(road, 1)).toEqual({
+      laneIndex: 1,
+      centerX: 400,
+      width: 120,
+      leftEdgeX: 340,
+      rightEdgeX: 460,
+    });
+  });
+
+  it("returns all lane geometries from left to right", () => {
+    const road = createInitialRoad();
+
+    expect(getAllLaneGeometries(road)).toEqual([
+      {
+        laneIndex: 0,
+        centerX: 280,
+        width: 120,
+        leftEdgeX: 220,
+        rightEdgeX: 340,
+      },
+      {
+        laneIndex: 1,
+        centerX: 400,
+        width: 120,
+        leftEdgeX: 340,
+        rightEdgeX: 460,
+      },
+      {
+        laneIndex: 2,
+        centerX: 520,
+        width: 120,
+        leftEdgeX: 460,
+        rightEdgeX: 580,
+      },
+    ]);
+  });
+
+  it("calculates the default starting lane for odd lane counts", () => {
+    const road = createInitialRoad();
+
+    expect(getDefaultStartLaneIndex(road)).toBe(1);
+    expect(getDefaultStartLaneCenterX(road)).toBe(400);
+  });
+
+  it("calculates the default starting lane for even lane counts", () => {
+    const road = {
+      centerX: 400,
+      width: 400,
+      laneCount: 4,
+      topY: 0,
+      bottomY: 900,
+    };
+
+    expect(getDefaultStartLaneIndex(road)).toBe(1);
+    expect(getDefaultStartLaneCenterX(road)).toBe(350);
+  });
+
+  it("supports a one-lane road", () => {
+    const road = {
+      centerX: 400,
+      width: 360,
+      laneCount: 1,
+      topY: 0,
+      bottomY: 900,
+    };
+
+    expect(getLaneWidth(road)).toBe(360);
+    expect(getLaneCenterX(road, 0)).toBe(400);
+    expect(getDefaultStartLaneIndex(road)).toBe(0);
+  });
+
+  it("supports fractional lane widths", () => {
+    const road = {
+      centerX: 100,
+      width: 100,
+      laneCount: 3,
+      topY: 0,
+      bottomY: 900,
+    };
+
+    expect(getLaneWidth(road)).toBeCloseTo(33.333333);
+    expect(getLaneCenterX(road, 0)).toBeCloseTo(66.666666);
+    expect(getLaneCenterX(road, 1)).toBeCloseTo(100);
+    expect(getLaneCenterX(road, 2)).toBeCloseTo(133.333333);
+  });
+
+  it("validates lane indexes", () => {
+    const road = createInitialRoad();
+
+    expect(isValidLaneIndex(road, 0)).toBe(true);
+    expect(isValidLaneIndex(road, 1)).toBe(true);
+    expect(isValidLaneIndex(road, 2)).toBe(true);
+
+    expect(isValidLaneIndex(road, -1)).toBe(false);
+    expect(isValidLaneIndex(road, 3)).toBe(false);
+    expect(isValidLaneIndex(road, 1.5)).toBe(false);
+  });
+
+  it("rejects invalid lane indexes safely", () => {
+    const road = createInitialRoad();
+
+    expect(() => getLaneCenterX(road, -1)).toThrow(RangeError);
+    expect(() => getLaneCenterX(road, road.laneCount)).toThrow(RangeError);
+    expect(() => getLaneCenterX(road, 1.5)).toThrow(RangeError);
+    expect(() => getLaneCenterX(road, Number.NaN)).toThrow(RangeError);
   });
 });
