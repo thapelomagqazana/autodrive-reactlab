@@ -7,6 +7,7 @@ import {
   applyCarTransform,
   assertDrawableCarTransform,
   drawCar,
+  drawCarBody,
   drawCarFrontIndicator,
 } from "./carRenderer";
 
@@ -17,7 +18,6 @@ function createMockContext(): CanvasRenderingContext2D {
     translate: vi.fn(),
     rotate: vi.fn(),
     beginPath: vi.fn(),
-    roundRect: vi.fn(),
     rect: vi.fn(),
     fill: vi.fn(),
     stroke: vi.fn(),
@@ -27,6 +27,8 @@ function createMockContext(): CanvasRenderingContext2D {
     lineWidth: 1,
     shadowColor: "",
     shadowBlur: 0,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0,
   } as unknown as CanvasRenderingContext2D;
 }
 
@@ -375,5 +377,104 @@ describe("car front indicator", () => {
         DEFAULT_DRAW_CAR_OPTIONS,
       ),
     ).toThrow(RangeError);
+  });
+});
+
+describe("car shadow and outline", () => {
+  it("applies a subtle shadow before filling the car body", () => {
+    const context = createMockContext();
+
+    drawCarBody(
+      context,
+      {
+        width: 36,
+        height: 64,
+      },
+      DEFAULT_DRAW_CAR_OPTIONS,
+    );
+
+    expect(context.fill).toHaveBeenCalledOnce();
+    expect(context.stroke).toHaveBeenCalledOnce();
+  });
+
+  it("uses readable body outline styling", () => {
+    const context = createMockContext();
+
+    drawCarBody(
+      context,
+      {
+        width: 36,
+        height: 64,
+      },
+      DEFAULT_DRAW_CAR_OPTIONS,
+    );
+
+    expect(context.strokeStyle).toBe(DEFAULT_DRAW_CAR_OPTIONS.bodyStrokeColor);
+    expect(context.lineWidth).toBe(DEFAULT_DRAW_CAR_OPTIONS.bodyLineWidth);
+  });
+
+  it("resets shadow before drawing the outline", () => {
+    const context = createMockContext();
+
+    drawCarBody(
+      context,
+      {
+        width: 36,
+        height: 64,
+      },
+      DEFAULT_DRAW_CAR_OPTIONS,
+    );
+
+    expect(context.shadowColor).toBe("transparent");
+    expect(context.shadowBlur).toBe(0);
+    expect(context.shadowOffsetX).toBe(0);
+    expect(context.shadowOffsetY).toBe(0);
+  });
+
+  it("supports custom shadow and outline style", () => {
+    const context = createMockContext();
+
+    drawCarBody(
+      context,
+      {
+        width: 36,
+        height: 64,
+      },
+      {
+        bodyFillColor: "white",
+        bodyStrokeColor: "rgb(191 219 254)",
+        bodyLineWidth: 3,
+        shadowColor: "rgb(0 0 0 / 0.5)",
+        shadowBlur: 8,
+        shadowOffsetX: 1,
+        shadowOffsetY: 5,
+      },
+    );
+
+    expect(context.strokeStyle).toBe("rgb(191 219 254)");
+    expect(context.lineWidth).toBe(3);
+  });
+
+  it("outline follows car rotation through the shared car transform", () => {
+    const context = createMockContext();
+    const car = createInitialCar(createInitialRoad(), {
+      angle: Math.PI / 2,
+    });
+
+    drawCar(context, car);
+
+    expect(context.translate).toHaveBeenCalledWith(car.positionX, car.positionY);
+    expect(context.rotate).toHaveBeenCalledWith(Math.PI / 2);
+    expect(context.stroke).toHaveBeenCalled();
+  });
+
+  it("does not mutate car state when applying shadow and outline", () => {
+    const context = createMockContext();
+    const car = createInitialCar(createInitialRoad());
+    const snapshot = structuredClone(car);
+
+    drawCar(context, car);
+
+    expect(car).toEqual(snapshot);
   });
 });

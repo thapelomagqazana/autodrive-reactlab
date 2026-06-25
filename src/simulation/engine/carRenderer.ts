@@ -29,6 +29,8 @@ export interface DrawCarOptions {
   frontIndicatorColor?: string;
   shadowColor?: string;
   shadowBlur?: number;
+  shadowOffsetX?: number;
+  shadowOffsetY?: number;
 }
 
 /**
@@ -40,7 +42,9 @@ export const DEFAULT_DRAW_CAR_OPTIONS: Required<DrawCarOptions> = {
   bodyLineWidth: 2,
   frontIndicatorColor: "rgb(14 165 233)",
   shadowColor: "rgb(56 189 248 / 0.28)",
-  shadowBlur: 14,
+  shadowBlur: 10,
+  shadowOffsetX: 0,
+  shadowOffsetY: 4,
 };
 
 /**
@@ -96,10 +100,19 @@ export function drawCarBody(
   car: Pick<CarState, "width" | "height">,
   options: Pick<
     Required<DrawCarOptions>,
-    "bodyFillColor" | "bodyStrokeColor" | "bodyLineWidth" | "shadowColor" | "shadowBlur"
+    | "bodyFillColor"
+    | "bodyStrokeColor"
+    | "bodyLineWidth"
+    | "shadowColor"
+    | "shadowBlur"
+    | "shadowOffsetX"
+    | "shadowOffsetY"
   > = DEFAULT_DRAW_CAR_OPTIONS,
 ): void {
   assertDrawableCarDimensions(car);
+
+  const bodyX = -car.width / 2;
+  const bodyY = -car.height / 2;
 
   context.save();
 
@@ -108,10 +121,22 @@ export function drawCarBody(
   context.lineWidth = options.bodyLineWidth;
   context.shadowColor = options.shadowColor;
   context.shadowBlur = options.shadowBlur;
+  context.shadowOffsetX = options.shadowOffsetX;
+  context.shadowOffsetY = options.shadowOffsetY;
 
   context.beginPath();
-  context.rect(-car.width / 2, -car.height / 2, car.width, car.height);
+  context.rect(bodyX, bodyY, car.width, car.height);
   context.fill();
+
+  /**
+   * Disable shadow before outline so the outline stays crisp and professional.
+   * The shadow improves contrast; the outline defines the vehicle boundary.
+   */
+  context.shadowColor = "transparent";
+  context.shadowBlur = 0;
+  context.shadowOffsetX = 0;
+  context.shadowOffsetY = 0;
+
   context.stroke();
 
   context.restore();
@@ -140,15 +165,18 @@ export function drawCarFrontIndicator(
   const indicatorWidth = car.width * 0.45;
   const indicatorHeight = Math.max(3, car.height * 0.08);
 
-  const indicatorX = -indicatorWidth / 2;
-  const indicatorY = -car.height / 2 + 6;
-
   context.save();
 
   context.fillStyle = options.frontIndicatorColor;
   context.shadowBlur = 0;
+  context.shadowColor = "transparent";
 
-  context.fillRect(indicatorX, indicatorY, indicatorWidth, indicatorHeight);
+  context.fillRect(
+    -indicatorWidth / 2,
+    -car.height / 2 + 6,
+    indicatorWidth,
+    indicatorHeight,
+  );
 
   context.restore();
 }
