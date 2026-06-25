@@ -46,3 +46,12 @@ export {
   radiansToDegrees,
   steeringInputToAngle,
 } from "./carState";
+
+export type { CreateInitialCarOptions } from "./createInitialCar";
+
+export {
+  DEFAULT_INITIAL_CAR_HEIGHT,
+  DEFAULT_INITIAL_CAR_POSITION_Y,
+  DEFAULT_INITIAL_CAR_WIDTH,
+  createInitialCar,
+} from "./createInitialCar";
