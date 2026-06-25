@@ -421,3 +421,52 @@ describe("createInitialCar stationary initial speed", () => {
     ).toThrow(RangeError);
   });
 });
+
+describe("createInitialCar initial heading", () => {
+  it("starts facing forward along the MVP road", () => {
+    const car = createInitialCar(createInitialRoad());
+
+    expect(car.angle).toBe(0);
+  });
+
+  it("uses radians for the initial heading", () => {
+    const car = createInitialCar(createInitialRoad());
+
+    expect(car.angle).toBe(0);
+    expect(car.angle).not.toBe(90);
+    expect(car.angle).not.toBe(180);
+  });
+
+  it("allows explicit finite heading override for tests and tooling", () => {
+    const car = createInitialCar(createInitialRoad(), {
+      angle: Math.PI / 2,
+    });
+
+    expect(car.angle).toBe(Math.PI / 2);
+  });
+
+  it("rejects invalid heading values", () => {
+    expect(() =>
+      createInitialCar(createInitialRoad(), {
+        angle: Number.NaN,
+      }),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      createInitialCar(createInitialRoad(), {
+        angle: Number.POSITIVE_INFINITY,
+      }),
+    ).toThrow(RangeError);
+  });
+
+  it("reset-safe cars always return to the default heading", () => {
+    const road = createInitialRoad();
+
+    const first = createInitialCar(road);
+    const second = createInitialCar(road);
+
+    expect(first.angle).toBe(0);
+    expect(second.angle).toBe(0);
+    expect(first).not.toBe(second);
+  });
+});
