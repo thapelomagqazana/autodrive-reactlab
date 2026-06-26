@@ -49,6 +49,7 @@ describe("createInitialCarState", () => {
       turnRate: 2.4,
       maxSpeed: 260,
       maxReverseSpeed: 80,
+      maxSteeringAngle: 0.5235987755982988,
       width: 36,
       height: 64,
       distanceTravelled: 0,
@@ -593,5 +594,31 @@ describe("car movement limits", () => {
         DEFAULT_CAR_MOVEMENT_LIMITS,
       ),
     ).toThrow(RangeError);
+  });
+});
+
+describe("clampSteeringAngle", () => {
+  it("clamps right steering to positive maxSteeringAngle", () => {
+    expect(clampSteeringAngle(Math.PI, Math.PI / 6)).toBe(Math.PI / 6);
+  });
+
+  it("clamps left steering to negative maxSteeringAngle", () => {
+    expect(clampSteeringAngle(-Math.PI, Math.PI / 6)).toBe(-Math.PI / 6);
+  });
+
+  it("preserves steering angle inside limits", () => {
+    expect(clampSteeringAngle(0.1, Math.PI / 6)).toBe(0.1);
+    expect(clampSteeringAngle(-0.1, Math.PI / 6)).toBe(-0.1);
+  });
+
+  it("allows zero max steering angle", () => {
+    expect(clampSteeringAngle(1, 0)).toBe(0);
+    expect(clampSteeringAngle(-1, 0)).toBe(0);
+  });
+
+  it("rejects invalid steering values", () => {
+    expect(() => clampSteeringAngle(Number.NaN)).toThrow(RangeError);
+    expect(() => clampSteeringAngle(1, Number.NaN)).toThrow(RangeError);
+    expect(() => clampSteeringAngle(1, -1)).toThrow(RangeError);
   });
 });

@@ -135,6 +135,13 @@ export interface CarState extends CarPosition {
    * to update the vehicle heading.
    */
   turnRate: number;
+
+  /**
+   * Maximum absolute steering angle in radians.
+   *
+   * Default is Math.PI / 6, approximately 30 degrees.
+   */
+  maxSteeringAngle: number;
 }
 
 /**
@@ -234,6 +241,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
 
   angle: DEFAULT_CAR_ANGLE,
   steeringAngle: DEFAULT_CAR_STEERING_ANGLE,
+  maxSteeringAngle: DEFAULT_MAX_STEERING_ANGLE,
 
   ...DEFAULT_CAR_MOVEMENT_LIMITS,
 
@@ -461,7 +469,9 @@ export function clampSteeringAngle(
     throw new RangeError("maxSteeringAngle must be a finite non-negative value.");
   }
 
-  return Math.min(Math.max(steeringAngle, -maxSteeringAngle), maxSteeringAngle);
+  const clamped = Math.min(Math.max(steeringAngle, -maxSteeringAngle), maxSteeringAngle);
+
+  return Object.is(clamped, -0) ? 0 : clamped;
 }
 
 /**
