@@ -1054,3 +1054,144 @@ it("uses active steering input instead of returning to center", () => {
 
   expect(nextCar.steeringAngle).toBe(Math.PI / 6);
 });
+
+describe("low-speed turning behaviour", () => {
+  function createLowSpeedTurningCar(overrides: Partial<CarState> = {}) {
+    return {
+      ...createInitialCar(createInitialRoad()),
+      friction: 0,
+      angle: 0,
+      steeringAngle: 0,
+      steeringReturnRate: 0,
+      turnRate: 2,
+      maxSpeed: 100,
+      maxSteeringAngle: Math.PI / 6,
+      ...overrides,
+    };
+  }
+
+  it("does not rotate when stopped, even with steering input", () => {
+    const car = createLowSpeedTurningCar({
+      speed: 0,
+    });
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      1,
+    );
+
+    expect(nextCar.angle).toBe(0);
+    expect(nextCar.steeringAngle).toBe(0);
+  });
+
+  it("does not rotate below the minimum steering speed", () => {
+    const car = createLowSpeedTurningCar({
+      speed: DEFAULT_MINIMUM_STEERING_SPEED - 0.001,
+    });
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      1,
+    );
+
+    expect(nextCar.angle).toBe(0);
+    expect(nextCar.steeringAngle).toBe(0);
+  });
+
+  it("allows heading change at the minimum steering speed", () => {
+    const car = createLowSpeedTurningCar({
+      speed: DEFAULT_MINIMUM_STEERING_SPEED,
+    });
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      1,
+    );
+
+    expect(nextCar.steeringAngle).toBeCloseTo(Math.PI / 6);
+    expect(nextCar.angle).toBeGreaterThan(0);
+  });
+
+  it("turns gradually at low positive speed", () => {
+    const car = createLowSpeedTurningCar({
+      speed: 10,
+    });
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      0.5,
+    );
+
+    expect(nextCar.angle).toBeCloseTo((Math.PI / 6) * 2 * 0.1 * 0.5);
+    expect(nextCar.angle).toBeGreaterThan(0);
+  });
+
+  it("documents deterministic low reverse steering behaviour", () => {
+    const car = createLowSpeedTurningCar({
+      speed: -10,
+    });
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      0.5,
+    );
+
+    /**
+     * MVP reverse-steering rule:
+     * - reverse speed uses speed magnitude for turn strength
+     * - positive steering still increases heading
+     * - reverse does not invert steering direction yet
+     */
+    expect(nextCar.angle).toBeCloseTo((Math.PI / 6) * 2 * 0.1 * 0.5);
+    expect(nextCar.angle).toBeGreaterThan(0);
+  });
+
+  it("keeps low reverse left steering deterministic", () => {
+    const car = createLowSpeedTurningCar({
+      speed: -10,
+    });
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: -1,
+      }),
+      0.5,
+    );
+
+    expect(nextCar.angle).toBeCloseTo(-(Math.PI / 6) * 2 * 0.1 * 0.5);
+    expect(nextCar.angle).toBeLessThan(0);
+  });
+
+  it("does not mutate the input car during low-speed steering checks", () => {
+    const car = createLowSpeedTurningCar({
+      speed: 10,
+    });
+    const snapshot = structuredClone(car);
+
+    updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      0.5,
+    );
+
+    expect(car).toEqual(snapshot);
+  });
+});
