@@ -142,6 +142,71 @@ export function resolveCarFriction(car: Pick<CarState, "friction">): number {
 }
 
 /**
+ * Minimal position result returned by movement integration.
+ */
+export interface CarPositionUpdate {
+  positionX: number;
+  positionY: number;
+  distanceTravelled: number;
+}
+
+/**
+ * Calculates how far the car moves during this physics step.
+ *
+ * Unit:
+ * - speed is pixels per second
+ * - deltaTimeSeconds is seconds
+ * - result is pixels
+ */
+export function calculateTravelDistance(speed: number, deltaTimeSeconds: number): number {
+  assertFiniteNumber(speed, "speed");
+  assertValidDeltaTimeSeconds(deltaTimeSeconds);
+
+  return speed * deltaTimeSeconds;
+}
+
+/**
+ * Updates car position using speed, heading angle, and elapsed time.
+ *
+ * Coordinate convention:
+ * - 0 radians = upward / north
+ * - positive Y points down
+ * - positive speed moves forward
+ * - negative speed moves backward
+ *
+ * Movement formula:
+ * - x += sin(angle) * distance
+ * - y -= cos(angle) * distance
+ */
+export function updatePositionUsingSpeedAndHeading(
+  car: Pick<
+    CarState,
+    "positionX" | "positionY" | "speed" | "angle" | "distanceTravelled"
+  >,
+  deltaTimeSeconds: number,
+): CarPositionUpdate {
+  assertFiniteNumber(car.positionX, "car.positionX");
+  assertFiniteNumber(car.positionY, "car.positionY");
+  assertFiniteNumber(car.speed, "car.speed");
+  assertFiniteNumber(car.angle, "car.angle");
+  assertNonNegativeFiniteNumber(car.distanceTravelled, "car.distanceTravelled");
+  assertValidDeltaTimeSeconds(deltaTimeSeconds);
+
+  const distance = calculateTravelDistance(car.speed, deltaTimeSeconds);
+
+  return {
+    positionX: car.positionX + Math.sin(car.angle) * distance,
+    positionY: car.positionY - Math.cos(car.angle) * distance,
+
+    /**
+     * Distance travelled is total path length, so reverse movement still adds
+     * positive travelled distance.
+     */
+    distanceTravelled: car.distanceTravelled + Math.abs(distance),
+  };
+}
+
+/**
  * Calculates the next car state.
  *
  * This first MVP physics shell is intentionally conservative:
@@ -167,8 +232,17 @@ export function updateCarPhysics(
 
   const speed = clampSpeed(speedBeforeFinalClamp, car.maxSpeed, car.maxReverseSpeed);
 
+  const position = updatePositionUsingSpeedAndHeading(
+    {
+      ...car,
+      speed,
+    },
+    deltaTimeSeconds,
+  );
+
   return {
     ...car,
+    ...position,
     speed,
   };
 }
