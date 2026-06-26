@@ -23,6 +23,7 @@ import {
 } from "../world";
 import {
   DEFAULT_CAR_ACCELERATION,
+  DEFAULT_STEERING_RETURN_RATE,
   DEFAULT_MAX_STEERING_ANGLE,
   DEFAULT_CAR_FRICTION,
   DEFAULT_CAR_ANGLE,
@@ -44,6 +45,7 @@ import {
   isValidTurnRate,
   isValidFrictionValue,
   isValidMaxSteeringAngle,
+  isValidSteeringReturnRate,
 } from "./carState";
 
 /**
@@ -91,6 +93,7 @@ export interface CreateInitialCarOptions {
   turnRate?: number;
   friction?: number;
   maxSteeringAngle?: number;
+  steeringReturnRate?: number;
 }
 
 export interface CarDimensions {
@@ -257,6 +260,7 @@ export function createInitialCar(
     options.steeringAngle ?? DEFAULT_CAR_STEERING_ANGLE,
     maxSteeringAngle,
   );
+  const steeringReturnRate = options.steeringReturnRate ?? DEFAULT_STEERING_RETURN_RATE;
   const maxSpeed = options.maxSpeed ?? DEFAULT_CAR_MAX_SPEED;
   const maxReverseSpeed = options.maxReverseSpeed ?? DEFAULT_CAR_MAX_REVERSE_SPEED;
   const distanceTravelled = options.distanceTravelled ?? 0;
@@ -264,6 +268,10 @@ export function createInitialCar(
 
   assertPositiveDimension(width, "width");
   assertPositiveDimension(height, "height");
+
+  if (!isValidSteeringReturnRate(steeringReturnRate)) {
+    throw new RangeError("steeringReturnRate must be a finite non-negative value.");
+  }
 
   if (!isValidMaxSteeringAngle(maxSteeringAngle)) {
     throw new RangeError("maxSteeringAngle must be a finite non-negative value.");
@@ -315,6 +323,7 @@ export function createInitialCar(
     angle,
     steeringAngle,
     maxSteeringAngle,
+    steeringReturnRate,
     turnRate,
     maxSpeed,
     maxReverseSpeed,

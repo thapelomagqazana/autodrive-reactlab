@@ -31,6 +31,7 @@ describe("createInitialCar", () => {
       maxReverseSpeed: 80,
       friction: 70,
       maxSteeringAngle: 0.5235987755982988,
+      steeringReturnRate: 1.5707963267948966,
 
       width: DEFAULT_INITIAL_CAR_WIDTH,
       height: DEFAULT_INITIAL_CAR_HEIGHT,

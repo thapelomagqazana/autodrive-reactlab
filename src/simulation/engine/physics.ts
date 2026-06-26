@@ -76,6 +76,40 @@ export function createCarPhysicsInput(
 }
 
 /**
+ * Moves steering angle toward zero without overshooting.
+ *
+ * Rule:
+ * - Positive steering decreases toward 0.
+ * - Negative steering increases toward 0.
+ * - Near-zero steering snaps exactly to 0 when the recovery step is larger
+ *   than the remaining steering magnitude.
+ */
+export function returnSteeringAngleToCenter(
+  steeringAngle: number,
+  steeringReturnRate: number,
+  deltaTimeSeconds: number,
+): number {
+  assertValidDeltaTimeSeconds(deltaTimeSeconds);
+  assertFiniteNumber(steeringAngle, "steeringAngle");
+
+  if (!Number.isFinite(steeringReturnRate) || steeringReturnRate < 0) {
+    throw new RangeError("steeringReturnRate must be a finite non-negative number.");
+  }
+
+  const returnAmount = steeringReturnRate * deltaTimeSeconds;
+
+  if (steeringAngle > 0) {
+    return Math.max(0, steeringAngle - returnAmount);
+  }
+
+  if (steeringAngle < 0) {
+    return Math.min(0, steeringAngle + returnAmount);
+  }
+
+  return 0;
+}
+
+/**
  * Minimum signed-speed magnitude required before steering can affect heading.
  *
  * Unit:
@@ -409,10 +443,17 @@ export function updateCarPhysics(
    * Later phases use effectiveSteeringInput to update steeringAngle and angle.
    * For now, heading remains unchanged.
    */
-  const steeringAngle = clampSteeringAngle(
-    steeringInputToAngle(effectiveSteeringInput, car.maxSteeringAngle),
-    car.maxSteeringAngle,
-  );
+  const steeringAngle =
+    effectiveSteeringInput === 0
+      ? returnSteeringAngleToCenter(
+          car.steeringAngle,
+          car.steeringReturnRate,
+          deltaTimeSeconds,
+        )
+      : clampSteeringAngle(
+          steeringInputToAngle(effectiveSteeringInput, car.maxSteeringAngle),
+          car.maxSteeringAngle,
+        );
 
   const angle = updateHeadingFromSteering(
     {

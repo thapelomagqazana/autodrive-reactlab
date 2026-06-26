@@ -24,6 +24,7 @@ export {
   DEFAULT_CAR_STATE,
   DEFAULT_CAR_STEERING_ANGLE,
   DEFAULT_MAX_STEERING_ANGLE,
+  DEFAULT_STEERING_RETURN_RATE,
   TWO_PI,
   assertValidCarMovementLimits,
   applyForwardAcceleration,
@@ -45,6 +46,7 @@ export {
   normalizeHeadingAngle,
   radiansToDegrees,
   steeringInputToAngle,
+  isValidSteeringReturnRate,
 } from "./carState";
 
 export type {
