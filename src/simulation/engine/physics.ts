@@ -68,6 +68,15 @@ export function clampSpeed(
   return Math.min(maxSpeed, Math.max(-maxReverseSpeed, speed));
 }
 
+/**
+ * Convenience helper that clamps speed using the limits on CarState.
+ */
+export function clampCarPhysicsSpeed(
+  car: Pick<CarState, "speed" | "maxSpeed" | "maxReverseSpeed">,
+): number {
+  return clampSpeed(car.speed, car.maxSpeed, car.maxReverseSpeed);
+}
+
 export function applyAccelerationToSpeed(
   car: Pick<CarState, "speed" | "acceleration" | "maxSpeed" | "maxReverseSpeed">,
   input: Pick<CarPhysicsInput, "isAccelerating">,
@@ -152,9 +161,11 @@ export function updateCarPhysics(
 
   const shouldApplyFriction = !input.isAccelerating && !input.isBraking;
 
-  const speed = shouldApplyFriction
-    ? applyFrictionToSpeed(acceleratedSpeed, resolveCarFriction(car), deltaTimeSeconds)
+  const speedBeforeFinalClamp = shouldApplyFriction
+    ? applyFrictionToSpeed(acceleratedSpeed, car.friction, deltaTimeSeconds)
     : acceleratedSpeed;
+
+  const speed = clampSpeed(speedBeforeFinalClamp, car.maxSpeed, car.maxReverseSpeed);
 
   return {
     ...car,
