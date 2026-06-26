@@ -23,6 +23,7 @@ import {
 } from "../world";
 import {
   DEFAULT_CAR_ACCELERATION,
+  DEFAULT_MAX_STEERING_ANGLE,
   DEFAULT_CAR_FRICTION,
   DEFAULT_CAR_ANGLE,
   DEFAULT_CAR_MAX_REVERSE_SPEED,
@@ -34,6 +35,7 @@ import {
   type CarState,
   createCarPosition,
   createInitialCarState,
+  clampSteeringAngle,
   isPositiveSpeedLimit,
   isValidAccelerationValue,
   isValidCarSpeedValue,
@@ -41,6 +43,7 @@ import {
   isValidSteeringAngle,
   isValidTurnRate,
   isValidFrictionValue,
+  isValidMaxSteeringAngle,
 } from "./carState";
 
 /**
@@ -87,6 +90,7 @@ export interface CreateInitialCarOptions {
   distanceTravelled?: number;
   turnRate?: number;
   friction?: number;
+  maxSteeringAngle?: number;
 }
 
 export interface CarDimensions {
@@ -248,7 +252,11 @@ export function createInitialCar(
   const friction = options.friction ?? DEFAULT_CAR_FRICTION;
   const angle = options.angle ?? DEFAULT_CAR_ANGLE;
   const turnRate = options.turnRate ?? DEFAULT_CAR_TURN_RATE;
-  const steeringAngle = options.steeringAngle ?? DEFAULT_CAR_STEERING_ANGLE;
+  const maxSteeringAngle = options.maxSteeringAngle ?? DEFAULT_MAX_STEERING_ANGLE;
+  const steeringAngle = clampSteeringAngle(
+    options.steeringAngle ?? DEFAULT_CAR_STEERING_ANGLE,
+    maxSteeringAngle,
+  );
   const maxSpeed = options.maxSpeed ?? DEFAULT_CAR_MAX_SPEED;
   const maxReverseSpeed = options.maxReverseSpeed ?? DEFAULT_CAR_MAX_REVERSE_SPEED;
   const distanceTravelled = options.distanceTravelled ?? 0;
@@ -256,6 +264,10 @@ export function createInitialCar(
 
   assertPositiveDimension(width, "width");
   assertPositiveDimension(height, "height");
+
+  if (!isValidMaxSteeringAngle(maxSteeringAngle)) {
+    throw new RangeError("maxSteeringAngle must be a finite non-negative value.");
+  }
 
   if (!isValidTurnRate(turnRate)) {
     throw new RangeError("turnRate must be a finite non-negative value.");
@@ -302,6 +314,7 @@ export function createInitialCar(
     friction,
     angle,
     steeringAngle,
+    maxSteeringAngle,
     turnRate,
     maxSpeed,
     maxReverseSpeed,

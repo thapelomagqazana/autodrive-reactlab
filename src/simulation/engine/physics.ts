@@ -12,7 +12,7 @@
  * - No requestAnimationFrame.
  */
 
-import { steeringInputToAngle, type CarState } from "../vehicle";
+import { clampSteeringAngle, steeringInputToAngle, type CarState } from "../vehicle";
 
 export interface CarPhysicsInput {
   isAccelerating: boolean;
@@ -409,8 +409,10 @@ export function updateCarPhysics(
    * Later phases use effectiveSteeringInput to update steeringAngle and angle.
    * For now, heading remains unchanged.
    */
-  const steeringAngle =
-    effectiveSteeringInput === 0 ? 0 : steeringInputToAngle(effectiveSteeringInput);
+  const steeringAngle = clampSteeringAngle(
+    steeringInputToAngle(effectiveSteeringInput, car.maxSteeringAngle),
+    car.maxSteeringAngle,
+  );
 
   const angle = updateHeadingFromSteering(
     {
