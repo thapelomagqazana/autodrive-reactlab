@@ -3,6 +3,7 @@ import { createInitialRoad } from "../world";
 import { createInitialCar } from "../vehicle";
 import type { CarState } from "../vehicle";
 import {
+  DEFAULT_MINIMUM_STEERING_SPEED,
   NEUTRAL_CAR_PHYSICS_INPUT,
   assertValidDeltaTimeSeconds,
   isValidDeltaTimeSeconds,
@@ -16,6 +17,9 @@ import {
   updateCarPhysics,
   calculateTravelDistance,
   updatePositionUsingSpeedAndHeading,
+  canApplySteeringAtSpeed,
+  resolveEffectiveSteeringInput,
+  isValidMinimumSteeringSpeed,
 } from "./physics";
 
 describe("updateCarPhysics", () => {
@@ -705,5 +709,112 @@ describe("normalized steering input", () => {
 
     expect(nextCar.positionX).toBe(car.positionX);
     expect(nextCar.positionY).toBe(car.positionY);
+  });
+});
+
+describe("steering movement threshold", () => {
+  it("defines a centralized default minimum steering speed", () => {
+    expect(DEFAULT_MINIMUM_STEERING_SPEED).toBe(5);
+  });
+
+  it("validates minimum steering speed values", () => {
+    expect(isValidMinimumSteeringSpeed(0)).toBe(true);
+    expect(isValidMinimumSteeringSpeed(5)).toBe(true);
+
+    expect(isValidMinimumSteeringSpeed(-1)).toBe(false);
+    expect(isValidMinimumSteeringSpeed(Number.NaN)).toBe(false);
+    expect(isValidMinimumSteeringSpeed(Number.POSITIVE_INFINITY)).toBe(false);
+  });
+
+  it("does not allow steering when stopped", () => {
+    expect(canApplySteeringAtSpeed(0)).toBe(false);
+  });
+
+  it("does not allow steering below threshold", () => {
+    expect(canApplySteeringAtSpeed(4.999)).toBe(false);
+    expect(canApplySteeringAtSpeed(-4.999)).toBe(false);
+  });
+
+  it("allows steering at threshold", () => {
+    expect(canApplySteeringAtSpeed(5)).toBe(true);
+    expect(canApplySteeringAtSpeed(-5)).toBe(true);
+  });
+
+  it("allows steering above threshold", () => {
+    expect(canApplySteeringAtSpeed(20)).toBe(true);
+    expect(canApplySteeringAtSpeed(-20)).toBe(true);
+  });
+
+  it("supports custom threshold", () => {
+    expect(canApplySteeringAtSpeed(9, 10)).toBe(false);
+    expect(canApplySteeringAtSpeed(10, 10)).toBe(true);
+  });
+
+  it("returns zero effective steering input when stopped", () => {
+    expect(resolveEffectiveSteeringInput(0, 1)).toBe(0);
+    expect(resolveEffectiveSteeringInput(0, -1)).toBe(0);
+  });
+
+  it("returns zero effective steering input below threshold", () => {
+    expect(resolveEffectiveSteeringInput(4, 1)).toBe(0);
+    expect(resolveEffectiveSteeringInput(-4, -1)).toBe(0);
+  });
+
+  it("returns clamped steering input when above threshold", () => {
+    expect(resolveEffectiveSteeringInput(20, 2)).toBe(1);
+    expect(resolveEffectiveSteeringInput(20, -2)).toBe(-1);
+    expect(resolveEffectiveSteeringInput(-20, 0.5)).toBe(0.5);
+  });
+
+  it("rejects invalid speed or threshold values", () => {
+    expect(() => canApplySteeringAtSpeed(Number.NaN)).toThrow(RangeError);
+    expect(() => canApplySteeringAtSpeed(10, -1)).toThrow(RangeError);
+  });
+});
+
+describe("updateCarPhysics steering threshold integration", () => {
+  it("does not change heading when steering input is active but car is stopped", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 0,
+      friction: 0,
+      angle: 0,
+      steeringAngle: 0,
+    };
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      1,
+    );
+
+    expect(nextCar.angle).toBe(0);
+    expect(nextCar.steeringAngle).toBe(0);
+  });
+
+  it("does not change heading below minimum steering speed", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 4,
+      friction: 0,
+      angle: 0,
+      steeringAngle: 0,
+    };
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      1,
+    );
+
+    expect(nextCar.angle).toBe(0);
+  });
+
+  it("keeps reverse movement eligible for steering threshold logic", () => {
+    expect(resolveEffectiveSteeringInput(-20, -1)).toBe(-1);
   });
 });
