@@ -7,6 +7,10 @@
 import { create } from "zustand";
 import { createInitialRoad, type Road } from "../simulation/world";
 import { createInitialCar, type CarState } from "../simulation/vehicle";
+import {
+  NEUTRAL_CAR_PHYSICS_INPUT,
+  updateCarPhysics,
+} from "../simulation/engine/physics";
 
 export type SimulationStatus = "idle" | "running" | "paused";
 
@@ -33,6 +37,7 @@ export interface SimulationActions {
   startSimulation: () => void;
   pauseSimulation: () => void;
   resetSimulation: () => void;
+  tickSimulation: (deltaTimeSeconds: number) => void;
 
   advanceSimulationTime: (deltaTimeSeconds: number) => void;
   setSimulationTimeSeconds: (value: number) => void;
@@ -73,7 +78,7 @@ function isValidNonNegativeFiniteNumber(value: number): boolean {
   return Number.isFinite(value) && value >= 0;
 }
 
-export const useSimulationStore = create<SimulationStore>()((set, _) => ({
+export const useSimulationStore = create<SimulationStore>()((set) => ({
   ...createInitialState(),
 
   startSimulation: () =>
@@ -169,6 +174,29 @@ export const useSimulationStore = create<SimulationStore>()((set, _) => ({
         isDebugModeEnabled: !state.ui.isDebugModeEnabled,
       },
     })),
+  
+  tickSimulation: (deltaTimeSeconds) =>
+    set((state) => {
+      if (
+        state.status !== "running" ||
+        !isValidNonNegativeFiniteNumber(deltaTimeSeconds)
+      ) {
+        return state;
+      }
+
+      return {
+        telemetry: {
+          ...state.telemetry,
+          simulationTimeSeconds:
+            state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
+        },
+        car: updateCarPhysics(
+          state.car,
+          NEUTRAL_CAR_PHYSICS_INPUT,
+          deltaTimeSeconds,
+        ),
+      };
+    }),
 
   toggleSensorsVisibility: () =>
     set((state) => ({
@@ -218,6 +246,9 @@ export const useUpdateCar = () => useSimulationStore((state) => state.updateCar)
 
 export const useToggleDebugMode = () =>
   useSimulationStore((state) => state.toggleDebugMode);
+
+export const useTickSimulation = () =>
+  useSimulationStore((state) => state.tickSimulation);
 
 export const useToggleSensorsVisibility = () =>
   useSimulationStore((state) => state.toggleSensorsVisibility);

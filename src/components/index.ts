@@ -26,3 +26,5 @@ export { DashboardPanelContainer } from "./DashboardPanelContainer";
 
 export { TelemetryCard } from "./TelemetryCard";
 export type { TelemetryCardProps } from "./TelemetryCard";
+
+export { SimulationLoopController } from "./SimulationLoopController";

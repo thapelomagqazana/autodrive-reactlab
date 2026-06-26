@@ -8,16 +8,21 @@ import {
   DashboardPanelContainer,
   Header,
   SimulationCanvas,
+  SimulationLoopController,
 } from "./components";
 
 export function App() {
   return (
-    <AppShell
-      header={<Header />}
-      simulation={<SimulationCanvas />}
-      controls={<ControlsPanelContainer />}
-      dashboard={<DashboardPanelContainer />}
-    />
+    <>
+      <SimulationLoopController />
+
+      <AppShell
+        header={<Header />}
+        simulation={<SimulationCanvas />}
+        controls={<ControlsPanelContainer />}
+        dashboard={<DashboardPanelContainer />}
+      />
+    </>
   );
 }
 
