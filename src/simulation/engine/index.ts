@@ -10,3 +10,14 @@ export {
   drawCarBody,
   drawCarFrontIndicator,
 } from "./carRenderer";
+
+export type {
+  DrawSimulationFrameOptions,
+  RoadCarCompositionResult,
+} from "./simulationFrameRenderer";
+
+export {
+  assertCarAppearsOnRoad,
+  drawSimulationFrame,
+  evaluateRoadCarComposition,
+} from "./simulationFrameRenderer";

@@ -1,13 +1,19 @@
 /**
  * SimulationCanvas component.
+ *
+ * Owns the canvas element and renders the MVP road + car frame.
  */
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useCanvas, useCanvasResize } from "../hooks";
 import { beginFrame } from "../simulation/engine/frameRenderer";
 import { renderBackgroundGrid } from "../simulation/engine/gridRenderer";
-import { drawRoad } from "../simulation/engine/roadRenderer";
-import { createFixedRoadForViewport } from "../simulation/world/roadViewport";
+import { drawSimulationFrame } from "../simulation/engine/simulationFrameRenderer";
+import {
+  useSimulationCar,
+  useSimulationRoad,
+  useSimulationUiPreferences,
+} from "../store";
 
 export interface SimulationCanvasProps {
   label?: string;
@@ -38,6 +44,10 @@ export function SimulationCanvas({
 }: SimulationCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const road = useSimulationRoad();
+  const car = useSimulationCar();
+  const ui = useSimulationUiPreferences();
+
   const { canvasRef, context, dimensions, resizeCanvas, initializeContext } = useCanvas();
 
   useCanvasResize({
@@ -48,17 +58,6 @@ export function SimulationCanvas({
   useEffect(() => {
     initializeContext();
   }, [initializeContext]);
-
-  const road = useMemo(() => {
-    if (!hasValidCanvasDimensions(dimensions)) {
-      return null;
-    }
-
-    return createFixedRoadForViewport({
-      width: dimensions.width,
-      height: dimensions.height,
-    });
-  }, [dimensions]);
 
   useEffect(() => {
     if (!context || !hasValidCanvasDimensions(dimensions)) {
@@ -79,10 +78,12 @@ export function SimulationCanvas({
       });
     }
 
-    if (road) {
-      drawRoad(context, road);
-    }
-  }, [context, dimensions, isGridEnabled, road]);
+    drawSimulationFrame(context, road, car, {
+      road: {
+        showCenterGuide: ui.isDebugModeEnabled,
+      },
+    });
+  }, [context, dimensions, isGridEnabled, road, car, ui.isDebugModeEnabled]);
 
   return (
     <section className="mission-panel min-w-0 overflow-hidden p-4">
@@ -97,7 +98,7 @@ export function SimulationCanvas({
           </div>
 
           <span className="mission-badge rounded-full px-3 py-1 text-xs font-black">
-            Grid Online
+            Road + Car Online
           </span>
         </div>
 
@@ -113,18 +114,6 @@ export function SimulationCanvas({
           >
             Your browser does not support the HTML canvas element.
           </canvas>
-
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="rounded-xl border border-sky-300/20 bg-slate-950/70 px-5 py-4 text-center shadow-[0_0_24px_rgb(56_189_248_/_0.12)] backdrop-blur">
-              <p className="mission-accent text-sm font-black uppercase tracking-[0.25em]">
-                Render Surface Ready
-              </p>
-
-              <p className="mt-2 text-sm text-slate-300">
-                Mission-control grid confirms the canvas rendering pipeline.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </section>
