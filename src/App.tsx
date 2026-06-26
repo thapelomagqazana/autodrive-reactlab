@@ -1,5 +1,5 @@
 /**
- * Root composition for AutoDrive ReactLab.
+ * Root composition for AutoDrive ReactLab
  */
 
 import { AppShell } from "./app";
