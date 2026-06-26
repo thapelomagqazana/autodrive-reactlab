@@ -174,6 +174,29 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         isDebugModeEnabled: !state.ui.isDebugModeEnabled,
       },
     })),
+  
+  tickSimulation: (deltaTimeSeconds) =>
+    set((state) => {
+      if (
+        state.status !== "running" ||
+        !isValidNonNegativeFiniteNumber(deltaTimeSeconds)
+      ) {
+        return state;
+      }
+
+      return {
+        telemetry: {
+          ...state.telemetry,
+          simulationTimeSeconds:
+            state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
+        },
+        car: updateCarPhysics(
+          state.car,
+          NEUTRAL_CAR_PHYSICS_INPUT,
+          deltaTimeSeconds,
+        ),
+      };
+    }),
 
   tickSimulation: (deltaTimeSeconds) =>
     set((state) => {
