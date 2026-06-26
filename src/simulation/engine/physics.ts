@@ -38,14 +38,24 @@ export function assertValidDeltaTimeSeconds(deltaTimeSeconds: number): void {
   }
 }
 
+export function assertFiniteNumber(value: number, label: string): void {
+  if (!Number.isFinite(value)) {
+    throw new RangeError(`${label} must be finite.`);
+  }
+}
+
+export function assertNonNegativeFiniteNumber(value: number, label: string): void {
+  if (!Number.isFinite(value) || value < 0) {
+    throw new RangeError(`${label} must be a finite non-negative number.`);
+  }
+}
+
 export function clampSpeed(
   speed: number,
   maxSpeed: number,
   maxReverseSpeed: number,
 ): number {
-  if (!Number.isFinite(speed)) {
-    throw new RangeError("speed must be finite.");
-  }
+  assertFiniteNumber(speed, "speed");
 
   if (!Number.isFinite(maxSpeed) || maxSpeed <= 0) {
     throw new RangeError("maxSpeed must be a finite positive number.");
@@ -64,20 +74,62 @@ export function applyAccelerationToSpeed(
   deltaTimeSeconds: number,
 ): number {
   assertValidDeltaTimeSeconds(deltaTimeSeconds);
-
-  if (!Number.isFinite(car.speed)) {
-    throw new RangeError("car.speed must be finite.");
-  }
-
-  if (!Number.isFinite(car.acceleration) || car.acceleration < 0) {
-    throw new RangeError("car.acceleration must be a finite non-negative number.");
-  }
+  assertFiniteNumber(car.speed, "car.speed");
+  assertNonNegativeFiniteNumber(car.acceleration, "car.acceleration");
 
   const nextSpeed = input.isAccelerating
     ? car.speed + car.acceleration * deltaTimeSeconds
     : car.speed;
 
   return clampSpeed(nextSpeed, car.maxSpeed, car.maxReverseSpeed);
+}
+
+/**
+ * Applies natural deceleration to speed.
+ *
+ * The friction value is measured in pixels per second squared.
+ *
+ * Direction safety:
+ * - forward speed cannot become reverse speed from friction
+ * - reverse speed cannot become forward speed from friction
+ */
+export function applyFrictionToSpeed(
+  speed: number,
+  friction: number,
+  deltaTimeSeconds: number,
+): number {
+  assertValidDeltaTimeSeconds(deltaTimeSeconds);
+  assertFiniteNumber(speed, "speed");
+  assertNonNegativeFiniteNumber(friction, "friction");
+
+  const frictionAmount = friction * deltaTimeSeconds;
+
+  if (speed > 0) {
+    return Math.max(0, speed - frictionAmount);
+  }
+
+  if (speed < 0) {
+    return Math.min(0, speed + frictionAmount);
+  }
+
+  return 0;
+}
+
+export function isValidFrictionValue(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
+
+/**
+ * Resolves friction from car state when available, otherwise uses the MVP
+ * default. This keeps the physics API stable while allowing CarState to gain a
+ * formal friction field later.
+ */
+export function resolveCarFriction(car: Pick<CarState, "friction">): number {
+  if (!isValidFrictionValue(car.friction)) {
+    throw new RangeError("car.friction must be a finite non-negative value.");
+  }
+
+  return car.friction;
 }
 
 /**
@@ -96,7 +148,13 @@ export function updateCarPhysics(
 ): CarState {
   assertValidDeltaTimeSeconds(deltaTimeSeconds);
 
-  const speed = applyAccelerationToSpeed(car, input, deltaTimeSeconds);
+  const acceleratedSpeed = applyAccelerationToSpeed(car, input, deltaTimeSeconds);
+
+  const shouldApplyFriction = !input.isAccelerating && !input.isBraking;
+
+  const speed = shouldApplyFriction
+    ? applyFrictionToSpeed(acceleratedSpeed, resolveCarFriction(car), deltaTimeSeconds)
+    : acceleratedSpeed;
 
   return {
     ...car,

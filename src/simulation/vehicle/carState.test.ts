@@ -43,6 +43,7 @@ describe("createInitialCarState", () => {
       positionY: 600,
       speed: 0,
       acceleration: 120,
+      friction: 70,
       angle: 0,
       steeringAngle: 0,
       maxSpeed: 260,

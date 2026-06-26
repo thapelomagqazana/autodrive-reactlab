@@ -15,8 +15,12 @@ export type { CarPhysicsInput } from "./physics";
 
 export {
   NEUTRAL_CAR_PHYSICS_INPUT,
+  applyAccelerationToSpeed,
+  applyFrictionToSpeed,
   assertValidDeltaTimeSeconds,
+  clampSpeed,
   isValidDeltaTimeSeconds,
+  resolveCarFriction,
   updateCarPhysics,
 } from "./physics";
 
