@@ -11,6 +11,14 @@ export {
   drawCarFrontIndicator,
 } from "./carRenderer";
 
+export type { CarPhysicsInput } from "./physics";
+
+export {
+  NEUTRAL_CAR_PHYSICS_INPUT,
+  assertValidDeltaTimeSeconds,
+  isValidDeltaTimeSeconds,
+  updateCarPhysics,
+} from "./physics";
 export type {
   DrawSimulationFrameOptions,
   RoadCarCompositionResult,
