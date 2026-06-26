@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createInitialRoad } from "../world";
 import { createInitialCar } from "../vehicle";
+import type { CarState } from "../vehicle";
 import {
   NEUTRAL_CAR_PHYSICS_INPUT,
   assertValidDeltaTimeSeconds,
@@ -10,6 +11,8 @@ import {
   resolveCarFriction,
   clampSpeed,
   updateCarPhysics,
+  calculateTravelDistance,
+  updatePositionUsingSpeedAndHeading,
 } from "./physics";
 
 describe("updateCarPhysics", () => {
@@ -418,6 +421,204 @@ describe("updateCarPhysics speed clamping integration", () => {
     const snapshot = structuredClone(car);
 
     updateCarPhysics(car, NEUTRAL_CAR_PHYSICS_INPUT, 0);
+
+    expect(car).toEqual(snapshot);
+  });
+});
+
+describe("calculateTravelDistance", () => {
+  it("calculates signed travel distance from speed and delta time", () => {
+    expect(calculateTravelDistance(100, 0.5)).toBe(50);
+    expect(calculateTravelDistance(-100, 0.5)).toBe(-50);
+  });
+
+  it("returns zero when speed is zero", () => {
+    expect(calculateTravelDistance(0, 1)).toBe(0);
+  });
+
+  it("returns zero when delta time is zero", () => {
+    expect(calculateTravelDistance(100, 0)).toBe(0);
+  });
+
+  it("rejects invalid values", () => {
+    expect(() => calculateTravelDistance(Number.NaN, 1)).toThrow(RangeError);
+    expect(() => calculateTravelDistance(100, -1)).toThrow(RangeError);
+  });
+});
+
+describe("updatePositionUsingSpeedAndHeading", () => {
+  function createMovingCar(overrides: Partial<CarState> = {}) {
+    return {
+      ...createInitialCar(createInitialRoad()),
+      speed: 100,
+      friction: 70,
+      distanceTravelled: 0,
+      ...overrides,
+    };
+  }
+
+  it("moves upward when angle is 0 and speed is positive", () => {
+    const car = createMovingCar({
+      positionX: 400,
+      positionY: 600,
+      angle: 0,
+      speed: 100,
+    });
+
+    expect(updatePositionUsingSpeedAndHeading(car, 1)).toEqual({
+      positionX: 400,
+      positionY: 500,
+      distanceTravelled: 100,
+    });
+  });
+
+  it("moves downward when angle is 0 and speed is negative", () => {
+    const car = createMovingCar({
+      positionX: 400,
+      positionY: 600,
+      angle: 0,
+      speed: -100,
+    });
+
+    expect(updatePositionUsingSpeedAndHeading(car, 1)).toEqual({
+      positionX: 400,
+      positionY: 700,
+      distanceTravelled: 100,
+    });
+  });
+
+  it("moves right when angle is π/2 and speed is positive", () => {
+    const car = createMovingCar({
+      positionX: 400,
+      positionY: 600,
+      angle: Math.PI / 2,
+      speed: 100,
+    });
+
+    const next = updatePositionUsingSpeedAndHeading(car, 1);
+
+    expect(next.positionX).toBeCloseTo(500);
+    expect(next.positionY).toBeCloseTo(600);
+    expect(next.distanceTravelled).toBe(100);
+  });
+
+  it("moves downward when angle is π and speed is positive", () => {
+    const car = createMovingCar({
+      positionX: 400,
+      positionY: 600,
+      angle: Math.PI,
+      speed: 100,
+    });
+
+    const next = updatePositionUsingSpeedAndHeading(car, 1);
+
+    expect(next.positionX).toBeCloseTo(400);
+    expect(next.positionY).toBeCloseTo(700);
+  });
+
+  it("moves left when angle is -π/2 and speed is positive", () => {
+    const car = createMovingCar({
+      positionX: 400,
+      positionY: 600,
+      angle: -Math.PI / 2,
+      speed: 100,
+    });
+
+    const next = updatePositionUsingSpeedAndHeading(car, 1);
+
+    expect(next.positionX).toBeCloseTo(300);
+    expect(next.positionY).toBeCloseTo(600);
+  });
+
+  it("does not change position when speed is zero", () => {
+    const car = createMovingCar({
+      positionX: 400,
+      positionY: 600,
+      speed: 0,
+    });
+
+    expect(updatePositionUsingSpeedAndHeading(car, 1)).toEqual({
+      positionX: 400,
+      positionY: 600,
+      distanceTravelled: 0,
+    });
+  });
+
+  it("uses delta time", () => {
+    const car = createMovingCar({
+      positionX: 400,
+      positionY: 600,
+      angle: 0,
+      speed: 100,
+    });
+
+    const next = updatePositionUsingSpeedAndHeading(car, 0.5);
+
+    expect(next.positionX).toBe(400);
+    expect(next.positionY).toBe(550);
+    expect(next.distanceTravelled).toBe(50);
+  });
+
+  it("preserves previous distance travelled and adds absolute movement distance", () => {
+    const car = createMovingCar({
+      speed: -100,
+      distanceTravelled: 25,
+    });
+
+    const next = updatePositionUsingSpeedAndHeading(car, 0.5);
+
+    expect(next.distanceTravelled).toBe(75);
+  });
+
+  it("rejects invalid position inputs", () => {
+    const car = createMovingCar();
+
+    expect(() =>
+      updatePositionUsingSpeedAndHeading(
+        {
+          ...car,
+          positionX: Number.NaN,
+        },
+        1,
+      ),
+    ).toThrow(RangeError);
+
+    expect(() =>
+      updatePositionUsingSpeedAndHeading(
+        {
+          ...car,
+          angle: Number.POSITIVE_INFINITY,
+        },
+        1,
+      ),
+    ).toThrow(RangeError);
+  });
+});
+
+describe("updateCarPhysics position integration", () => {
+  it("updates position after speed calculation", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 100,
+      friction: 0,
+      angle: 0,
+    };
+
+    const nextCar = updateCarPhysics(car, NEUTRAL_CAR_PHYSICS_INPUT, 1);
+
+    expect(nextCar.positionY).toBe(500);
+    expect(nextCar.distanceTravelled).toBe(100);
+  });
+
+  it("does not mutate input car while updating position", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 100,
+      friction: 0,
+    };
+    const snapshot = structuredClone(car);
+
+    updateCarPhysics(car, NEUTRAL_CAR_PHYSICS_INPUT, 1);
 
     expect(car).toEqual(snapshot);
   });

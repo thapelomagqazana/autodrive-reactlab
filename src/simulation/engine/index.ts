@@ -11,18 +11,20 @@ export {
   drawCarFrontIndicator,
 } from "./carRenderer";
 
-export type { CarPhysicsInput } from "./physics";
+export type { CarPhysicsInput, CarPositionUpdate } from "./physics";
 
 export {
   NEUTRAL_CAR_PHYSICS_INPUT,
   applyAccelerationToSpeed,
   applyFrictionToSpeed,
   assertValidDeltaTimeSeconds,
+  calculateTravelDistance,
   clampCarPhysicsSpeed,
   clampSpeed,
   isValidDeltaTimeSeconds,
   resolveCarFriction,
   updateCarPhysics,
+  updatePositionUsingSpeedAndHeading,
 } from "./physics";
 
 export type {
