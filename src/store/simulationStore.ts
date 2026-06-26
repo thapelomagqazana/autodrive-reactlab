@@ -82,22 +82,10 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
   ...createInitialState(),
 
   startSimulation: () =>
-    set((state) => {
-      if (state.status === "running") {
-        return state;
-      }
-
-      return { status: "running" };
-    }),
+    set((state) => (state.status === "running" ? state : { status: "running" })),
 
   pauseSimulation: () =>
-    set((state) => {
-      if (state.status !== "running") {
-        return state;
-      }
-
-      return { status: "paused" };
-    }),
+    set((state) => (state.status !== "running" ? state : { status: "paused" })),
 
   resetSimulation: () =>
     set((state) => {
@@ -109,6 +97,24 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         ui: state.ui,
         road,
         car: createInitialCar(road),
+      };
+    }),
+
+  tickSimulation: (deltaTimeSeconds) =>
+    set((state) => {
+      if (
+        state.status !== "running" ||
+        !isValidNonNegativeFiniteNumber(deltaTimeSeconds)
+      ) {
+        return state;
+      }
+
+      return {
+        telemetry: {
+          ...state.telemetry,
+          simulationTimeSeconds: state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
+        },
+        car: updateCarPhysics(state.car, NEUTRAL_CAR_PHYSICS_INPUT, deltaTimeSeconds),
       };
     }),
 
@@ -195,24 +201,6 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
           NEUTRAL_CAR_PHYSICS_INPUT,
           deltaTimeSeconds,
         ),
-      };
-    }),
-
-  tickSimulation: (deltaTimeSeconds) =>
-    set((state) => {
-      if (
-        state.status !== "running" ||
-        !isValidNonNegativeFiniteNumber(deltaTimeSeconds)
-      ) {
-        return state;
-      }
-
-      return {
-        telemetry: {
-          ...state.telemetry,
-          simulationTimeSeconds: state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
-        },
-        car: updateCarPhysics(state.car, NEUTRAL_CAR_PHYSICS_INPUT, deltaTimeSeconds),
       };
     }),
 
