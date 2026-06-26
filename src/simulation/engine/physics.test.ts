@@ -10,6 +10,9 @@ import {
   applyFrictionToSpeed,
   resolveCarFriction,
   clampSpeed,
+  clampSteeringInput,
+  createCarPhysicsInput,
+  isValidRawSteeringInput,
   updateCarPhysics,
   calculateTravelDistance,
   updatePositionUsingSpeedAndHeading,
@@ -621,5 +624,86 @@ describe("updateCarPhysics position integration", () => {
     updateCarPhysics(car, NEUTRAL_CAR_PHYSICS_INPUT, 1);
 
     expect(car).toEqual(snapshot);
+  });
+});
+
+describe("normalized steering input", () => {
+  it("accepts valid steering input values", () => {
+    expect(isValidRawSteeringInput(-1)).toBe(true);
+    expect(isValidRawSteeringInput(0)).toBe(true);
+    expect(isValidRawSteeringInput(1)).toBe(true);
+    expect(isValidRawSteeringInput(0.5)).toBe(true);
+  });
+
+  it("rejects invalid steering input values", () => {
+    expect(isValidRawSteeringInput(Number.NaN)).toBe(false);
+    expect(isValidRawSteeringInput(Number.POSITIVE_INFINITY)).toBe(false);
+    expect(isValidRawSteeringInput(Number.NEGATIVE_INFINITY)).toBe(false);
+  });
+
+  it("clamps steering input to the range [-1, 1]", () => {
+    expect(clampSteeringInput(-2)).toBe(-1);
+    expect(clampSteeringInput(-1)).toBe(-1);
+    expect(clampSteeringInput(-0.5)).toBe(-0.5);
+    expect(clampSteeringInput(0)).toBe(0);
+    expect(clampSteeringInput(0.5)).toBe(0.5);
+    expect(clampSteeringInput(1)).toBe(1);
+    expect(clampSteeringInput(2)).toBe(1);
+  });
+
+  it("throws when steering input is not finite", () => {
+    expect(() => clampSteeringInput(Number.NaN)).toThrow(RangeError);
+    expect(() => clampSteeringInput(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  });
+
+  it("creates neutral physics input by default", () => {
+    expect(createCarPhysicsInput()).toEqual({
+      isAccelerating: false,
+      isBraking: false,
+      steeringInput: 0,
+    });
+  });
+
+  it("creates normalized physics input from partial values", () => {
+    expect(
+      createCarPhysicsInput({
+        isAccelerating: true,
+        steeringInput: 5,
+      }),
+    ).toEqual({
+      isAccelerating: true,
+      isBraking: false,
+      steeringInput: 1,
+    });
+
+    expect(
+      createCarPhysicsInput({
+        isBraking: true,
+        steeringInput: -5,
+      }),
+    ).toEqual({
+      isAccelerating: false,
+      isBraking: true,
+      steeringInput: -1,
+    });
+  });
+
+  it("does not let steering input directly move the car sideways", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 0,
+      friction: 0,
+    };
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      1,
+    );
+
+    expect(nextCar.positionX).toBe(car.positionX);
+    expect(nextCar.positionY).toBe(car.positionY);
   });
 });
