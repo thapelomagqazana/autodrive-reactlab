@@ -17,16 +17,63 @@ import type { CarState } from "../vehicle";
 export interface CarPhysicsInput {
   isAccelerating: boolean;
   isBraking: boolean;
-  isSteeringLeft: boolean;
-  isSteeringRight: boolean;
+  /**
+   * Normalized steering intent.
+   *
+   * - -1 = full left
+   * - 0 = no steering input
+   * - 1 = full right
+   *
+   * This value does not move the car sideways directly. Later steering physics
+   * converts it into CarState.steeringAngle.
+   */
+  steeringInput: number;
 }
 
 export const NEUTRAL_CAR_PHYSICS_INPUT: Readonly<CarPhysicsInput> = Object.freeze({
   isAccelerating: false,
   isBraking: false,
   isSteeringLeft: false,
-  isSteeringRight: false,
+  steeringInput: 0,
 });
+
+/**
+ * Returns true when the raw steering input can be safely normalized.
+ */
+export function isValidRawSteeringInput(value: number): boolean {
+  return Number.isFinite(value);
+}
+
+/**
+ * Clamps raw steering intent into the normalized physics range.
+ *
+ * Input convention:
+ * - negative = left
+ * - zero = straight / no input
+ * - positive = right
+ */
+export function clampSteeringInput(value: number): number {
+  if (!isValidRawSteeringInput(value)) {
+    throw new RangeError("steeringInput must be a finite number.");
+  }
+
+  return Math.min(1, Math.max(-1, value));
+}
+
+/**
+ * Creates a safe CarPhysicsInput object from potentially untrusted control
+ * values. This is useful for keyboard input, AI input, test fixtures, and
+ * future scenario tooling.
+ */
+export function createCarPhysicsInput(
+  input: Partial<CarPhysicsInput> = {},
+): CarPhysicsInput {
+  return {
+    isAccelerating: input.isAccelerating ?? false,
+    isBraking: input.isBraking ?? false,
+    steeringInput: clampSteeringInput(input.steeringInput ?? 0),
+  };
+}
 
 export function isValidDeltaTimeSeconds(value: number): boolean {
   return Number.isFinite(value) && value >= 0;
@@ -222,9 +269,16 @@ export function updateCarPhysics(
 ): CarState {
   assertValidDeltaTimeSeconds(deltaTimeSeconds);
 
-  const acceleratedSpeed = applyAccelerationToSpeed(car, input, deltaTimeSeconds);
+  const normalizedInput = createCarPhysicsInput(input);
 
-  const shouldApplyFriction = !input.isAccelerating && !input.isBraking;
+  const acceleratedSpeed = applyAccelerationToSpeed(
+    car,
+    normalizedInput,
+    deltaTimeSeconds,
+  );
+
+  const shouldApplyFriction =
+    !normalizedInput.isAccelerating && !normalizedInput.isBraking;
 
   const speedBeforeFinalClamp = shouldApplyFriction
     ? applyFrictionToSpeed(acceleratedSpeed, car.friction, deltaTimeSeconds)
