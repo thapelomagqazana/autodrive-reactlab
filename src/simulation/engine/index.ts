@@ -19,3 +19,13 @@ export {
   isValidDeltaTimeSeconds,
   updateCarPhysics,
 } from "./physics";
+export type {
+  DrawSimulationFrameOptions,
+  RoadCarCompositionResult,
+} from "./simulationFrameRenderer";
+
+export {
+  assertCarAppearsOnRoad,
+  drawSimulationFrame,
+  evaluateRoadCarComposition,
+} from "./simulationFrameRenderer";

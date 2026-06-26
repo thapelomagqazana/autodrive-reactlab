@@ -35,7 +35,7 @@ test.describe("AutoDrive ReactLab startup", () => {
     const canvas = page.getByTestId("simulation-canvas");
     await expect(canvas).toBeVisible();
 
-    await expect(page.getByText("Grid Online")).toBeVisible();
+    await expect(page.getByText("Road + Car Online")).toBeVisible();
 
     const hasRenderedPixels = await canvas.evaluate((element) => {
       const canvasElement = element as HTMLCanvasElement;

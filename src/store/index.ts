@@ -17,6 +17,8 @@ export {
   useStartSimulation,
   useToggleDebugMode,
   useToggleSensorsVisibility,
+  useSimulationCar,
+  useSimulationRoad,
 } from "./simulationStore";
 
 export type {
