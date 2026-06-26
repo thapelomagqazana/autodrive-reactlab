@@ -18,6 +18,7 @@ export {
   applyAccelerationToSpeed,
   applyFrictionToSpeed,
   assertValidDeltaTimeSeconds,
+  clampCarPhysicsSpeed,
   clampSpeed,
   isValidDeltaTimeSeconds,
   resolveCarFriction,

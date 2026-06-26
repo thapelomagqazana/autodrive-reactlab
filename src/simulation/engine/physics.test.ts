@@ -343,3 +343,82 @@ describe("updateCarPhysics friction integration", () => {
     expect(car).toEqual(snapshot);
   });
 });
+
+describe("clampSpeed", () => {
+  it("clamps forward speed to maxSpeed", () => {
+    expect(clampSpeed(500, 260, 80)).toBe(260);
+  });
+
+  it("clamps reverse speed to -maxReverseSpeed", () => {
+    expect(clampSpeed(-500, 260, 80)).toBe(-80);
+  });
+
+  it("preserves speed inside movement limits", () => {
+    expect(clampSpeed(120, 260, 80)).toBe(120);
+    expect(clampSpeed(-40, 260, 80)).toBe(-40);
+    expect(clampSpeed(0, 260, 80)).toBe(0);
+  });
+
+  it("allows speed exactly at limits", () => {
+    expect(clampSpeed(260, 260, 80)).toBe(260);
+    expect(clampSpeed(-80, 260, 80)).toBe(-80);
+  });
+
+  it("rejects invalid speed values", () => {
+    expect(() => clampSpeed(Number.NaN, 260, 80)).toThrow(RangeError);
+    expect(() => clampSpeed(Number.POSITIVE_INFINITY, 260, 80)).toThrow(RangeError);
+  });
+
+  it("rejects invalid movement limits", () => {
+    expect(() => clampSpeed(10, 0, 80)).toThrow(RangeError);
+    expect(() => clampSpeed(10, -1, 80)).toThrow(RangeError);
+    expect(() => clampSpeed(10, 260, 0)).toThrow(RangeError);
+    expect(() => clampSpeed(10, 260, Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe("updateCarPhysics speed clamping integration", () => {
+  it("does not exceed maxSpeed after acceleration", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 250,
+      acceleration: 120,
+      maxSpeed: 260,
+    };
+
+    const nextCar = updateCarPhysics(
+      car,
+      {
+        ...NEUTRAL_CAR_PHYSICS_INPUT,
+        isAccelerating: true,
+      },
+      1,
+    );
+
+    expect(nextCar.speed).toBe(260);
+  });
+
+  it("keeps reverse speed inside maxReverseSpeed", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: -500,
+      maxReverseSpeed: 80,
+    };
+
+    const nextCar = updateCarPhysics(car, NEUTRAL_CAR_PHYSICS_INPUT, 0);
+
+    expect(nextCar.speed).toBe(-80);
+  });
+
+  it("does not mutate input car while clamping", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 500,
+    };
+    const snapshot = structuredClone(car);
+
+    updateCarPhysics(car, NEUTRAL_CAR_PHYSICS_INPUT, 0);
+
+    expect(car).toEqual(snapshot);
+  });
+});
