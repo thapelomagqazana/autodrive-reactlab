@@ -20,6 +20,8 @@ import {
   canApplySteeringAtSpeed,
   resolveEffectiveSteeringInput,
   isValidMinimumSteeringSpeed,
+  calculateSteeringSpeedFactor,
+  updateHeadingFromSteering,
 } from "./physics";
 
 describe("updateCarPhysics", () => {
@@ -816,5 +818,153 @@ describe("updateCarPhysics steering threshold integration", () => {
 
   it("keeps reverse movement eligible for steering threshold logic", () => {
     expect(resolveEffectiveSteeringInput(-20, -1)).toBe(-1);
+  });
+});
+
+describe("calculateSteeringSpeedFactor", () => {
+  it("returns 0 when speed is 0", () => {
+    expect(calculateSteeringSpeedFactor(0, 260)).toBe(0);
+  });
+
+  it("uses absolute speed", () => {
+    expect(calculateSteeringSpeedFactor(-130, 260)).toBe(0.5);
+  });
+
+  it("caps the factor at 1", () => {
+    expect(calculateSteeringSpeedFactor(520, 260)).toBe(1);
+  });
+
+  it("rejects invalid values", () => {
+    expect(() => calculateSteeringSpeedFactor(Number.NaN, 260)).toThrow(RangeError);
+
+    expect(() => calculateSteeringSpeedFactor(10, 0)).toThrow(RangeError);
+  });
+});
+
+describe("updateHeadingFromSteering", () => {
+  function createHeadingCar(overrides: Partial<CarState> = {}) {
+    return {
+      ...createInitialCar(createInitialRoad()),
+      speed: 130,
+      maxSpeed: 260,
+      steeringAngle: 0,
+      turnRate: 2,
+      angle: 0,
+      ...overrides,
+    };
+  }
+
+  it("does not change angle when steering angle is 0", () => {
+    const car = createHeadingCar({
+      steeringAngle: 0,
+      speed: 130,
+    });
+
+    expect(updateHeadingFromSteering(car, 1)).toBe(0);
+  });
+
+  it("increases heading for positive steering", () => {
+    const car = createHeadingCar({
+      steeringAngle: 0.5,
+      speed: 130,
+      maxSpeed: 260,
+      turnRate: 2,
+    });
+
+    expect(updateHeadingFromSteering(car, 1)).toBeCloseTo(0.5);
+  });
+
+  it("decreases heading for negative steering", () => {
+    const car = createHeadingCar({
+      steeringAngle: -0.5,
+      speed: 130,
+      maxSpeed: 260,
+      turnRate: 2,
+    });
+
+    expect(updateHeadingFromSteering(car, 1)).toBeCloseTo(-0.5);
+  });
+
+  it("uses delta time", () => {
+    const car = createHeadingCar({
+      steeringAngle: 0.5,
+      speed: 130,
+      maxSpeed: 260,
+      turnRate: 2,
+    });
+
+    expect(updateHeadingFromSteering(car, 0.5)).toBeCloseTo(0.25);
+  });
+
+  it("supports reverse movement", () => {
+    const car = createHeadingCar({
+      steeringAngle: 0.5,
+      speed: -130,
+      maxSpeed: 260,
+      turnRate: 2,
+    });
+
+    expect(updateHeadingFromSteering(car, 1)).toBeCloseTo(0.5);
+  });
+
+  it("rejects invalid turn rate", () => {
+    const car = createHeadingCar({
+      turnRate: -1,
+    });
+
+    expect(() => updateHeadingFromSteering(car, 1)).toThrow(RangeError);
+  });
+});
+
+describe("updateCarPhysics heading integration", () => {
+  it("changes angle when moving and steering", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 100,
+      friction: 0,
+      turnRate: 2,
+    };
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      1,
+    );
+
+    expect(nextCar.angle).toBeGreaterThan(0);
+  });
+
+  it("does not change angle when steering input is zero", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 100,
+      friction: 0,
+      turnRate: 2,
+    };
+
+    const nextCar = updateCarPhysics(car, createCarPhysicsInput(), 1);
+
+    expect(nextCar.angle).toBe(0);
+  });
+
+  it("does not change angle when stopped", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 0,
+      friction: 0,
+      turnRate: 2,
+    };
+
+    const nextCar = updateCarPhysics(
+      car,
+      createCarPhysicsInput({
+        steeringInput: 1,
+      }),
+      1,
+    );
+
+    expect(nextCar.angle).toBe(0);
   });
 });

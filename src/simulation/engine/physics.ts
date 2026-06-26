@@ -12,7 +12,7 @@
  * - No requestAnimationFrame.
  */
 
-import type { CarState } from "../vehicle";
+import { steeringInputToAngle, type CarState } from "../vehicle";
 
 export interface CarPhysicsInput {
   isAccelerating: boolean;
@@ -136,6 +136,55 @@ export function resolveEffectiveSteeringInput(
   }
 
   return normalizedSteeringInput;
+}
+
+/**
+ * Calculates a normalized speed factor for heading updates.
+ *
+ * Rule:
+ * - Uses absolute speed so reverse movement can still steer.
+ * - Clamps to [0, 1] so high speed does not create runaway rotation.
+ */
+export function calculateSteeringSpeedFactor(speed: number, maxSpeed: number): number {
+  assertFiniteNumber(speed, "speed");
+
+  if (!Number.isFinite(maxSpeed) || maxSpeed <= 0) {
+    throw new RangeError("maxSpeed must be a finite positive number.");
+  }
+
+  return Math.min(1, Math.abs(speed) / maxSpeed);
+}
+
+/**
+ * Updates vehicle heading from steering angle.
+ *
+ * Formula:
+ * turnAmount = steeringAngle * turnRate * speedFactor * deltaTimeSeconds
+ * nextAngle = angle + turnAmount
+ *
+ * Conventions:
+ * - angle is radians
+ * - positive steering increases clockwise heading
+ * - negative steering decreases heading
+ */
+export function updateHeadingFromSteering(
+  car: Pick<CarState, "angle" | "steeringAngle" | "speed" | "maxSpeed" | "turnRate">,
+  deltaTimeSeconds: number,
+): number {
+  assertValidDeltaTimeSeconds(deltaTimeSeconds);
+  assertFiniteNumber(car.angle, "car.angle");
+  assertFiniteNumber(car.steeringAngle, "car.steeringAngle");
+  assertFiniteNumber(car.speed, "car.speed");
+
+  if (!Number.isFinite(car.turnRate) || car.turnRate < 0) {
+    throw new RangeError("car.turnRate must be a finite non-negative number.");
+  }
+
+  const speedFactor = calculateSteeringSpeedFactor(car.speed, car.maxSpeed);
+
+  const turnAmount = car.steeringAngle * car.turnRate * speedFactor * deltaTimeSeconds;
+
+  return car.angle + turnAmount;
 }
 
 export function isValidDeltaTimeSeconds(value: number): boolean {
@@ -361,12 +410,22 @@ export function updateCarPhysics(
    * For now, heading remains unchanged.
    */
   const steeringAngle =
-    effectiveSteeringInput === 0 ? car.steeringAngle : car.steeringAngle;
+    effectiveSteeringInput === 0 ? 0 : steeringInputToAngle(effectiveSteeringInput);
+
+  const angle = updateHeadingFromSteering(
+    {
+      ...car,
+      speed,
+      steeringAngle,
+    },
+    deltaTimeSeconds,
+  );
 
   const position = updatePositionUsingSpeedAndHeading(
     {
       ...car,
       speed,
+      angle,
     },
     deltaTimeSeconds,
   );
@@ -376,5 +435,6 @@ export function updateCarPhysics(
     ...position,
     speed,
     steeringAngle,
+    angle,
   };
 }

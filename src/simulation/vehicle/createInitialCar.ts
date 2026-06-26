@@ -23,11 +23,13 @@ import {
 } from "../world";
 import {
   DEFAULT_CAR_ACCELERATION,
+  DEFAULT_CAR_FRICTION,
   DEFAULT_CAR_ANGLE,
   DEFAULT_CAR_MAX_REVERSE_SPEED,
   DEFAULT_CAR_MAX_SPEED,
   DEFAULT_CAR_SPEED,
   DEFAULT_CAR_STEERING_ANGLE,
+  DEFAULT_CAR_TURN_RATE,
   type CarDecision,
   type CarState,
   createCarPosition,
@@ -37,6 +39,8 @@ import {
   isValidCarSpeedValue,
   isValidHeadingAngle,
   isValidSteeringAngle,
+  isValidTurnRate,
+  isValidFrictionValue,
 } from "./carState";
 
 /**
@@ -81,6 +85,8 @@ export interface CreateInitialCarOptions {
   decision?: CarDecision;
   collisionCount?: number;
   distanceTravelled?: number;
+  turnRate?: number;
+  friction?: number;
 }
 
 export interface CarDimensions {
@@ -239,7 +245,9 @@ export function createInitialCar(
   assertCarFitsInsideLane(road, laneIndex, dimensions);
   const speed = options.speed ?? DEFAULT_CAR_SPEED;
   const acceleration = options.acceleration ?? DEFAULT_CAR_ACCELERATION;
+  const friction = options.friction ?? DEFAULT_CAR_FRICTION;
   const angle = options.angle ?? DEFAULT_CAR_ANGLE;
+  const turnRate = options.turnRate ?? DEFAULT_CAR_TURN_RATE;
   const steeringAngle = options.steeringAngle ?? DEFAULT_CAR_STEERING_ANGLE;
   const maxSpeed = options.maxSpeed ?? DEFAULT_CAR_MAX_SPEED;
   const maxReverseSpeed = options.maxReverseSpeed ?? DEFAULT_CAR_MAX_REVERSE_SPEED;
@@ -248,6 +256,14 @@ export function createInitialCar(
 
   assertPositiveDimension(width, "width");
   assertPositiveDimension(height, "height");
+
+  if (!isValidTurnRate(turnRate)) {
+    throw new RangeError("turnRate must be a finite non-negative value.");
+  }
+
+  if (!isValidFrictionValue(friction)) {
+    throw new RangeError("friction must be a finite non-negative value.");
+  }
 
   if (!isValidCarSpeedValue(speed)) {
     throw new RangeError("speed must be a finite pixels-per-second value.");
@@ -283,8 +299,10 @@ export function createInitialCar(
     height,
     speed,
     acceleration,
+    friction,
     angle,
     steeringAngle,
+    turnRate,
     maxSpeed,
     maxReverseSpeed,
     distanceTravelled,
