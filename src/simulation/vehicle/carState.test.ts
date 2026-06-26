@@ -50,6 +50,7 @@ describe("createInitialCarState", () => {
       maxSpeed: 260,
       maxReverseSpeed: 80,
       maxSteeringAngle: 0.5235987755982988,
+      steeringReturnRate: 1.5707963267948966,
       width: 36,
       height: 64,
       distanceTravelled: 0,

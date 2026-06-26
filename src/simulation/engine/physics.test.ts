@@ -22,6 +22,7 @@ import {
   isValidMinimumSteeringSpeed,
   calculateSteeringSpeedFactor,
   updateHeadingFromSteering,
+  returnSteeringAngleToCenter,
 } from "./physics";
 
 describe("updateCarPhysics", () => {
@@ -967,4 +968,89 @@ describe("updateCarPhysics heading integration", () => {
 
     expect(nextCar.angle).toBe(0);
   });
+});
+
+describe("returnSteeringAngleToCenter", () => {
+  it("returns positive steering downward toward 0", () => {
+    expect(returnSteeringAngleToCenter(0.5, 0.2, 1)).toBeCloseTo(0.3);
+  });
+
+  it("returns negative steering upward toward 0", () => {
+    expect(returnSteeringAngleToCenter(-0.5, 0.2, 1)).toBeCloseTo(-0.3);
+  });
+
+  it("does not overshoot past zero from positive steering", () => {
+    expect(returnSteeringAngleToCenter(0.1, 0.5, 1)).toBe(0);
+  });
+
+  it("does not overshoot past zero from negative steering", () => {
+    expect(returnSteeringAngleToCenter(-0.1, 0.5, 1)).toBe(0);
+  });
+
+  it("uses delta time", () => {
+    expect(returnSteeringAngleToCenter(0.5, 0.2, 0.5)).toBeCloseTo(0.4);
+  });
+
+  it("keeps zero steering at zero", () => {
+    expect(returnSteeringAngleToCenter(0, 0.2, 1)).toBe(0);
+  });
+
+  it("accepts zero return rate", () => {
+    expect(returnSteeringAngleToCenter(0.5, 0, 1)).toBe(0.5);
+  });
+
+  it("rejects invalid values", () => {
+    expect(() => returnSteeringAngleToCenter(Number.NaN, 0.2, 1)).toThrow(RangeError);
+
+    expect(() => returnSteeringAngleToCenter(0.5, -1, 1)).toThrow(RangeError);
+  });
+});
+
+it("returns steering toward center when no steering input is active", () => {
+  const car = {
+    ...createInitialCar(createInitialRoad()),
+    speed: 100,
+    friction: 0,
+    steeringAngle: 0.5,
+    steeringReturnRate: 0.2,
+  };
+
+  const nextCar = updateCarPhysics(car, createCarPhysicsInput(), 1);
+
+  expect(nextCar.steeringAngle).toBeCloseTo(0.3);
+});
+
+it("does not overshoot steering center during physics update", () => {
+  const car = {
+    ...createInitialCar(createInitialRoad()),
+    speed: 100,
+    friction: 0,
+    steeringAngle: 0.1,
+    steeringReturnRate: 1,
+  };
+
+  const nextCar = updateCarPhysics(car, createCarPhysicsInput(), 1);
+
+  expect(nextCar.steeringAngle).toBe(0);
+});
+
+it("uses active steering input instead of returning to center", () => {
+  const car = {
+    ...createInitialCar(createInitialRoad()),
+    speed: 100,
+    friction: 0,
+    steeringAngle: 0.1,
+    steeringReturnRate: 1,
+    maxSteeringAngle: Math.PI / 6,
+  };
+
+  const nextCar = updateCarPhysics(
+    car,
+    createCarPhysicsInput({
+      steeringInput: 1,
+    }),
+    1,
+  );
+
+  expect(nextCar.steeringAngle).toBe(Math.PI / 6);
 });

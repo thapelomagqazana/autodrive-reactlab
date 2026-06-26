@@ -142,6 +142,14 @@ export interface CarState extends CarPosition {
    * Default is Math.PI / 6, approximately 30 degrees.
    */
   maxSteeringAngle: number;
+
+  /**
+   * Steering recovery rate in radians per second.
+   *
+   * Used to smoothly move steeringAngle back toward 0 when there is no active
+   * steering input.
+   */
+  steeringReturnRate: number;
 }
 
 /**
@@ -226,6 +234,8 @@ export const DEFAULT_CAR_FRICTION = 70;
 
 export const DEFAULT_CAR_TURN_RATE = 2.4;
 
+export const DEFAULT_STEERING_RETURN_RATE = Math.PI / 2;
+
 /**
  * Immutable default configuration for the Phase 1 MVP car.
  *
@@ -242,6 +252,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
   angle: DEFAULT_CAR_ANGLE,
   steeringAngle: DEFAULT_CAR_STEERING_ANGLE,
   maxSteeringAngle: DEFAULT_MAX_STEERING_ANGLE,
+  steeringReturnRate: DEFAULT_STEERING_RETURN_RATE,
 
   ...DEFAULT_CAR_MOVEMENT_LIMITS,
 
@@ -265,6 +276,10 @@ export function createInitialCarState(): CarState {
   return {
     ...DEFAULT_CAR_STATE,
   };
+}
+
+export function isValidSteeringReturnRate(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
 }
 
 /**
