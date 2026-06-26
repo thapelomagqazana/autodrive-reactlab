@@ -33,6 +33,7 @@ describe("createInitialCar", () => {
 
       width: DEFAULT_INITIAL_CAR_WIDTH,
       height: DEFAULT_INITIAL_CAR_HEIGHT,
+      turnRate: 2.4,
 
       distanceTravelled: 0,
       collisionCount: 0,

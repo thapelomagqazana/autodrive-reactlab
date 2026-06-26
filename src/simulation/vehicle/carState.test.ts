@@ -46,6 +46,7 @@ describe("createInitialCarState", () => {
       friction: 70,
       angle: 0,
       steeringAngle: 0,
+      turnRate: 2.4,
       maxSpeed: 260,
       maxReverseSpeed: 80,
       width: 36,

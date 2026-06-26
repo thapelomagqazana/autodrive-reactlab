@@ -124,6 +124,17 @@ export interface CarState extends CarPosition {
    * input is active. Friction must never reverse the vehicle direction by itself.
    */
   friction: number;
+
+  /**
+   * Heading turn rate multiplier.
+   *
+   * Unit:
+   * - radians per second influence per steering radian.
+   *
+   * Physics uses this together with steeringAngle, speed magnitude, and delta time
+   * to update the vehicle heading.
+   */
+  turnRate: number;
 }
 
 /**
@@ -206,6 +217,8 @@ export const DEFAULT_MAX_STEERING_ANGLE = Math.PI / 6;
 
 export const DEFAULT_CAR_FRICTION = 70;
 
+export const DEFAULT_CAR_TURN_RATE = 2.4;
+
 /**
  * Immutable default configuration for the Phase 1 MVP car.
  *
@@ -231,6 +244,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
   collisionCount: 0,
 
   decision: "idle",
+  turnRate: DEFAULT_CAR_TURN_RATE,
 });
 
 /**
@@ -534,4 +548,24 @@ export function degreesToRadians(degrees: number): number {
   }
 
   return (degrees * Math.PI) / 180;
+}
+
+export function isValidTurnRate(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
+
+/**
+ * Returns true when the supplied friction value is valid.
+ *
+ * Rules:
+ * - Must be finite.
+ * - Must be zero or greater.
+ *
+ * Unit:
+ * - pixels per second² (deceleration)
+ *
+ * Zero is allowed for testing or ice-like road surfaces.
+ */
+export function isValidFrictionValue(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
 }
