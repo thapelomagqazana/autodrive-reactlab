@@ -75,6 +75,69 @@ export function createCarPhysicsInput(
   };
 }
 
+/**
+ * Minimum signed-speed magnitude required before steering can affect heading.
+ *
+ * Unit:
+ * - pixels per second
+ *
+ * Purpose:
+ * - prevents unrealistic stationary spinning
+ * - still allows reverse steering because absolute speed is used
+ */
+export const DEFAULT_MINIMUM_STEERING_SPEED = 5;
+
+/**
+ * Returns true when a value is a safe steering-speed threshold.
+ */
+export function isValidMinimumSteeringSpeed(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
+
+/**
+ * Validates the minimum speed required for steering.
+ */
+export function assertValidMinimumSteeringSpeed(value: number): void {
+  if (!isValidMinimumSteeringSpeed(value)) {
+    throw new RangeError("minimumSteeringSpeed must be a finite non-negative number.");
+  }
+}
+
+/**
+ * Returns true when current speed is large enough for steering to affect
+ * vehicle heading.
+ *
+ * Reverse movement is intentionally supported because Math.abs(speed) is used.
+ */
+export function canApplySteeringAtSpeed(
+  speed: number,
+  minimumSteeringSpeed = DEFAULT_MINIMUM_STEERING_SPEED,
+): boolean {
+  assertFiniteNumber(speed, "speed");
+  assertValidMinimumSteeringSpeed(minimumSteeringSpeed);
+
+  return Math.abs(speed) >= minimumSteeringSpeed;
+}
+
+/**
+ * Returns normalized steering input only when steering is physically allowed.
+ *
+ * This helper does not update angle directly. It only gates steering intent.
+ */
+export function resolveEffectiveSteeringInput(
+  speed: number,
+  steeringInput: number,
+  minimumSteeringSpeed = DEFAULT_MINIMUM_STEERING_SPEED,
+): number {
+  const normalizedSteeringInput = clampSteeringInput(steeringInput);
+
+  if (!canApplySteeringAtSpeed(speed, minimumSteeringSpeed)) {
+    return 0;
+  }
+
+  return normalizedSteeringInput;
+}
+
 export function isValidDeltaTimeSeconds(value: number): boolean {
   return Number.isFinite(value) && value >= 0;
 }
@@ -286,6 +349,20 @@ export function updateCarPhysics(
 
   const speed = clampSpeed(speedBeforeFinalClamp, car.maxSpeed, car.maxReverseSpeed);
 
+  const effectiveSteeringInput = resolveEffectiveSteeringInput(
+    speed,
+    normalizedInput.steeringInput,
+  );
+
+  /**
+   * gates steering.
+   *
+   * Later phases use effectiveSteeringInput to update steeringAngle and angle.
+   * For now, heading remains unchanged.
+   */
+  const steeringAngle =
+    effectiveSteeringInput === 0 ? car.steeringAngle : car.steeringAngle;
+
   const position = updatePositionUsingSpeedAndHeading(
     {
       ...car,
@@ -298,5 +375,6 @@ export function updateCarPhysics(
     ...car,
     ...position,
     speed,
+    steeringAngle,
   };
 }
