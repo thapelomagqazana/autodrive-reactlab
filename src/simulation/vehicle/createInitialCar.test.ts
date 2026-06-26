@@ -29,6 +29,7 @@ describe("createInitialCar", () => {
 
       maxSpeed: 260,
       maxReverseSpeed: 80,
+      friction: 70,
 
       width: DEFAULT_INITIAL_CAR_WIDTH,
       height: DEFAULT_INITIAL_CAR_HEIGHT,

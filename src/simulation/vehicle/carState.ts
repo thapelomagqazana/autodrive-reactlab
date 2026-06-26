@@ -116,6 +116,14 @@ export interface CarState extends CarPosition {
 
   /** Current high-level vehicle decision/state. */
   decision: CarDecision;
+
+  /**
+   * Natural deceleration in pixels per second squared.
+   *
+   * Physics uses this to reduce speed toward 0 when no acceleration or braking
+   * input is active. Friction must never reverse the vehicle direction by itself.
+   */
+  friction: number;
 }
 
 /**
@@ -196,6 +204,8 @@ export const DEFAULT_CAR_STEERING_ANGLE = 0;
 /** Maximum steering angle for MVP, equal to 30 degrees in radians. */
 export const DEFAULT_MAX_STEERING_ANGLE = Math.PI / 6;
 
+export const DEFAULT_CAR_FRICTION = 70;
+
 /**
  * Immutable default configuration for the Phase 1 MVP car.
  *
@@ -207,6 +217,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
 
   speed: DEFAULT_CAR_SPEED,
   acceleration: DEFAULT_CAR_ACCELERATION,
+  friction: DEFAULT_CAR_FRICTION,
 
   angle: DEFAULT_CAR_ANGLE,
   steeringAngle: DEFAULT_CAR_STEERING_ANGLE,

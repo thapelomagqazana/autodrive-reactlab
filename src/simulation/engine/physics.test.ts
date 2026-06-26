@@ -6,6 +6,8 @@ import {
   assertValidDeltaTimeSeconds,
   isValidDeltaTimeSeconds,
   applyAccelerationToSpeed,
+  applyFrictionToSpeed,
+  resolveCarFriction,
   clampSpeed,
   updateCarPhysics,
 } from "./physics";
@@ -239,5 +241,105 @@ describe("updateCarPhysics acceleration integration", () => {
     };
 
     expect(updateCarPhysics(car, input, 0.5)).toEqual(updateCarPhysics(car, input, 0.5));
+  });
+});
+
+describe("applyFrictionToSpeed", () => {
+  it("decays positive speed toward zero", () => {
+    expect(applyFrictionToSpeed(100, 70, 1)).toBe(30);
+  });
+
+  it("decays negative speed toward zero", () => {
+    expect(applyFrictionToSpeed(-100, 70, 1)).toBe(-30);
+  });
+
+  it("does not flip positive speed to negative", () => {
+    expect(applyFrictionToSpeed(10, 70, 1)).toBe(0);
+  });
+
+  it("does not flip negative speed to positive", () => {
+    expect(applyFrictionToSpeed(-10, 70, 1)).toBe(0);
+  });
+
+  it("uses delta time", () => {
+    expect(applyFrictionToSpeed(100, 70, 0.5)).toBe(65);
+  });
+
+  it("keeps zero speed at zero", () => {
+    expect(applyFrictionToSpeed(0, 70, 1)).toBe(0);
+  });
+
+  it("accepts zero friction", () => {
+    expect(applyFrictionToSpeed(100, 0, 1)).toBe(100);
+  });
+
+  it("accepts zero delta time", () => {
+    expect(applyFrictionToSpeed(100, 70, 0)).toBe(100);
+  });
+
+  it("rejects invalid friction values", () => {
+    expect(() => applyFrictionToSpeed(100, -1, 1)).toThrow(RangeError);
+    expect(() => applyFrictionToSpeed(100, Number.NaN, 1)).toThrow(RangeError);
+  });
+
+  it("rejects invalid speed values", () => {
+    expect(() => applyFrictionToSpeed(Number.NaN, 70, 1)).toThrow(RangeError);
+    expect(() => applyFrictionToSpeed(Number.POSITIVE_INFINITY, 70, 1)).toThrow(
+      RangeError,
+    );
+  });
+});
+
+describe("resolveCarFriction", () => {
+  it("uses explicit car friction when available", () => {
+    expect(resolveCarFriction({ friction: 50 })).toBe(50);
+  });
+
+  it("rejects invalid car friction", () => {
+    expect(() => resolveCarFriction({ friction: -1 })).toThrow(RangeError);
+    expect(() => resolveCarFriction({ friction: Number.NaN })).toThrow(RangeError);
+  });
+});
+
+describe("updateCarPhysics friction integration", () => {
+  it("slows naturally when no acceleration or braking is active", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 100,
+    };
+
+    const nextCar = updateCarPhysics(car, NEUTRAL_CAR_PHYSICS_INPUT, 1);
+
+    expect(nextCar.speed).toBe(30);
+  });
+
+  it("does not apply friction while accelerating", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 100,
+    };
+
+    const nextCar = updateCarPhysics(
+      car,
+      {
+        ...NEUTRAL_CAR_PHYSICS_INPUT,
+        isAccelerating: true,
+      },
+      1,
+    );
+
+    expect(nextCar.speed).toBe(220);
+  });
+
+  it("does not mutate input car", () => {
+    const car = {
+      ...createInitialCar(createInitialRoad()),
+      speed: 100,
+    };
+    const snapshot = structuredClone(car);
+
+    updateCarPhysics(car, NEUTRAL_CAR_PHYSICS_INPUT, 1);
+
+    expect(car).toEqual(snapshot);
   });
 });
