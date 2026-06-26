@@ -5,6 +5,8 @@
  * Future game-loop, physics, telemetry, and replay systems can reuse them.
  */
 
+export const DEFAULT_MAX_DELTA_TIME_SECONDS = 0.05;
+
 /**
  * Converts milliseconds to seconds.
  *
@@ -14,13 +16,12 @@
  * @throws Error when the input is not a finite number.
  */
 export function millisecondsToSeconds(milliseconds: number): number {
-  if (!Number.isFinite(milliseconds)) {
-    throw new Error("milliseconds must be a finite number");
+  if (!Number.isFinite(milliseconds) || milliseconds < 0) {
+    throw new RangeError("milliseconds must be a finite non-negative number.");
   }
 
   return milliseconds / 1000;
 }
-
 /**
  * Clamps delta time to a safe maximum.
  *
@@ -34,14 +35,27 @@ export function millisecondsToSeconds(milliseconds: number): number {
  *
  * @throws Error when either input is invalid.
  */
-export function clampDeltaTime(deltaSeconds: number, maxDeltaSeconds = 0.1): number {
+export function clampDeltaTime(
+  deltaSeconds: number,
+  maxDeltaSeconds = DEFAULT_MAX_DELTA_TIME_SECONDS,
+): number {
   if (!Number.isFinite(deltaSeconds) || deltaSeconds < 0) {
-    throw new Error("deltaSeconds must be a non-negative finite number");
+    throw new RangeError("deltaSeconds must be a finite non-negative number.");
   }
 
   if (!Number.isFinite(maxDeltaSeconds) || maxDeltaSeconds <= 0) {
-    throw new Error("maxDeltaSeconds must be a positive finite number");
+    throw new RangeError("maxDeltaSeconds must be a finite positive number.");
   }
 
   return Math.min(deltaSeconds, maxDeltaSeconds);
+}
+
+/**
+ * Converts a raw frame delta in milliseconds into safe physics seconds.
+ */
+export function normalizeFrameDeltaSeconds(
+  frameDeltaMs: number,
+  maxDeltaSeconds = DEFAULT_MAX_DELTA_TIME_SECONDS,
+): number {
+  return clampDeltaTime(millisecondsToSeconds(frameDeltaMs), maxDeltaSeconds);
 }
