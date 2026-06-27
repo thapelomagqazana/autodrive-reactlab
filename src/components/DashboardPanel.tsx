@@ -11,12 +11,14 @@ import { formatCanvasResolution } from "../utils/formatCanvasResolution";
 import { formatElapsedTime } from "../utils/formatElapsedTime";
 import { formatFps } from "../utils/formatFps";
 import { TelemetryCard } from "./TelemetryCard";
+import { formatVehicleSpeed } from "./formatVehicleSpeed";
 import { DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS } from "./vehicleTelemetryPlaceholders";
 
 export interface DashboardPanelProps {
   status: SimulationStatus;
   simulationTimeSeconds: number;
   fps: number;
+  vehicleSpeed: number;
   canvasDiagnostics?: CanvasDiagnostics;
 }
 
@@ -62,6 +64,7 @@ export function DashboardPanel({
   status,
   simulationTimeSeconds,
   fps,
+  vehicleSpeed,
   canvasDiagnostics,
 }: DashboardPanelProps) {
   const statusPresentation = getStatusPresentation(status);
@@ -160,8 +163,7 @@ export function DashboardPanel({
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TelemetryCard
               label="Vehicle Speed"
-              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.speed}
-              isPlaceholder
+              value={`${formatVehicleSpeed(vehicleSpeed)} px/s`}
             />
 
             <TelemetryCard
