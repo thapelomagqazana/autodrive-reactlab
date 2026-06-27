@@ -246,3 +246,18 @@ export const useToggleSensorsVisibility = () =>
   useSimulationStore((state) => state.toggleSensorsVisibility);
 
 export const useSimulationCarSpeed = () => useSimulationStore((state) => state.car.speed);
+
+export const useSimulationCarAcceleration = () =>
+  useSimulationStore((state) => state.car.acceleration);
+
+export const useSimulationCarSteeringAngle = () =>
+  useSimulationStore((state) => state.car.steeringAngle);
+
+export const useSimulationCarPositionX = () =>
+  useSimulationStore((state) => state.car.positionX);
+
+export const useSimulationCarPositionY = () =>
+  useSimulationStore((state) => state.car.positionY);
+
+export const useSimulationCarHeading = () =>
+  useSimulationStore((state) => state.car.angle);

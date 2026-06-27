@@ -20,6 +20,11 @@ export {
   useSimulationCar,
   useSimulationRoad,
   useSimulationCarSpeed,
+  useSimulationCarAcceleration,
+  useSimulationCarSteeringAngle,
+  useSimulationCarPositionX,
+  useSimulationCarPositionY,
+  useSimulationCarHeading,
 } from "./simulationStore";
 
 export type {
