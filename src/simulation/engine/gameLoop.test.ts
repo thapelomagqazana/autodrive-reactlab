@@ -315,3 +315,34 @@ describe("createGameLoop start", () => {
     expect(onFps).toHaveBeenCalled();
   });
 });
+
+it("does not create duplicate animation loops when start is called repeatedly", () => {
+  let frameCallback: FrameRequestCallback | null = null;
+  const requestFrame = vi.fn((callback: FrameRequestCallback) => {
+    frameCallback = callback;
+    return 1;
+  });
+
+  const cancelFrame = vi.fn();
+
+  const loop = createGameLoop({
+    scheduler: {
+      requestFrame,
+      cancelFrame,
+    },
+  });
+
+  loop.start({
+    update: vi.fn(),
+    render: vi.fn(),
+  });
+
+  loop.start({
+    update: vi.fn(),
+    render: vi.fn(),
+  });
+
+  expect(requestFrame).toHaveBeenCalledTimes(1);
+  expect(loop.isRunning()).toBe(true);
+  expect(frameCallback).not.toBeNull();
+});
