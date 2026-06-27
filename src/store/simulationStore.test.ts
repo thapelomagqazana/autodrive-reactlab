@@ -587,3 +587,77 @@ it("ignores invalid delta time values", () => {
   expect(useSimulationStore.getState().car).toBe(car);
   expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBe(0);
 });
+
+it("updates physics while running", () => {
+  const road = createInitialRoad();
+  const car = { ...createInitialCar(road), speed: 0, friction: 0 };
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: { simulationTimeSeconds: 0, fps: 0 },
+    ui: { isDebugModeEnabled: false, areSensorsVisible: true },
+    road,
+    car,
+  });
+
+  useSimulationStore
+    .getState()
+    .tickSimulation(createCarPhysicsInput({ isAccelerating: true }), 1);
+
+  expect(useSimulationStore.getState().car.speed).toBeGreaterThan(0);
+});
+
+it("does not update physics while paused", () => {
+  const road = createInitialRoad();
+  const car = { ...createInitialCar(road), speed: 50, friction: 0 };
+
+  useSimulationStore.setState({
+    status: "paused",
+    telemetry: { simulationTimeSeconds: 3, fps: 60 },
+    ui: { isDebugModeEnabled: false, areSensorsVisible: true },
+    road,
+    car,
+  });
+
+  useSimulationStore
+    .getState()
+    .tickSimulation(createCarPhysicsInput({ isAccelerating: true }), 1);
+
+  expect(useSimulationStore.getState().car).toBe(car);
+  expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBe(3);
+});
+
+it("resumes from paused position", () => {
+  const road = createInitialRoad();
+  const car = { ...createInitialCar(road), speed: 50, friction: 0 };
+
+  useSimulationStore.setState({
+    status: "paused",
+    telemetry: { simulationTimeSeconds: 3, fps: 60 },
+    ui: { isDebugModeEnabled: false, areSensorsVisible: true },
+    road,
+    car,
+  });
+
+  useSimulationStore.getState().startSimulation();
+  useSimulationStore.getState().tickSimulation(NEUTRAL_CAR_PHYSICS_INPUT, 1);
+
+  expect(useSimulationStore.getState().status).toBe("running");
+  expect(useSimulationStore.getState().car.positionY).not.toBe(car.positionY);
+});
+
+it("reset restores initial car state", () => {
+  useSimulationStore.getState().startSimulation();
+  useSimulationStore
+    .getState()
+    .tickSimulation(createCarPhysicsInput({ isAccelerating: true }), 1);
+
+  useSimulationStore.getState().resetSimulation();
+
+  const state = useSimulationStore.getState();
+
+  expect(state.status).toBe("idle");
+  expect(state.telemetry.simulationTimeSeconds).toBe(0);
+  expect(state.car.speed).toBe(0);
+  expect(state.car.decision).toBe("idle");
+});
