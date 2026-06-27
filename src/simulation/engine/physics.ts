@@ -248,6 +248,24 @@ export function assertNonNegativeFiniteNumber(value: number, label: string): voi
   }
 }
 
+export function applyBrakeOrReverseToSpeed(
+  speed: number,
+  acceleration: number,
+  deltaTimeSeconds: number,
+): number {
+  assertFiniteNumber(speed, "speed");
+  assertNonNegativeFiniteNumber(acceleration, "acceleration");
+  assertValidDeltaTimeSeconds(deltaTimeSeconds);
+
+  // Moving forward -> brake
+  if (speed > 0) {
+    return Math.max(0, speed - acceleration * deltaTimeSeconds);
+  }
+
+  // Stationary or reversing -> accelerate backwards
+  return speed - acceleration * deltaTimeSeconds;
+}
+
 export function clampSpeed(
   speed: number,
   maxSpeed: number,
@@ -422,32 +440,37 @@ export function updateCarPhysics(
 
   const normalizedInput = createCarPhysicsInput(input);
 
-  const acceleratedSpeed = applyAccelerationToSpeed(
-    car,
-    normalizedInput,
-    deltaTimeSeconds,
-  );
+  let speed = car.speed;
+
+  if (normalizedInput.isAccelerating) {
+    speed = applyAccelerationToSpeed(
+      {
+        ...car,
+        speed,
+      },
+      normalizedInput,
+      deltaTimeSeconds,
+    );
+  }
+
+  if (normalizedInput.isBrakeOrReversePressed) {
+    speed = applyBrakeOrReverseToSpeed(speed, car.acceleration, deltaTimeSeconds);
+  }
 
   const shouldApplyFriction =
     !normalizedInput.isAccelerating && !normalizedInput.isBrakeOrReversePressed;
 
-  const speedBeforeFinalClamp = shouldApplyFriction
-    ? applyFrictionToSpeed(acceleratedSpeed, car.friction, deltaTimeSeconds)
-    : acceleratedSpeed;
+  if (shouldApplyFriction) {
+    speed = applyFrictionToSpeed(speed, car.friction, deltaTimeSeconds);
+  }
 
-  const speed = clampSpeed(speedBeforeFinalClamp, car.maxSpeed, car.maxReverseSpeed);
+  speed = clampSpeed(speed, car.maxSpeed, car.maxReverseSpeed);
 
   const effectiveSteeringInput = resolveEffectiveSteeringInput(
     speed,
     normalizedInput.steeringInput,
   );
 
-  /**
-   * gates steering.
-   *
-   * Later phases use effectiveSteeringInput to update steeringAngle and angle.
-   * For now, heading remains unchanged.
-   */
   const steeringAngle =
     effectiveSteeringInput === 0
       ? returnSteeringAngleToCenter(

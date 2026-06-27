@@ -101,6 +101,7 @@ export function useKeyboardControls(): CarPhysicsInput {
       }
 
       event.preventDefault();
+      event.stopPropagation();
 
       if (event.repeat) {
         return;
@@ -117,6 +118,7 @@ export function useKeyboardControls(): CarPhysicsInput {
       }
 
       event.preventDefault();
+      event.stopPropagation();
 
       setKeyboardState((currentState) => ({
         pressedCodes: removePressedCode(currentState.pressedCodes, event.code),
@@ -127,8 +129,8 @@ export function useKeyboardControls(): CarPhysicsInput {
       setKeyboardState(INITIAL_KEYBOARD_CONTROL_STATE);
     }
 
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown, { passive: false });
+    window.addEventListener("keyup", handleKeyUp, { passive: false });
     window.addEventListener("blur", clearAllActiveKeys);
 
     return () => {

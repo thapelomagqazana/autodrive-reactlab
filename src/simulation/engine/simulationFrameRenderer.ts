@@ -49,7 +49,7 @@ export function drawSimulationFrame(
   car: CarState,
   options: DrawSimulationFrameOptions = {},
 ): void {
-  assertCarAppearsOnRoad(road, car);
+  assertCarIsRenderableOnRoad(road, car);
 
   drawRoad(context, road, options.road);
   drawCar(context, car, options.car);
@@ -81,7 +81,7 @@ export function evaluateRoadCarComposition(
 
     carFullyInsideRoad: carLeft >= leftEdgeX && carRight <= rightEdgeX,
 
-    carCenterAlignedWithLane: car.positionX === laneCenterX,
+    carCenterAlignedWithLane: Math.abs(car.positionX - laneCenterX) <= 0.001,
   };
 }
 
@@ -105,5 +105,21 @@ export function assertCarAppearsOnRoad(
 
   if (!result.carCenterAlignedWithLane) {
     throw new RangeError("Car center must align with selected lane center.");
+  }
+}
+
+export function assertCarIsRenderableOnRoad(road: Road, car: CarState): void {
+  const leftEdgeX = getRoadLeftEdgeX(road);
+  const rightEdgeX = getRoadRightEdgeX(road);
+
+  const carLeft = car.positionX - car.width / 2;
+  const carRight = car.positionX + car.width / 2;
+
+  if (car.positionX < leftEdgeX || car.positionX > rightEdgeX) {
+    throw new RangeError("Car center must remain inside road boundaries.");
+  }
+
+  if (carLeft < leftEdgeX || carRight > rightEdgeX) {
+    throw new RangeError("Car body must remain fully inside road boundaries.");
   }
 }
