@@ -7,3 +7,5 @@ export type { UseCanvasResult } from "./useCanvas";
 
 export { useCanvasResize } from "./useCanvasResize";
 export type { UseCanvasResizeOptions } from "./useCanvasResize";
+
+export { useKeyboardControls } from "./useKeyboardControls";
