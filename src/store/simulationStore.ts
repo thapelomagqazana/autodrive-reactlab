@@ -7,10 +7,7 @@
 import { create } from "zustand";
 import { createInitialRoad, type Road } from "../simulation/world";
 import { createInitialCar, type CarState } from "../simulation/vehicle";
-import {
-  NEUTRAL_CAR_PHYSICS_INPUT,
-  updateCarPhysics,
-} from "../simulation/engine/physics";
+import { updateCarPhysics, type CarPhysicsInput } from "../simulation/engine/physics";
 
 export type SimulationStatus = "idle" | "running" | "paused";
 
@@ -37,7 +34,7 @@ export interface SimulationActions {
   startSimulation: () => void;
   pauseSimulation: () => void;
   resetSimulation: () => void;
-  tickSimulation: (deltaTimeSeconds: number) => void;
+  tickSimulation: (input: CarPhysicsInput, deltaTimeSeconds: number) => void;
 
   advanceSimulationTime: (deltaTimeSeconds: number) => void;
   setSimulationTimeSeconds: (value: number) => void;
@@ -100,7 +97,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
       };
     }),
 
-  tickSimulation: (deltaTimeSeconds) =>
+  tickSimulation: (input, deltaTimeSeconds) =>
     set((state) => {
       if (
         state.status !== "running" ||
@@ -114,7 +111,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
           ...state.telemetry,
           simulationTimeSeconds: state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
         },
-        car: updateCarPhysics(state.car, NEUTRAL_CAR_PHYSICS_INPUT, deltaTimeSeconds),
+        car: updateCarPhysics(state.car, input, deltaTimeSeconds),
       };
     }),
 

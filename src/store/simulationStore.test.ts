@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { useSimulationStore } from "./simulationStore";
 import { createInitialRoad } from "../simulation/world";
 import { createInitialCar } from "../simulation/vehicle";
+import { NEUTRAL_CAR_PHYSICS_INPUT } from "../simulation/engine/physics";
 
 function resetStore() {
   const road = createInitialRoad();
@@ -284,4 +285,37 @@ describe("simulationStore", () => {
 
     expect(useSimulationStore.getState().car.speed).toBe(50);
   });
+});
+
+it("tickSimulation uses the latest store-backed car state", () => {
+  const road = createInitialRoad();
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car: {
+      ...createInitialCar(road),
+      speed: 10,
+      friction: 0,
+    },
+  });
+
+  useSimulationStore.getState().setCar({
+    ...useSimulationStore.getState().car,
+    speed: 100,
+    friction: 0,
+  });
+
+  useSimulationStore.getState().tickSimulation(NEUTRAL_CAR_PHYSICS_INPUT, 1);
+
+  expect(useSimulationStore.getState().car.speed).toBe(100);
+  expect(useSimulationStore.getState().car.positionY).toBe(500);
 });
