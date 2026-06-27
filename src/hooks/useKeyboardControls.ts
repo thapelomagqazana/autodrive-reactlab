@@ -13,14 +13,14 @@ const INITIAL_KEYBOARD_CONTROL_STATE: KeyboardControlState = {
 };
 
 const ACCELERATE_KEYS = new Set(["ArrowUp", "KeyW"]);
-const BRAKE_KEYS = new Set(["ArrowDown", "KeyS"]);
+const BRAKE_OR_REVERSE_KEYS = new Set(["ArrowDown", "KeyS"]);
 const LEFT_KEYS = new Set(["ArrowLeft", "KeyA"]);
 const RIGHT_KEYS = new Set(["ArrowRight", "KeyD"]);
 
 function isTrackedControlKey(code: string): boolean {
   return (
     ACCELERATE_KEYS.has(code) ||
-    BRAKE_KEYS.has(code) ||
+    BRAKE_OR_REVERSE_KEYS.has(code) ||
     LEFT_KEYS.has(code) ||
     RIGHT_KEYS.has(code)
   );
@@ -139,11 +139,16 @@ export function useKeyboardControls(): CarPhysicsInput {
       ACCELERATE_KEYS,
     );
 
-    const isBrakingPressed = hasAnyPressedKey(keyboardState.pressedCodes, BRAKE_KEYS);
+    const isBrakeOrReversePressed = hasAnyPressedKey(
+      keyboardState.pressedCodes,
+      BRAKE_OR_REVERSE_KEYS,
+    );
 
     return createCarPhysicsInput({
-      isAccelerating: isAcceleratingPressed && !isBrakingPressed,
-      isBraking: isBrakingPressed && !isAcceleratingPressed,
+      isAccelerating: isAcceleratingPressed && !isBrakeOrReversePressed,
+
+      isBrakeOrReversePressed: isBrakeOrReversePressed && !isAcceleratingPressed,
+
       steeringInput: resolveSteeringInput(keyboardState.pressedCodes),
     });
   }, [keyboardState]);

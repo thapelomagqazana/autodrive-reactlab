@@ -16,7 +16,13 @@ import { clampSteeringAngle, steeringInputToAngle, type CarState } from "../vehi
 
 export interface CarPhysicsInput {
   isAccelerating: boolean;
-  isBraking: boolean;
+  /**
+   * Normalized backward-driving intent.
+   *
+   * Keyboard controls do not decide whether this means braking or reversing.
+   * Physics decides based on current car.speed.
+   */
+  isBrakeOrReversePressed: boolean;
   /**
    * Normalized steering intent.
    *
@@ -32,8 +38,7 @@ export interface CarPhysicsInput {
 
 export const NEUTRAL_CAR_PHYSICS_INPUT: Readonly<CarPhysicsInput> = Object.freeze({
   isAccelerating: false,
-  isBraking: false,
-  isSteeringLeft: false,
+  isBrakeOrReversePressed: false,
   steeringInput: 0,
 });
 
@@ -70,7 +75,7 @@ export function createCarPhysicsInput(
 ): CarPhysicsInput {
   return {
     isAccelerating: input.isAccelerating ?? false,
-    isBraking: input.isBraking ?? false,
+    isBrakeOrReversePressed: input.isBrakeOrReversePressed ?? false,
     steeringInput: clampSteeringInput(input.steeringInput ?? 0),
   };
 }
@@ -424,7 +429,7 @@ export function updateCarPhysics(
   );
 
   const shouldApplyFriction =
-    !normalizedInput.isAccelerating && !normalizedInput.isBraking;
+    !normalizedInput.isAccelerating && !normalizedInput.isBrakeOrReversePressed;
 
   const speedBeforeFinalClamp = shouldApplyFriction
     ? applyFrictionToSpeed(acceleratedSpeed, car.friction, deltaTimeSeconds)
