@@ -172,3 +172,75 @@ describe("useKeyboardControls", () => {
     removeEventListenerSpy.mockRestore();
   });
 });
+
+it("maps ArrowUp to acceleration while held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowUp");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+
+  act(() => {
+    keyUp("ArrowUp");
+  });
+
+  expect(result.current.isAccelerating).toBe(false);
+});
+
+it("maps W to acceleration while held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("KeyW");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+
+  act(() => {
+    keyUp("KeyW");
+  });
+
+  expect(result.current.isAccelerating).toBe(false);
+});
+
+it("keeps acceleration active when one of multiple acceleration keys is released", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowUp");
+    keyDown("KeyW");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+
+  act(() => {
+    keyUp("ArrowUp");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+
+  act(() => {
+    keyUp("KeyW");
+  });
+
+  expect(result.current.isAccelerating).toBe(false);
+});
+
+it("handles repeated acceleration keydown safely", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowUp");
+    keyDown("ArrowUp", true);
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+
+  act(() => {
+    keyUp("ArrowUp");
+  });
+
+  expect(result.current.isAccelerating).toBe(false);
+});

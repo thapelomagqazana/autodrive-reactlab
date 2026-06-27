@@ -5,17 +5,11 @@ import {
 } from "../simulation/engine/physics";
 
 export interface KeyboardControlState {
-  isAcceleratingPressed: boolean;
-  isBrakingPressed: boolean;
-  isLeftPressed: boolean;
-  isRightPressed: boolean;
+  pressedCodes: ReadonlySet<string>;
 }
 
 const INITIAL_KEYBOARD_CONTROL_STATE: KeyboardControlState = {
-  isAcceleratingPressed: false,
-  isBrakingPressed: false,
-  isLeftPressed: false,
-  isRightPressed: false,
+  pressedCodes: new Set<string>(),
 };
 
 const ACCELERATE_KEYS = new Set(["ArrowUp", "KeyW"]);
@@ -32,55 +26,63 @@ function isTrackedControlKey(code: string): boolean {
   );
 }
 
-function resolveSteeringInput(state: KeyboardControlState): number {
-  if (state.isLeftPressed && !state.isRightPressed) {
+function hasAnyPressedKey(
+  pressedCodes: ReadonlySet<string>,
+  targetCodes: ReadonlySet<string>,
+): boolean {
+  for (const code of targetCodes) {
+    if (pressedCodes.has(code)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function resolveSteeringInput(pressedCodes: ReadonlySet<string>): number {
+  const isLeftPressed = hasAnyPressedKey(pressedCodes, LEFT_KEYS);
+  const isRightPressed = hasAnyPressedKey(pressedCodes, RIGHT_KEYS);
+
+  if (isLeftPressed && !isRightPressed) {
     return -1;
   }
 
-  if (state.isRightPressed && !state.isLeftPressed) {
+  if (isRightPressed && !isLeftPressed) {
     return 1;
   }
 
   return 0;
 }
 
-function updateControlStateForKey(
-  state: KeyboardControlState,
+function addPressedCode(
+  pressedCodes: ReadonlySet<string>,
   code: string,
-  isPressed: boolean,
-): KeyboardControlState {
-  if (ACCELERATE_KEYS.has(code)) {
-    return { ...state, isAcceleratingPressed: isPressed };
+): ReadonlySet<string> {
+  if (pressedCodes.has(code)) {
+    return pressedCodes;
   }
 
-  if (BRAKE_KEYS.has(code)) {
-    return { ...state, isBrakingPressed: isPressed };
+  return new Set([...pressedCodes, code]);
+}
+
+function removePressedCode(
+  pressedCodes: ReadonlySet<string>,
+  code: string,
+): ReadonlySet<string> {
+  if (!pressedCodes.has(code)) {
+    return pressedCodes;
   }
 
-  if (LEFT_KEYS.has(code)) {
-    return { ...state, isLeftPressed: isPressed };
-  }
-
-  if (RIGHT_KEYS.has(code)) {
-    return { ...state, isRightPressed: isPressed };
-  }
-
-  return state;
+  const nextCodes = new Set(pressedCodes);
+  nextCodes.delete(code);
+  return nextCodes;
 }
 
 /**
  * Listens to keyboard controls and exposes normalized physics input.
  *
- * Responsibilities:
- * - Convert keyboard state into CarPhysicsInput.
- * - Clear input on key release.
- * - Clear all input on window blur.
- *
- * Non-responsibilities:
- * - Does not mutate car state.
- * - Does not run physics.
- * - Does not draw to canvas.
- * - Does not start or stop the game loop.
+ * ArrowUp and W both map to isAccelerating.
+ * Acceleration remains true while at least one acceleration key is held.
  */
 export function useKeyboardControls(): CarPhysicsInput {
   const [keyboardState, setKeyboardState] = useState<KeyboardControlState>(
@@ -99,9 +101,9 @@ export function useKeyboardControls(): CarPhysicsInput {
         return;
       }
 
-      setKeyboardState((currentState) =>
-        updateControlStateForKey(currentState, event.code, true),
-      );
+      setKeyboardState((currentState) => ({
+        pressedCodes: addPressedCode(currentState.pressedCodes, event.code),
+      }));
     }
 
     function handleKeyUp(event: KeyboardEvent): void {
@@ -111,9 +113,9 @@ export function useKeyboardControls(): CarPhysicsInput {
 
       event.preventDefault();
 
-      setKeyboardState((currentState) =>
-        updateControlStateForKey(currentState, event.code, false),
-      );
+      setKeyboardState((currentState) => ({
+        pressedCodes: removePressedCode(currentState.pressedCodes, event.code),
+      }));
     }
 
     function handleWindowBlur(): void {
@@ -131,16 +133,18 @@ export function useKeyboardControls(): CarPhysicsInput {
     };
   }, []);
 
-  return useMemo(
-    () =>
-      createCarPhysicsInput({
-        isAccelerating:
-          keyboardState.isAcceleratingPressed && !keyboardState.isBrakingPressed,
+  return useMemo(() => {
+    const isAcceleratingPressed = hasAnyPressedKey(
+      keyboardState.pressedCodes,
+      ACCELERATE_KEYS,
+    );
 
-        isBraking: keyboardState.isBrakingPressed && !keyboardState.isAcceleratingPressed,
+    const isBrakingPressed = hasAnyPressedKey(keyboardState.pressedCodes, BRAKE_KEYS);
 
-        steeringInput: resolveSteeringInput(keyboardState),
-      }),
-    [keyboardState],
-  );
+    return createCarPhysicsInput({
+      isAccelerating: isAcceleratingPressed && !isBrakingPressed,
+      isBraking: isBrakingPressed && !isAcceleratingPressed,
+      steeringInput: resolveSteeringInput(keyboardState.pressedCodes),
+    });
+  }, [keyboardState]);
 }
