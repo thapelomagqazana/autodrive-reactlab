@@ -19,6 +19,7 @@ export {
   useToggleSensorsVisibility,
   useSimulationCar,
   useSimulationRoad,
+  useSimulationCarSpeed,
 } from "./simulationStore";
 
 export type {

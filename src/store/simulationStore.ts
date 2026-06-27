@@ -244,3 +244,5 @@ export const useTickSimulation = () =>
 
 export const useToggleSensorsVisibility = () =>
   useSimulationStore((state) => state.toggleSensorsVisibility);
+
+export const useSimulationCarSpeed = () => useSimulationStore((state) => state.car.speed);
