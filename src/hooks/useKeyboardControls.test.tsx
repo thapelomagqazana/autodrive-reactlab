@@ -430,3 +430,103 @@ it("handles repeated left keydown safely", () => {
 
   expect(result.current.steeringInput).toBe(0);
 });
+
+it("maps ArrowRight to right steering while held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowRight");
+  });
+
+  expect(result.current.steeringInput).toBe(1);
+
+  act(() => {
+    keyUp("ArrowRight");
+  });
+
+  expect(result.current.steeringInput).toBe(0);
+});
+
+it("maps D to right steering while held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("KeyD");
+  });
+
+  expect(result.current.steeringInput).toBe(1);
+
+  act(() => {
+    keyUp("KeyD");
+  });
+
+  expect(result.current.steeringInput).toBe(0);
+});
+
+it("keeps right steering active when one of multiple right keys is released", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowRight");
+    keyDown("KeyD");
+  });
+
+  expect(result.current.steeringInput).toBe(1);
+
+  act(() => {
+    keyUp("ArrowRight");
+  });
+
+  expect(result.current.steeringInput).toBe(1);
+
+  act(() => {
+    keyUp("KeyD");
+  });
+
+  expect(result.current.steeringInput).toBe(0);
+});
+
+it("cancels steering when right and left are both held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowRight");
+    keyDown("ArrowLeft");
+  });
+
+  expect(result.current.steeringInput).toBe(0);
+});
+
+it("restores left steering when right is released while left remains held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowRight");
+    keyDown("ArrowLeft");
+  });
+
+  expect(result.current.steeringInput).toBe(0);
+
+  act(() => {
+    keyUp("ArrowRight");
+  });
+
+  expect(result.current.steeringInput).toBe(-1);
+});
+
+it("handles repeated right keydown safely", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowRight");
+    keyDown("ArrowRight", true);
+  });
+
+  expect(result.current.steeringInput).toBe(1);
+
+  act(() => {
+    keyUp("ArrowRight");
+  });
+
+  expect(result.current.steeringInput).toBe(0);
+});
