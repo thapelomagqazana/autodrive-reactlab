@@ -388,3 +388,202 @@ it("neutral input stops acceleration on the next frame", () => {
 
   expect(useSimulationStore.getState().car.speed).toBe(speedAfterAcceleration);
 });
+
+it("updates car physics during running frames", () => {
+  const road = createInitialRoad();
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car: {
+      ...createInitialCar(road),
+      speed: 0,
+      friction: 0,
+    },
+  });
+
+  const previousCar = useSimulationStore.getState().car;
+
+  useSimulationStore.getState().tickSimulation(
+    createCarPhysicsInput({
+      isAccelerating: true,
+    }),
+    1,
+  );
+
+  const state = useSimulationStore.getState();
+
+  expect(state.car).not.toBe(previousCar);
+  expect(state.car.speed).toBeGreaterThan(0);
+  expect(state.telemetry.simulationTimeSeconds).toBe(1);
+});
+
+it("does not update car physics while paused", () => {
+  const road = createInitialRoad();
+  const car = {
+    ...createInitialCar(road),
+    speed: 0,
+    friction: 0,
+  };
+
+  useSimulationStore.setState({
+    status: "paused",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car,
+  });
+
+  useSimulationStore.getState().tickSimulation(
+    createCarPhysicsInput({
+      isAccelerating: true,
+    }),
+    1,
+  );
+
+  const state = useSimulationStore.getState();
+
+  expect(state.car).toBe(car);
+  expect(state.car.speed).toBe(0);
+  expect(state.telemetry.simulationTimeSeconds).toBe(0);
+});
+
+it("does not update car physics while idle", () => {
+  const road = createInitialRoad();
+  const car = {
+    ...createInitialCar(road),
+    speed: 0,
+    friction: 0,
+  };
+
+  useSimulationStore.setState({
+    status: "idle",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car,
+  });
+
+  useSimulationStore.getState().tickSimulation(
+    createCarPhysicsInput({
+      isAccelerating: true,
+    }),
+    1,
+  );
+
+  const state = useSimulationStore.getState();
+
+  expect(state.car).toBe(car);
+  expect(state.car.speed).toBe(0);
+  expect(state.telemetry.simulationTimeSeconds).toBe(0);
+});
+
+it("passes delta time in seconds into physics", () => {
+  const road = createInitialRoad();
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car: {
+      ...createInitialCar(road),
+      speed: 0,
+      friction: 0,
+      acceleration: 120,
+    },
+  });
+
+  useSimulationStore.getState().tickSimulation(
+    createCarPhysicsInput({
+      isAccelerating: true,
+    }),
+    0.5,
+  );
+
+  expect(useSimulationStore.getState().car.speed).toBe(60);
+});
+
+it("does not mutate the existing car object", () => {
+  const road = createInitialRoad();
+  const car = {
+    ...createInitialCar(road),
+    speed: 0,
+    friction: 0,
+  };
+  const snapshot = structuredClone(car);
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car,
+  });
+
+  useSimulationStore.getState().tickSimulation(
+    createCarPhysicsInput({
+      isAccelerating: true,
+    }),
+    1,
+  );
+
+  expect(car).toEqual(snapshot);
+  expect(useSimulationStore.getState().car).not.toBe(car);
+});
+
+it("ignores invalid delta time values", () => {
+  const road = createInitialRoad();
+  const car = createInitialCar(road);
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car,
+  });
+
+  useSimulationStore.getState().tickSimulation(NEUTRAL_CAR_PHYSICS_INPUT, Number.NaN);
+
+  expect(useSimulationStore.getState().car).toBe(car);
+  expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBe(0);
+});
