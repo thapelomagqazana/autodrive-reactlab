@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createGameLoop, type GameLoopController } from "../simulation/engine/gameLoop";
+import { useKeyboardControls } from "../hooks";
 import { useSimulationStatus, useSimulationStore } from "../store";
 
 /**
@@ -18,7 +19,14 @@ import { useSimulationStatus, useSimulationStore } from "../store";
  */
 export function SimulationLoopController() {
   const status = useSimulationStatus();
+  const keyboardInput = useKeyboardControls();
+
+  const inputRef = useRef(keyboardInput);
   const loopRef = useRef<GameLoopController | null>(null);
+
+  useEffect(() => {
+    inputRef.current = keyboardInput;
+  }, [keyboardInput]);
 
   useEffect(() => {
     if (!loopRef.current) {
@@ -36,11 +44,21 @@ export function SimulationLoopController() {
 
     loop.start({
       update: (tick) => {
-        useSimulationStore.getState().tickSimulation(tick.deltaTimeSeconds);
+        const state = useSimulationStore.getState();
+
+        if (state.status !== "running") {
+          return;
+        }
+
+        state.tickSimulation(inputRef.current, tick.deltaTimeSeconds);
       },
 
       render: () => {
         // Rendering is handled by SimulationCanvas reacting to store updates.
+      },
+
+      onFps: (fps) => {
+        useSimulationStore.getState().setFps(fps);
       },
     });
 
