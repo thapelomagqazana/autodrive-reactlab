@@ -97,6 +97,16 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
       };
     }),
 
+  /**
+   * Advances one active simulation frame.
+   *
+   * Rules:
+   * - Runs only while status is "running".
+   * - Uses delta time in seconds.
+   * - Delegates movement to updateCarPhysics().
+   * - Persists the returned CarState back into Zustand.
+   * - Never mutates the existing car object.
+   */
   tickSimulation: (input, deltaTimeSeconds) =>
     set((state) => {
       if (
@@ -106,12 +116,14 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         return state;
       }
 
+      const nextCar = updateCarPhysics(state.car, input, deltaTimeSeconds);
+
       return {
         telemetry: {
           ...state.telemetry,
           simulationTimeSeconds: state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
         },
-        car: updateCarPhysics(state.car, input, deltaTimeSeconds),
+        car: nextCar,
       };
     }),
 
