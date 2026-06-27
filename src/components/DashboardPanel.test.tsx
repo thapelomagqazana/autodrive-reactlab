@@ -10,6 +10,11 @@ describe("DashboardPanel", () => {
         simulationTimeSeconds={0}
         fps={60}
         vehicleSpeed={0}
+        vehicleAcceleration={120}
+        steeringAngle={0}
+        vehiclePositionX={400}
+        vehiclePositionY={600}
+        vehicleHeading={0}
       />,
     );
 
@@ -24,6 +29,11 @@ describe("DashboardPanel", () => {
         simulationTimeSeconds={61.5}
         fps={59.6}
         vehicleSpeed={0}
+        vehicleAcceleration={120}
+        steeringAngle={0}
+        vehiclePositionX={400}
+        vehiclePositionY={600}
+        vehicleHeading={0}
       />,
     );
 
@@ -38,6 +48,11 @@ describe("DashboardPanel", () => {
         simulationTimeSeconds={0}
         fps={0}
         vehicleSpeed={0}
+        vehicleAcceleration={120}
+        steeringAngle={0}
+        vehiclePositionX={400}
+        vehiclePositionY={600}
+        vehicleHeading={0}
         canvasDiagnostics={{
           width: 1280,
           height: 720,
@@ -56,7 +71,17 @@ describe("DashboardPanel", () => {
 
   it("renders vehicle telemetry placeholders", () => {
     render(
-      <DashboardPanel status="idle" simulationTimeSeconds={0} fps={0} vehicleSpeed={0} />,
+      <DashboardPanel
+        status="idle"
+        simulationTimeSeconds={0}
+        fps={0}
+        vehicleSpeed={0}
+        vehicleAcceleration={120}
+        steeringAngle={0}
+        vehiclePositionX={400}
+        vehiclePositionY={600}
+        vehicleHeading={0}
+      />,
     );
 
     expect(screen.getByLabelText("Vehicle Telemetry")).toBeInTheDocument();

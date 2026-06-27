@@ -12,6 +12,10 @@ import { formatElapsedTime } from "../utils/formatElapsedTime";
 import { formatFps } from "../utils/formatFps";
 import { TelemetryCard } from "./TelemetryCard";
 import { formatVehicleSpeed } from "./formatVehicleSpeed";
+import { formatVehicleAcceleration } from "./formatVehicleAcceleration";
+import { formatSteeringAngle } from "./formatSteeringAngle";
+import { formatVehiclePosition } from "./formatVehiclePosition";
+import { formatVehicleHeading } from "./formatVehicleHeading";
 import { DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS } from "./vehicleTelemetryPlaceholders";
 
 export interface DashboardPanelProps {
@@ -19,6 +23,11 @@ export interface DashboardPanelProps {
   simulationTimeSeconds: number;
   fps: number;
   vehicleSpeed: number;
+  vehicleAcceleration: number;
+  steeringAngle: number;
+  vehiclePositionX: number;
+  vehiclePositionY: number;
+  vehicleHeading: number;
   canvasDiagnostics?: CanvasDiagnostics;
 }
 
@@ -65,6 +74,11 @@ export function DashboardPanel({
   simulationTimeSeconds,
   fps,
   vehicleSpeed,
+  vehicleAcceleration,
+  steeringAngle,
+  vehiclePositionX,
+  vehiclePositionY,
+  vehicleHeading,
   canvasDiagnostics,
 }: DashboardPanelProps) {
   const statusPresentation = getStatusPresentation(status);
@@ -168,21 +182,20 @@ export function DashboardPanel({
 
             <TelemetryCard
               label="Acceleration"
-              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.acceleration}
-              isPlaceholder
+              value={`${formatVehicleAcceleration(vehicleAcceleration)} px/s²`}
             />
 
             <TelemetryCard
               label="Steering Angle"
-              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.steeringAngle}
-              isPlaceholder
+              value={formatSteeringAngle(steeringAngle)}
             />
 
             <TelemetryCard
-              label="Heading"
-              value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.heading}
-              isPlaceholder
+              label="Position"
+              value={formatVehiclePosition(vehiclePositionX, vehiclePositionY)}
             />
+
+            <TelemetryCard label="Heading" value={formatVehicleHeading(vehicleHeading)} />
 
             <TelemetryCard
               label="AI Decision"
