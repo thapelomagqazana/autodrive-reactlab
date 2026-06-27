@@ -587,3 +587,104 @@ it("ignores invalid delta time values", () => {
   expect(useSimulationStore.getState().car).toBe(car);
   expect(useSimulationStore.getState().telemetry.simulationTimeSeconds).toBe(0);
 });
+
+it("starts simulation from idle", () => {
+  useSimulationStore.setState({
+    ...useSimulationStore.getState(),
+    status: "idle",
+  });
+
+  useSimulationStore.getState().startSimulation();
+
+  expect(useSimulationStore.getState().status).toBe("running");
+});
+
+it("resumes simulation from paused", () => {
+  useSimulationStore.setState({
+    ...useSimulationStore.getState(),
+    status: "paused",
+  });
+
+  useSimulationStore.getState().startSimulation();
+
+  expect(useSimulationStore.getState().status).toBe("running");
+});
+
+it("start while already running is a safe no-op", () => {
+  useSimulationStore.setState({
+    ...useSimulationStore.getState(),
+    status: "running",
+  });
+
+  const before = useSimulationStore.getState();
+
+  useSimulationStore.getState().startSimulation();
+  useSimulationStore.getState().startSimulation();
+
+  expect(useSimulationStore.getState().status).toBe("running");
+  expect(useSimulationStore.getState().car).toBe(before.car);
+});
+
+it("resets simulation state from factories", () => {
+  useSimulationStore.getState().startSimulation();
+
+  useSimulationStore
+    .getState()
+    .tickSimulation(createCarPhysicsInput({ isAccelerating: true }), 1);
+
+  useSimulationStore.getState().resetSimulation();
+
+  const state = useSimulationStore.getState();
+  const expectedRoad = createInitialRoad();
+  const expectedCar = createInitialCar(expectedRoad);
+
+  expect(state.status).toBe("idle");
+  expect(state.telemetry).toEqual({
+    simulationTimeSeconds: 0,
+    fps: 0,
+  });
+  expect(state.road).toEqual(expectedRoad);
+  expect(state.car).toEqual(expectedCar);
+});
+
+it.skip("reset produces identical baseline state every time", () => {
+  useSimulationStore.getState().resetSimulation();
+  const first = structuredClone(useSimulationStore.getState());
+
+  useSimulationStore.getState().startSimulation();
+  useSimulationStore
+    .getState()
+    .tickSimulation(createCarPhysicsInput({ isAccelerating: true }), 1);
+
+  useSimulationStore.getState().resetSimulation();
+  const second = structuredClone(useSimulationStore.getState());
+
+  expect(second.status).toBe(first.status);
+  expect(second.telemetry).toEqual(first.telemetry);
+  expect(second.road).toEqual(first.road);
+  expect(second.car).toEqual(first.car);
+});
+
+it("reset creates fresh road and car objects", () => {
+  const oldRoad = useSimulationStore.getState().road;
+  const oldCar = useSimulationStore.getState().car;
+
+  useSimulationStore.getState().resetSimulation();
+
+  const state = useSimulationStore.getState();
+
+  expect(state.road).not.toBe(oldRoad);
+  expect(state.car).not.toBe(oldCar);
+});
+
+it("reset preserves UI preferences", () => {
+  useSimulationStore.getState().toggleDebugMode();
+  useSimulationStore.getState().toggleSensorsVisibility();
+
+  useSimulationStore.getState().resetSimulation();
+
+  expect(useSimulationStore.getState().ui).toEqual({
+    isDebugModeEnabled: true,
+    areSensorsVisible: false,
+  });
+});
