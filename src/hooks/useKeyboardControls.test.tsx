@@ -530,3 +530,115 @@ it("handles repeated right keydown safely", () => {
 
   expect(result.current.steeringInput).toBe(0);
 });
+
+it("clears only the released key", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowUp");
+    keyDown("ArrowLeft");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+  expect(result.current.steeringInput).toBe(-1);
+
+  act(() => {
+    keyUp("ArrowLeft");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+  expect(result.current.steeringInput).toBe(0);
+});
+
+it("keeps acceleration active until all acceleration keys are released", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("KeyW");
+    keyDown("ArrowUp");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+
+  act(() => {
+    keyUp("KeyW");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+
+  act(() => {
+    keyUp("ArrowUp");
+  });
+
+  expect(result.current.isAccelerating).toBe(false);
+});
+
+it("clears all active inputs on window blur", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("KeyW");
+    keyDown("ArrowDown");
+    keyDown("ArrowLeft");
+  });
+
+  act(() => {
+    window.dispatchEvent(new Event("blur"));
+  });
+
+  expect(result.current).toEqual({
+    isAccelerating: false,
+    isBrakeOrReversePressed: false,
+    steeringInput: 0,
+  });
+});
+
+it("prevents stuck steering after focus loss while key is held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowRight");
+  });
+
+  expect(result.current.steeringInput).toBe(1);
+
+  act(() => {
+    window.dispatchEvent(new Event("blur"));
+  });
+
+  expect(result.current.steeringInput).toBe(0);
+});
+
+it("removes keyboard and blur listeners on unmount", () => {
+  const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
+
+  const { unmount } = renderHook(() => useKeyboardControls());
+
+  unmount();
+
+  expect(removeEventListenerSpy).toHaveBeenCalledWith("keydown", expect.any(Function));
+  expect(removeEventListenerSpy).toHaveBeenCalledWith("keyup", expect.any(Function));
+  expect(removeEventListenerSpy).toHaveBeenCalledWith("blur", expect.any(Function));
+
+  removeEventListenerSpy.mockRestore();
+});
+
+it("does not keep movement stuck after unmount", () => {
+  const { result, unmount } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowUp");
+  });
+
+  expect(result.current.isAccelerating).toBe(true);
+
+  unmount();
+
+  act(() => {
+    keyUp("ArrowUp");
+  });
+
+  expect(() => {
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "ArrowUp" }));
+  }).not.toThrow();
+});
