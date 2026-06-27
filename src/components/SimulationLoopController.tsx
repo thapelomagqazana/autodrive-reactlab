@@ -24,6 +24,10 @@ export function SimulationLoopController() {
   const inputRef = useRef(keyboardInput);
   const loopRef = useRef<GameLoopController | null>(null);
 
+  /**
+   * Keep the latest input available to the animation callback without
+   * restarting the game loop on every keyboard state change.
+   */
   useEffect(() => {
     inputRef.current = keyboardInput;
   }, [keyboardInput]);

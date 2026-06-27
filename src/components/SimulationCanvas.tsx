@@ -110,7 +110,8 @@ export function SimulationCanvas({
             ref={canvasRef}
             aria-label={label}
             data-testid="simulation-canvas"
-            className="block h-full w-full"
+            tabIndex={0}
+            className="block h-full w-full outline-none focus:outline-none focus:ring-0"
           >
             Your browser does not support the HTML canvas element.
           </canvas>

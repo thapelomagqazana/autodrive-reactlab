@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { useSimulationStore } from "./simulationStore";
 import { createInitialRoad } from "../simulation/world";
 import { createInitialCar } from "../simulation/vehicle";
-import { NEUTRAL_CAR_PHYSICS_INPUT } from "../simulation/engine/physics";
+import {
+  createCarPhysicsInput,
+  NEUTRAL_CAR_PHYSICS_INPUT,
+} from "../simulation/engine/physics";
 
 function resetStore() {
   const road = createInitialRoad();
@@ -318,4 +321,70 @@ it("tickSimulation uses the latest store-backed car state", () => {
 
   expect(useSimulationStore.getState().car.speed).toBe(100);
   expect(useSimulationStore.getState().car.positionY).toBe(500);
+});
+
+it("passes input into physics during tickSimulation", () => {
+  const road = createInitialRoad();
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car: {
+      ...createInitialCar(road),
+      speed: 0,
+      friction: 0,
+    },
+  });
+
+  useSimulationStore.getState().tickSimulation(
+    createCarPhysicsInput({
+      isAccelerating: true,
+    }),
+    1,
+  );
+
+  expect(useSimulationStore.getState().car.speed).toBeGreaterThan(0);
+});
+
+it("neutral input stops acceleration on the next frame", () => {
+  const road = createInitialRoad();
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+    ui: {
+      isDebugModeEnabled: false,
+      areSensorsVisible: true,
+    },
+    road,
+    car: {
+      ...createInitialCar(road),
+      speed: 0,
+      friction: 0,
+    },
+  });
+
+  useSimulationStore.getState().tickSimulation(
+    createCarPhysicsInput({
+      isAccelerating: true,
+    }),
+    1,
+  );
+
+  const speedAfterAcceleration = useSimulationStore.getState().car.speed;
+
+  useSimulationStore.getState().tickSimulation(NEUTRAL_CAR_PHYSICS_INPUT, 1);
+
+  expect(useSimulationStore.getState().car.speed).toBe(speedAfterAcceleration);
 });
