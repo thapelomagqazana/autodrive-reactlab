@@ -5,6 +5,11 @@ import {
 } from "../simulation/engine/physics";
 
 export interface KeyboardControlState {
+  /**
+   * Physical keyboard codes currently held down.
+   *
+   * A Set allows multiple keys to map to the same action safely.
+   */
   pressedCodes: ReadonlySet<string>;
 }
 
@@ -118,18 +123,20 @@ export function useKeyboardControls(): CarPhysicsInput {
       }));
     }
 
-    function handleWindowBlur(): void {
+    function clearAllActiveKeys(): void {
       setKeyboardState(INITIAL_KEYBOARD_CONTROL_STATE);
     }
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
-    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("blur", clearAllActiveKeys);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
-      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("blur", clearAllActiveKeys);
+
+      clearAllActiveKeys();
     };
   }, []);
 
