@@ -33,7 +33,7 @@ describe("useKeyboardControls", () => {
 
     expect(result.current).toEqual({
       isAccelerating: false,
-      isBraking: false,
+      isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
   });
@@ -46,7 +46,7 @@ describe("useKeyboardControls", () => {
     });
 
     expect(result.current.isAccelerating).toBe(true);
-    expect(result.current.isBraking).toBe(false);
+    expect(result.current.isBrakeOrReversePressed).toBe(false);
   });
 
   it("maps ArrowDown to braking", () => {
@@ -56,7 +56,7 @@ describe("useKeyboardControls", () => {
       keyDown("ArrowDown");
     });
 
-    expect(result.current.isBraking).toBe(true);
+    expect(result.current.isBrakeOrReversePressed).toBe(true);
     expect(result.current.isAccelerating).toBe(false);
   });
 
@@ -106,7 +106,7 @@ describe("useKeyboardControls", () => {
 
     expect(result.current).toEqual({
       isAccelerating: false,
-      isBraking: false,
+      isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
   });
@@ -128,7 +128,7 @@ describe("useKeyboardControls", () => {
 
     expect(result.current).toEqual({
       isAccelerating: false,
-      isBraking: false,
+      isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
   });
@@ -153,7 +153,7 @@ describe("useKeyboardControls", () => {
 
     expect(result.current).toEqual({
       isAccelerating: false,
-      isBraking: false,
+      isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
   });
@@ -243,4 +243,90 @@ it("handles repeated acceleration keydown safely", () => {
   });
 
   expect(result.current.isAccelerating).toBe(false);
+});
+
+it("maps ArrowDown to brake or reverse intent while held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowDown");
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(true);
+
+  act(() => {
+    keyUp("ArrowDown");
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(false);
+});
+
+it("maps S to brake or reverse intent while held", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("KeyS");
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(true);
+
+  act(() => {
+    keyUp("KeyS");
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(false);
+});
+
+it("keeps brake or reverse intent active when one of multiple backward keys is released", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowDown");
+    keyDown("KeyS");
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(true);
+
+  act(() => {
+    keyUp("ArrowDown");
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(true);
+
+  act(() => {
+    keyUp("KeyS");
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(false);
+});
+
+it("handles repeated brake or reverse keydown safely", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("ArrowDown");
+    keyDown("ArrowDown", true);
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(true);
+
+  act(() => {
+    keyUp("ArrowDown");
+  });
+
+  expect(result.current.isBrakeOrReversePressed).toBe(false);
+});
+
+it("does not decide brake versus reverse from speed inside the keyboard hook", () => {
+  const { result } = renderHook(() => useKeyboardControls());
+
+  act(() => {
+    keyDown("KeyS");
+  });
+
+  expect(result.current).toMatchObject({
+    isBrakeOrReversePressed: true,
+  });
+
+  expect("speed" in result.current).toBe(false);
 });

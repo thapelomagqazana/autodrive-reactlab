@@ -666,7 +666,7 @@ describe("normalized steering input", () => {
   it("creates neutral physics input by default", () => {
     expect(createCarPhysicsInput()).toEqual({
       isAccelerating: false,
-      isBraking: false,
+      isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
   });
@@ -679,18 +679,18 @@ describe("normalized steering input", () => {
       }),
     ).toEqual({
       isAccelerating: true,
-      isBraking: false,
+      isBrakeOrReversePressed: false,
       steeringInput: 1,
     });
 
     expect(
       createCarPhysicsInput({
-        isBraking: true,
+        isBrakeOrReversePressed: true,
         steeringInput: -5,
       }),
     ).toEqual({
       isAccelerating: false,
-      isBraking: true,
+      isBrakeOrReversePressed: true,
       steeringInput: -1,
     });
   });
