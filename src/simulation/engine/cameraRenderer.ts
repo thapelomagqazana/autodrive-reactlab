@@ -1,17 +1,15 @@
 import type { CameraState } from "../camera";
 
 /**
- * Applies the camera transform to the canvas context.
+ * Applies camera offset to world rendering.
  *
- * Callers must wrap this in context.save() / context.restore().
- *
- * Rule:
- * - World objects keep world coordinates.
- * - Camera shifts rendering only.
+ * Convention:
+ * - screenX = worldX + offsetX
+ * - screenY = worldY + offsetY
  */
 export function applyCameraTransform(
   context: CanvasRenderingContext2D,
   camera: CameraState,
 ): void {
-  context.translate(-camera.offsetX, -camera.offsetY);
+  context.translate(camera.offsetX, camera.offsetY);
 }

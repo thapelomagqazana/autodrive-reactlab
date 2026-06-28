@@ -15,6 +15,7 @@ import {
   useSimulationRoad,
   useSimulationUiPreferences,
 } from "../store";
+import { resolveCameraForView } from "../simulation/camera";
 
 export interface SimulationCanvasProps {
   label?: string;
@@ -80,8 +81,13 @@ export function SimulationCanvas({
       });
     }
 
+    const renderCamera = resolveCameraForView(camera, car, {
+      width: dimensions.width,
+      height: dimensions.height,
+    });
+
     drawSimulationFrame(context, road, car, {
-      camera,
+      camera: renderCamera,
       road: {
         showCenterGuide: ui.isDebugModeEnabled,
       },
