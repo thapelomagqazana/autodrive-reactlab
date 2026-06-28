@@ -17,8 +17,10 @@
 import {
   usePauseSimulation,
   useResetSimulation,
+  useSimulationCameraMode,
   useSimulationStatus,
   useStartSimulation,
+  useToggleCameraMode,
 } from "../store";
 import { ControlsPanel } from "./ControlsPanel";
 
@@ -27,13 +29,17 @@ export function ControlsPanelContainer() {
   const startSimulation = useStartSimulation();
   const pauseSimulation = usePauseSimulation();
   const resetSimulation = useResetSimulation();
+  const cameraMode = useSimulationCameraMode();
+  const toggleCameraMode = useToggleCameraMode();
 
   return (
     <ControlsPanel
       status={status}
+      cameraMode={cameraMode}
       onStart={startSimulation}
       onPause={pauseSimulation}
       onReset={resetSimulation}
+      onToggleCameraMode={toggleCameraMode}
     />
   );
 }

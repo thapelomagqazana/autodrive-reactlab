@@ -159,3 +159,49 @@ describe("simulation frame renderer", () => {
     expect(() => assertCarAppearsOnRoad(road, car)).toThrow(RangeError);
   });
 });
+
+it("applies camera transform before drawing world objects", () => {
+  const context = createMockContext();
+  const road = createInitialRoad();
+  const car = createInitialCar(road);
+
+  drawSimulationFrame(context, road, car, {
+    camera: {
+      offsetX: 50,
+      offsetY: 120,
+      mode: "fixed",
+    },
+  });
+
+  expect(context.translate).toHaveBeenCalledWith(50, 120);
+
+  expect(vi.mocked(context.save).mock.invocationCallOrder[0]).toBeLessThan(
+    vi.mocked(context.translate).mock.invocationCallOrder[0],
+  );
+
+  expect(vi.mocked(context.translate).mock.invocationCallOrder[0]).toBeLessThan(
+    vi.mocked(drawRoad).mock.invocationCallOrder[0],
+  );
+
+  expect(vi.mocked(drawRoad).mock.invocationCallOrder[0]).toBeLessThan(
+    vi.mocked(drawCar).mock.invocationCallOrder[0],
+  );
+
+  expect(vi.mocked(drawCar).mock.invocationCallOrder[0]).toBeLessThan(
+    vi.mocked(context.restore).mock.invocationCallOrder[0],
+  );
+});
+
+it("restores canvas state when world rendering throws", () => {
+  const context = createMockContext();
+  const road = createInitialRoad();
+  const car = createInitialCar(road);
+
+  vi.mocked(drawRoad).mockImplementationOnce(() => {
+    throw new Error("road render failed");
+  });
+
+  expect(() => drawSimulationFrame(context, road, car)).toThrow("road render failed");
+
+  expect(context.restore).toHaveBeenCalledTimes(1);
+});

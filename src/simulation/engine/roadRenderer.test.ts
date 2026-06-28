@@ -153,6 +153,7 @@ describe("road surface rendering", () => {
     const context = createMockContext();
 
     drawRoadSurface(context, createInitialRoad(), {
+      ...DEFAULT_DRAW_ROAD_OPTIONS,
       surfaceColor: "rgb(1 2 3)",
     });
 
@@ -253,6 +254,7 @@ describe("road boundary rendering", () => {
     const context = createMockContext();
 
     drawRoadBoundaries(context, createInitialRoad(), {
+      ...DEFAULT_DRAW_ROAD_OPTIONS,
       boundaryColor: "white",
       boundaryLineWidth: 4,
       boundaryGlowColor: "cyan",
@@ -268,6 +270,7 @@ describe("road boundary rendering", () => {
     const context = createMockContext();
 
     drawRoadBoundaries(context, createInitialRoad(), {
+      ...DEFAULT_DRAW_ROAD_OPTIONS,
       boundaryColor: "white",
       boundaryLineWidth: 3,
       boundaryGlowColor: "rgb(96 165 250 / 0.35)",

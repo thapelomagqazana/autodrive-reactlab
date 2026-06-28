@@ -5,7 +5,7 @@ import { ControlsPanel } from "./ControlsPanel";
 
 describe("ControlsPanel", () => {
   it("renders lifecycle buttons", () => {
-    render(<ControlsPanel status="idle" />);
+    render(<ControlsPanel status="idle" cameraMode="fixed" />);
 
     expect(screen.getByRole("button", { name: "Start" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Pause" })).toBeVisible();
@@ -13,7 +13,7 @@ describe("ControlsPanel", () => {
   });
 
   it("uses idle button state rules", () => {
-    render(<ControlsPanel status="idle" />);
+    render(<ControlsPanel status="idle" cameraMode="fixed" />);
 
     expect(screen.getByRole("button", { name: "Start" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Pause" })).toBeDisabled();
@@ -21,7 +21,7 @@ describe("ControlsPanel", () => {
   });
 
   it("uses running button state rules", () => {
-    render(<ControlsPanel status="running" />);
+    render(<ControlsPanel status="running" cameraMode="fixed" />);
 
     expect(screen.getByRole("button", { name: "Start" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Pause" })).toBeEnabled();
@@ -29,7 +29,7 @@ describe("ControlsPanel", () => {
   });
 
   it("uses paused button state rules", () => {
-    render(<ControlsPanel status="paused" />);
+    render(<ControlsPanel status="paused" cameraMode="fixed" />);
 
     expect(screen.getByRole("button", { name: "Start" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Pause" })).toBeDisabled();
@@ -42,7 +42,14 @@ describe("ControlsPanel", () => {
     const onStart = vi.fn();
     const onReset = vi.fn();
 
-    render(<ControlsPanel status="idle" onStart={onStart} onReset={onReset} />);
+    render(
+      <ControlsPanel
+        status="idle"
+        onStart={onStart}
+        onReset={onReset}
+        cameraMode="fixed"
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Start" }));
     await user.click(screen.getByRole("button", { name: "Reset" }));
@@ -55,7 +62,7 @@ describe("ControlsPanel", () => {
     const user = userEvent.setup();
     const onStart = vi.fn();
 
-    render(<ControlsPanel status="running" onStart={onStart} />);
+    render(<ControlsPanel status="running" onStart={onStart} cameraMode="fixed" />);
 
     await user.click(screen.getByRole("button", { name: "Start" }));
 
@@ -66,7 +73,7 @@ describe("ControlsPanel", () => {
     const user = userEvent.setup();
     const onPause = vi.fn();
 
-    render(<ControlsPanel status="idle" onPause={onPause} />);
+    render(<ControlsPanel status="idle" onPause={onPause} cameraMode="fixed" />);
 
     await user.click(screen.getByRole("button", { name: "Pause" }));
 

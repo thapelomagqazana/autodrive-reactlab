@@ -5,16 +5,26 @@
  * Tesla FSD + NASA Mission Control Hybrid
  */
 
+import type { CameraMode } from "../simulation/camera";
 import type { SimulationStatus } from "../store";
 
 export interface ControlsPanelProps {
   status: SimulationStatus;
+  cameraMode: CameraMode;
   onStart?: () => void;
   onPause?: () => void;
   onReset?: () => void;
+  onToggleCameraMode?: () => void;
 }
 
-export function ControlsPanel({ status, onStart, onPause, onReset }: ControlsPanelProps) {
+export function ControlsPanel({
+  status,
+  cameraMode,
+  onStart,
+  onPause,
+  onReset,
+  onToggleCameraMode,
+}: ControlsPanelProps) {
   const isRunning = status === "running";
 
   return (
@@ -53,6 +63,20 @@ export function ControlsPanel({ status, onStart, onPause, onReset }: ControlsPan
             onClick={onReset}
           >
             Reset
+          </button>
+        </div>
+
+        <div className="mt-5 border-t border-sky-300/10 pt-4">
+          <p className="mission-accent text-xs font-black uppercase tracking-[0.25em]">
+            Camera Debug
+          </p>
+
+          <button
+            type="button"
+            className="mt-3 w-full rounded-lg border border-sky-300/30 bg-slate-950/40 px-4 py-2 font-black text-sky-200 transition hover:border-sky-300/60 hover:bg-sky-300/10 hover:text-sky-100"
+            onClick={onToggleCameraMode}
+          >
+            Camera: {cameraMode === "fixed" ? "Fixed" : "Follow"}
           </button>
         </div>
       </div>

@@ -8,7 +8,11 @@ import { create } from "zustand";
 import { createInitialRoad, type Road } from "../simulation/world";
 import { createInitialCar, type CarState } from "../simulation/vehicle";
 import { updateCarPhysics, type CarPhysicsInput } from "../simulation/engine/physics";
-import { createInitialCameraState, type CameraState } from "../simulation/camera";
+import {
+  createInitialCameraState,
+  type CameraMode,
+  type CameraState,
+} from "../simulation/camera";
 
 export type SimulationStatus = "idle" | "running" | "paused";
 
@@ -43,6 +47,9 @@ export interface SimulationActions {
   setFps: (value: number) => void;
 
   setCar: (car: CarState) => void;
+  setCamera: (camera: CameraState) => void;
+  setCameraMode: (mode: CameraMode) => void;
+  toggleCameraMode: () => void;
   updateCar: (updater: (car: CarState) => CarState) => void;
 
   toggleDebugMode: () => void;
@@ -181,9 +188,38 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
       car,
     })),
 
+  setCameraMode: (mode) =>
+    set((state) => ({
+      camera: {
+        ...state.camera,
+        mode,
+        offsetX: mode === "fixed" ? 0 : state.camera.offsetX,
+        offsetY: mode === "fixed" ? 0 : state.camera.offsetY,
+      },
+    })),
+
+  toggleCameraMode: () =>
+    set((state) => {
+      const nextMode = state.camera.mode === "fixed" ? "follow" : "fixed";
+
+      return {
+        camera: {
+          ...state.camera,
+          mode: nextMode,
+          offsetX: nextMode === "fixed" ? 0 : state.camera.offsetX,
+          offsetY: nextMode === "fixed" ? 0 : state.camera.offsetY,
+        },
+      };
+    }),
+
   updateCar: (updater) =>
     set((state) => ({
       car: updater(state.car),
+    })),
+
+  setCamera: (camera) =>
+    set(() => ({
+      camera,
     })),
 
   toggleDebugMode: () =>
@@ -267,3 +303,13 @@ export const useSimulationCarHeading = () =>
   useSimulationStore((state) => state.car.angle);
 
 export const useSimulationCamera = () => useSimulationStore((state) => state.camera);
+
+export const useSetCamera = () => useSimulationStore((state) => state.setCamera);
+
+export const useSimulationCameraMode = () =>
+  useSimulationStore((state) => state.camera.mode);
+
+export const useSetCameraMode = () => useSimulationStore((state) => state.setCameraMode);
+
+export const useToggleCameraMode = () =>
+  useSimulationStore((state) => state.toggleCameraMode);

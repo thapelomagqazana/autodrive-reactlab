@@ -1,7 +1,7 @@
 import type { CameraState } from "../camera";
 
 /**
- * Applies camera offset to world rendering.
+ * Applies the active camera transform to world-space rendering.
  *
  * Convention:
  * - screenX = worldX + offsetX

@@ -26,6 +26,9 @@ export {
   useSimulationCarPositionY,
   useSimulationCarHeading,
   useSimulationCamera,
+  useSetCamera,
+  useToggleCameraMode,
+  useSimulationCameraMode,
 } from "./simulationStore";
 
 export type {
