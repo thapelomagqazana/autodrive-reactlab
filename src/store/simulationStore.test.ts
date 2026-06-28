@@ -6,6 +6,7 @@ import {
   createCarPhysicsInput,
   NEUTRAL_CAR_PHYSICS_INPUT,
 } from "../simulation/engine/physics";
+import { createInitialCameraState } from "../simulation/camera";
 
 function resetStore() {
   const road = createInitialRoad();
@@ -687,4 +688,19 @@ it("reset preserves UI preferences", () => {
     isDebugModeEnabled: true,
     areSensorsVisible: false,
   });
+});
+
+it("initializes camera from factory", () => {
+  const state = useSimulationStore.getState();
+
+  expect(state.camera).toEqual(createInitialCameraState());
+});
+
+it("reset recreates camera state", () => {
+  const previousCamera = useSimulationStore.getState().camera;
+
+  useSimulationStore.getState().resetSimulation();
+
+  expect(useSimulationStore.getState().camera).toEqual(createInitialCameraState());
+  expect(useSimulationStore.getState().camera).not.toBe(previousCamera);
 });

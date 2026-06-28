@@ -25,6 +25,7 @@ export {
   useSimulationCarPositionX,
   useSimulationCarPositionY,
   useSimulationCarHeading,
+  useSimulationCamera,
 } from "./simulationStore";
 
 export type {

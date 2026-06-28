@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createInitialRoad } from "../world";
 import { createInitialCar } from "../vehicle";
 import {
@@ -19,10 +19,38 @@ import { drawRoad } from "./roadRenderer";
 import { drawCar } from "./carRenderer";
 
 function createMockContext(): CanvasRenderingContext2D {
-  return {} as CanvasRenderingContext2D;
+  return {
+    save: vi.fn(),
+    restore: vi.fn(),
+    translate: vi.fn(),
+  } as unknown as CanvasRenderingContext2D;
 }
 
 describe("simulation frame renderer", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("applies camera transform before drawing world objects", () => {
+    const context = createMockContext();
+    const road = createInitialRoad();
+    const car = createInitialCar(road);
+
+    drawSimulationFrame(context, road, car, {
+      camera: {
+        offsetX: 50,
+        offsetY: 120,
+        mode: "fixed",
+      },
+    });
+
+    expect(context.translate).toHaveBeenCalledWith(-50, -120);
+
+    expect(vi.mocked(context.translate).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(drawRoad).mock.invocationCallOrder[0],
+    );
+  });
+
   it("draws road before car", () => {
     const context = createMockContext();
     const road = createInitialRoad();
@@ -36,6 +64,51 @@ describe("simulation frame renderer", () => {
     expect(vi.mocked(drawRoad).mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(drawCar).mock.invocationCallOrder[0],
     );
+  });
+
+  it("wraps world rendering in save and restore", () => {
+    const context = createMockContext();
+    const road = createInitialRoad();
+    const car = createInitialCar(road);
+
+    drawSimulationFrame(context, road, car);
+
+    expect(context.save).toHaveBeenCalledTimes(1);
+    expect(context.restore).toHaveBeenCalledTimes(1);
+
+    expect(vi.mocked(context.save).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(context.restore).mock.invocationCallOrder[0],
+    );
+  });
+
+  it("applies camera transform before drawing world objects", () => {
+    const context = createMockContext();
+    const road = createInitialRoad();
+    const car = createInitialCar(road);
+
+    drawSimulationFrame(context, road, car, {
+      camera: {
+        offsetX: 50,
+        offsetY: 120,
+        mode: "fixed",
+      },
+    });
+
+    expect(context.translate).toHaveBeenCalledWith(-50, -120);
+
+    expect(vi.mocked(context.translate).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(drawRoad).mock.invocationCallOrder[0],
+    );
+  });
+
+  it("does not translate when no camera is provided", () => {
+    const context = createMockContext();
+    const road = createInitialRoad();
+    const car = createInitialCar(road);
+
+    drawSimulationFrame(context, road, car);
+
+    expect(context.translate).not.toHaveBeenCalled();
   });
 
   it("confirms default car starts inside road boundaries", () => {
