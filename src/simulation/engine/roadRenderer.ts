@@ -20,6 +20,16 @@ import {
   type RoadLine,
 } from "../world";
 
+type RoadBoundaryRenderOptions = Pick<
+  Required<DrawRoadOptions>,
+  | "boundaryColor"
+  | "boundaryLineWidth"
+  | "boundaryGlowColor"
+  | "showBoundaryGlow"
+  | "visibleTopY"
+  | "visibleBottomY"
+>;
+
 /**
  * Styling options for road rendering.
  *
@@ -59,6 +69,16 @@ export interface DrawRoadOptions {
 
   /** Debug center guide line width. */
   centerGuideLineWidth?: number;
+
+  /**
+   * Visible world-space top Y for camera-aware road rendering.
+   */
+  visibleTopY?: number;
+
+  /**
+   * Visible world-space bottom Y for camera-aware road rendering.
+   */
+  visibleBottomY?: number;
 }
 
 /**
@@ -76,7 +96,50 @@ export const DEFAULT_DRAW_ROAD_OPTIONS: Required<DrawRoadOptions> = {
   showCenterGuide: false,
   centerGuideColor: "rgb(56 189 248)",
   centerGuideLineWidth: 1,
+  visibleTopY: Number.NaN,
+  visibleBottomY: Number.NaN,
 };
+
+const ROAD_RENDER_PADDING_Y = 800;
+
+function resolveRoadRenderVerticalBounds(
+  road: Road,
+  options: Pick<DrawRoadOptions, "visibleTopY" | "visibleBottomY">,
+): { topY: number; bottomY: number } {
+  const visibleTopY = options.visibleTopY;
+  const visibleBottomY = options.visibleBottomY;
+
+  const topY =
+    typeof visibleTopY === "number" && Number.isFinite(visibleTopY)
+      ? visibleTopY - ROAD_RENDER_PADDING_Y
+      : road.topY;
+
+  const bottomY =
+    typeof visibleBottomY === "number" && Number.isFinite(visibleBottomY)
+      ? visibleBottomY + ROAD_RENDER_PADDING_Y
+      : road.bottomY;
+
+  if (bottomY <= topY) {
+    return {
+      topY: road.topY,
+      bottomY: road.bottomY,
+    };
+  }
+
+  return { topY, bottomY };
+}
+
+function stretchRoadLineToBounds(
+  line: RoadLine,
+  topY: number,
+  bottomY: number,
+): RoadLine {
+  return {
+    ...line,
+    startY: topY,
+    endY: bottomY,
+  };
+}
 
 export interface RoadSurfaceRect {
   x: number;
@@ -112,12 +175,13 @@ export function getRoadSurfaceRect(road: Road): RoadSurfaceRect {
 export function drawRoadBoundaries(
   context: CanvasRenderingContext2D,
   road: Road,
-  options: Pick<
-    Required<DrawRoadOptions>,
-    "boundaryColor" | "boundaryLineWidth" | "boundaryGlowColor" | "showBoundaryGlow"
-  > = DEFAULT_DRAW_ROAD_OPTIONS,
+  options: RoadBoundaryRenderOptions = DEFAULT_DRAW_ROAD_OPTIONS,
 ): void {
-  const boundaryLines = getRoadBoundaryLines(road);
+  const bounds = resolveRoadRenderVerticalBounds(road, options);
+
+  const boundaryLines = getRoadBoundaryLines(road).map((line) =>
+    stretchRoadLineToBounds(line, bounds.topY, bounds.bottomY),
+  );
 
   drawRoadLines(context, boundaryLines, {
     color: options.boundaryColor,
@@ -221,13 +285,17 @@ export function drawRoad(
 export function drawRoadSurface(
   context: CanvasRenderingContext2D,
   road: Road,
-  options: Pick<Required<DrawRoadOptions>, "surfaceColor"> = DEFAULT_DRAW_ROAD_OPTIONS,
+  options: Pick<
+    Required<DrawRoadOptions>,
+    "surfaceColor" | "visibleTopY" | "visibleBottomY"
+  > = DEFAULT_DRAW_ROAD_OPTIONS,
 ): void {
   const surface = getRoadSurfaceRect(road);
+  const bounds = resolveRoadRenderVerticalBounds(road, options);
 
   context.save();
   context.fillStyle = options.surfaceColor;
-  context.fillRect(surface.x, surface.y, surface.width, surface.height);
+  context.fillRect(surface.x, bounds.topY, surface.width, bounds.bottomY - bounds.topY);
   context.restore();
 }
 

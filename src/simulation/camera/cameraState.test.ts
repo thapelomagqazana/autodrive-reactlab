@@ -6,6 +6,8 @@ import {
   screenToWorldPosition,
   worldToScreenPosition,
   resolveCameraForView,
+  lerpNumber,
+  smoothCameraOffset,
 } from "./cameraState";
 
 describe("cameraState", () => {
@@ -172,5 +174,63 @@ describe("follow camera anchor", () => {
       offsetX: 50,
       offsetY: -144,
     });
+  });
+});
+
+it("linearly interpolates toward a target", () => {
+  expect(lerpNumber(0, 100, 0.12)).toBe(12);
+});
+
+it("smooths camera offset toward target", () => {
+  expect(
+    smoothCameraOffset({ offsetX: 0, offsetY: 0 }, { offsetX: 100, offsetY: -50 }, 0.12),
+  ).toEqual({
+    offsetX: 12,
+    offsetY: -6,
+  });
+});
+
+it("does not move when smoothing factor is zero", () => {
+  expect(
+    smoothCameraOffset({ offsetX: 10, offsetY: 20 }, { offsetX: 100, offsetY: 200 }, 0),
+  ).toEqual({
+    offsetX: 10,
+    offsetY: 20,
+  });
+});
+
+it("snaps to target when smoothing factor is one", () => {
+  expect(
+    smoothCameraOffset({ offsetX: 10, offsetY: 20 }, { offsetX: 100, offsetY: 200 }, 1),
+  ).toEqual({
+    offsetX: 100,
+    offsetY: 200,
+  });
+});
+
+it("rejects invalid smoothing factors", () => {
+  expect(() => lerpNumber(0, 100, -0.1)).toThrow(RangeError);
+  expect(() => lerpNumber(0, 100, 1.1)).toThrow(RangeError);
+  expect(() => lerpNumber(0, 100, Number.NaN)).toThrow(RangeError);
+});
+
+it("resolves follow camera smoothly instead of snapping", () => {
+  const camera = {
+    offsetX: 0,
+    offsetY: 0,
+    mode: "follow" as const,
+  };
+
+  const next = resolveCameraForView(
+    camera,
+    { positionX: 450, positionY: 720 },
+    { width: 1000, height: 800 },
+    0.12,
+  );
+
+  expect(next).toEqual({
+    mode: "follow",
+    offsetX: 6,
+    offsetY: -17.28,
   });
 });

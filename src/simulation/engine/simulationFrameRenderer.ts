@@ -30,6 +30,13 @@ import { applyCameraTransform } from "./cameraRenderer";
 export interface DrawSimulationFrameOptions {
   road?: DrawRoadOptions;
   car?: DrawCarOptions;
+
+  /**
+   * Camera used for world-space rendering.
+   *
+   * Road and car are both rendered under the same transform so their
+   * relationship remains visually correct.
+   */
   camera?: CameraState;
 }
 
@@ -40,11 +47,21 @@ export interface RoadCarCompositionResult {
 }
 
 /**
- * Draws the MVP simulation frame in deterministic visual order.
+ * Draws the simulation frame's world layer.
+ *
+ * Responsibilities:
+ * - Validate world composition.
+ * - Save canvas state before camera transform.
+ * - Apply camera transform once.
+ * - Draw all world objects under the same transform.
+ * - Restore canvas state so overlays/HUD are not affected.
  *
  * Render order:
- * 1. Road
- * 2. Car
+ * 1. save()
+ * 2. applyCameraTransform()
+ * 3. drawRoad()
+ * 4. drawCar()
+ * 5. restore()
  */
 export function drawSimulationFrame(
   context: CanvasRenderingContext2D,
@@ -56,18 +73,23 @@ export function drawSimulationFrame(
 
   context.save();
 
-  if (options.camera) {
-    applyCameraTransform(context, options.camera);
+  try {
+    if (options.camera) {
+      applyCameraTransform(context, options.camera);
+    }
+
+    drawRoad(context, road, options.road);
+    drawCar(context, car, options.car);
+  } finally {
+    context.restore();
   }
-
-  drawRoad(context, road, options.road);
-  drawCar(context, car, options.car);
-
-  context.restore();
 }
 
 /**
  * Checks whether the car appears in a valid road/lane position.
+ *
+ * This should be used for initial spawn validation, not for requiring the car
+ * to stay lane-centered during active driving.
  */
 export function evaluateRoadCarComposition(
   road: Road,
@@ -119,6 +141,11 @@ export function assertCarAppearsOnRoad(
   }
 }
 
+/**
+ * Runtime-safe render validation.
+ *
+ * Unlike initial spawn validation, this does not require lane-center alignment.
+ */
 export function assertCarIsRenderableOnRoad(road: Road, car: CarState): void {
   const leftEdgeX = getRoadLeftEdgeX(road);
   const rightEdgeX = getRoadRightEdgeX(road);

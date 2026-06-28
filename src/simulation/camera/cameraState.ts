@@ -225,15 +225,70 @@ export function resolveCameraForView(
   camera: CameraState,
   car: WorldPosition,
   viewport: CameraViewport,
+  smoothingFactor = DEFAULT_CAMERA_SMOOTHING_FACTOR,
 ): CameraState {
   assertValidCameraState(camera);
+  assertValidCameraSmoothingFactor(smoothingFactor);
 
   if (camera.mode === "fixed") {
     return camera;
   }
 
+  const targetOffset = calculateFollowCameraOffset(car, viewport);
+  const smoothedOffset = smoothCameraOffset(camera, targetOffset, smoothingFactor);
+
   return {
     ...camera,
-    ...calculateFollowCameraOffset(car, viewport),
+    ...smoothedOffset,
+  };
+}
+
+export const DEFAULT_CAMERA_SMOOTHING_FACTOR = 1;
+
+export function assertValidCameraSmoothingFactor(value: number): void {
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new RangeError("camera smoothing factor must be between 0 and 1.");
+  }
+}
+
+/**
+ * Linearly interpolates from current to target.
+ *
+ * smoothingFactor:
+ * - 0 means no movement
+ * - 1 means snap directly to target
+ * - 0.12 gives gentle MVP follow smoothing
+ */
+export function lerpNumber(
+  current: number,
+  target: number,
+  smoothingFactor: number,
+): number {
+  assertFiniteCameraNumber(current, "current");
+  assertFiniteCameraNumber(target, "target");
+  assertValidCameraSmoothingFactor(smoothingFactor);
+
+  return current + (target - current) * smoothingFactor;
+}
+
+/**
+ * Smooths camera offset toward a target offset.
+ *
+ * This is pure and deterministic. It does not mutate the current camera.
+ */
+export function smoothCameraOffset(
+  current: Pick<CameraState, "offsetX" | "offsetY">,
+  target: Pick<CameraState, "offsetX" | "offsetY">,
+  smoothingFactor = DEFAULT_CAMERA_SMOOTHING_FACTOR,
+): Pick<CameraState, "offsetX" | "offsetY"> {
+  assertFiniteCameraNumber(current.offsetX, "current.offsetX");
+  assertFiniteCameraNumber(current.offsetY, "current.offsetY");
+  assertFiniteCameraNumber(target.offsetX, "target.offsetX");
+  assertFiniteCameraNumber(target.offsetY, "target.offsetY");
+  assertValidCameraSmoothingFactor(smoothingFactor);
+
+  return {
+    offsetX: lerpNumber(current.offsetX, target.offsetX, smoothingFactor),
+    offsetY: lerpNumber(current.offsetY, target.offsetY, smoothingFactor),
   };
 }
