@@ -4,6 +4,7 @@ export {
   createInitialCameraState,
   screenToWorldPosition,
   worldToScreenPosition,
+  resolveCameraForView,
   type CameraMode,
   type CameraState,
   type ScreenPosition,

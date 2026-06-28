@@ -44,7 +44,7 @@ describe("simulation frame renderer", () => {
       },
     });
 
-    expect(context.translate).toHaveBeenCalledWith(-50, -120);
+    expect(context.translate).toHaveBeenCalledWith(50, 120);
 
     expect(vi.mocked(context.translate).mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(drawRoad).mock.invocationCallOrder[0],
@@ -94,7 +94,7 @@ describe("simulation frame renderer", () => {
       },
     });
 
-    expect(context.translate).toHaveBeenCalledWith(-50, -120);
+    expect(context.translate).toHaveBeenCalledWith(50, 120);
 
     expect(vi.mocked(context.translate).mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(drawRoad).mock.invocationCallOrder[0],
