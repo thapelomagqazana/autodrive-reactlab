@@ -24,10 +24,13 @@ import {
 import type { CarState } from "../vehicle";
 import { drawCar, type DrawCarOptions } from "./carRenderer";
 import { drawRoad, type DrawRoadOptions } from "./roadRenderer";
+import type { CameraState } from "../camera";
+import { applyCameraTransform } from "./cameraRenderer";
 
 export interface DrawSimulationFrameOptions {
   road?: DrawRoadOptions;
   car?: DrawCarOptions;
+  camera?: CameraState;
 }
 
 export interface RoadCarCompositionResult {
@@ -51,8 +54,16 @@ export function drawSimulationFrame(
 ): void {
   assertCarIsRenderableOnRoad(road, car);
 
+  context.save();
+
+  if (options.camera) {
+    applyCameraTransform(context, options.camera);
+  }
+
   drawRoad(context, road, options.road);
   drawCar(context, car, options.car);
+
+  context.restore();
 }
 
 /**
