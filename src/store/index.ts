@@ -19,6 +19,13 @@ export {
   useToggleSensorsVisibility,
   useSimulationCar,
   useSimulationRoad,
+  useSimulationCarSpeed,
+  useSimulationCarAcceleration,
+  useSimulationCarSteeringAngle,
+  useSimulationCarPositionX,
+  useSimulationCarPositionY,
+  useSimulationCarHeading,
+  useSimulationCamera,
 } from "./simulationStore";
 
 export type {

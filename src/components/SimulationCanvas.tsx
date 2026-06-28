@@ -10,10 +10,12 @@ import { beginFrame } from "../simulation/engine/frameRenderer";
 import { renderBackgroundGrid } from "../simulation/engine/gridRenderer";
 import { drawSimulationFrame } from "../simulation/engine/simulationFrameRenderer";
 import {
+  useSimulationCamera,
   useSimulationCar,
   useSimulationRoad,
   useSimulationUiPreferences,
 } from "../store";
+import { resolveCameraForView } from "../simulation/camera";
 
 export interface SimulationCanvasProps {
   label?: string;
@@ -46,6 +48,7 @@ export function SimulationCanvas({
 
   const road = useSimulationRoad();
   const car = useSimulationCar();
+  const camera = useSimulationCamera();
   const ui = useSimulationUiPreferences();
 
   const { canvasRef, context, dimensions, resizeCanvas, initializeContext } = useCanvas();
@@ -78,12 +81,18 @@ export function SimulationCanvas({
       });
     }
 
+    const renderCamera = resolveCameraForView(camera, car, {
+      width: dimensions.width,
+      height: dimensions.height,
+    });
+
     drawSimulationFrame(context, road, car, {
+      camera: renderCamera,
       road: {
         showCenterGuide: ui.isDebugModeEnabled,
       },
     });
-  }, [context, dimensions, isGridEnabled, road, car, ui.isDebugModeEnabled]);
+  }, [context, dimensions, isGridEnabled, road, car, camera, ui.isDebugModeEnabled]);
 
   return (
     <section className="mission-panel min-w-0 overflow-hidden p-4">

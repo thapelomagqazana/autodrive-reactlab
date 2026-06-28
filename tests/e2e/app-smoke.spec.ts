@@ -70,11 +70,23 @@ test.describe("AutoDrive ReactLab startup", () => {
     await expect(page.getByText("00:00:00.000")).toBeVisible();
     await expect(page.getByText("FPS", { exact: true })).toBeVisible();
 
-    await expect(page.getByRole("region", { name: "Vehicle Telemetry" })).toBeVisible();
+    const vehicleTelemetry = page.getByRole("region", {
+      name: "Vehicle Telemetry",
+    });
 
-    await expect(page.getByText("Vehicle Speed")).toBeVisible();
-    await expect(page.getByText("AI Decision")).toBeVisible();
-    await expect(page.getByText("Waiting for simulation")).toBeVisible();
+    await expect(vehicleTelemetry).toBeVisible();
+
+    await expect(vehicleTelemetry.getByText("Vehicle Speed")).toBeVisible();
+    await expect(vehicleTelemetry.getByText("0 px/s", { exact: true })).toBeVisible();
+
+    await expect(vehicleTelemetry.getByText("Acceleration")).toBeVisible();
+    await expect(vehicleTelemetry.getByText("120 px/s²", { exact: true })).toBeVisible();
+
+    await expect(vehicleTelemetry.getByText("Steering Angle")).toBeVisible();
+    await expect(vehicleTelemetry.getByText("0°", { exact: true })).toBeVisible();
+
+    await expect(vehicleTelemetry.getByText("AI Decision")).toBeVisible();
+    await expect(vehicleTelemetry.getByText("Waiting for simulation")).toBeVisible();
 
     await page.getByRole("button", { name: "Start" }).click();
     await expect(page.getByText("Running")).toBeVisible();

@@ -4,14 +4,38 @@ import { DashboardPanel } from "./DashboardPanel";
 
 describe("DashboardPanel", () => {
   it("renders lifecycle status", () => {
-    render(<DashboardPanel status="running" simulationTimeSeconds={0} fps={60} />);
+    render(
+      <DashboardPanel
+        status="running"
+        simulationTimeSeconds={0}
+        fps={60}
+        vehicleSpeed={0}
+        vehicleAcceleration={120}
+        steeringAngle={0}
+        vehiclePositionX={400}
+        vehiclePositionY={600}
+        vehicleHeading={0}
+      />,
+    );
 
     expect(screen.getByText("Running")).toBeInTheDocument();
     expect(screen.getByLabelText("Simulation status: Running")).toBeInTheDocument();
   });
 
   it("renders formatted elapsed time and FPS", () => {
-    render(<DashboardPanel status="idle" simulationTimeSeconds={61.5} fps={59.6} />);
+    render(
+      <DashboardPanel
+        status="idle"
+        simulationTimeSeconds={61.5}
+        fps={59.6}
+        vehicleSpeed={0}
+        vehicleAcceleration={120}
+        steeringAngle={0}
+        vehiclePositionX={400}
+        vehiclePositionY={600}
+        vehicleHeading={0}
+      />,
+    );
 
     expect(screen.getByText("00:01:01.500")).toBeInTheDocument();
     expect(screen.getByText("60")).toBeInTheDocument();
@@ -23,6 +47,12 @@ describe("DashboardPanel", () => {
         status="idle"
         simulationTimeSeconds={0}
         fps={0}
+        vehicleSpeed={0}
+        vehicleAcceleration={120}
+        steeringAngle={0}
+        vehiclePositionX={400}
+        vehiclePositionY={600}
+        vehicleHeading={0}
         canvasDiagnostics={{
           width: 1280,
           height: 720,
@@ -40,7 +70,19 @@ describe("DashboardPanel", () => {
   });
 
   it("renders vehicle telemetry placeholders", () => {
-    render(<DashboardPanel status="idle" simulationTimeSeconds={0} fps={0} />);
+    render(
+      <DashboardPanel
+        status="idle"
+        simulationTimeSeconds={0}
+        fps={0}
+        vehicleSpeed={0}
+        vehicleAcceleration={120}
+        steeringAngle={0}
+        vehiclePositionX={400}
+        vehiclePositionY={600}
+        vehicleHeading={0}
+      />,
+    );
 
     expect(screen.getByLabelText("Vehicle Telemetry")).toBeInTheDocument();
 

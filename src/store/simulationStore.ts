@@ -8,6 +8,7 @@ import { create } from "zustand";
 import { createInitialRoad, type Road } from "../simulation/world";
 import { createInitialCar, type CarState } from "../simulation/vehicle";
 import { updateCarPhysics, type CarPhysicsInput } from "../simulation/engine/physics";
+import { createInitialCameraState, type CameraState } from "../simulation/camera";
 
 export type SimulationStatus = "idle" | "running" | "paused";
 
@@ -28,6 +29,7 @@ export interface SimulationState {
 
   road: Road;
   car: CarState;
+  camera: CameraState;
 }
 
 export interface SimulationActions {
@@ -68,6 +70,7 @@ function createInitialState(): SimulationState {
     ui: { ...INITIAL_UI },
     road,
     car: createInitialCar(road),
+    camera: createInitialCameraState(),
   };
 }
 
@@ -94,6 +97,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         ui: state.ui,
         road,
         car: createInitialCar(road),
+        camera: createInitialCameraState(),
       };
     }),
 
@@ -244,3 +248,22 @@ export const useTickSimulation = () =>
 
 export const useToggleSensorsVisibility = () =>
   useSimulationStore((state) => state.toggleSensorsVisibility);
+
+export const useSimulationCarSpeed = () => useSimulationStore((state) => state.car.speed);
+
+export const useSimulationCarAcceleration = () =>
+  useSimulationStore((state) => state.car.acceleration);
+
+export const useSimulationCarSteeringAngle = () =>
+  useSimulationStore((state) => state.car.steeringAngle);
+
+export const useSimulationCarPositionX = () =>
+  useSimulationStore((state) => state.car.positionX);
+
+export const useSimulationCarPositionY = () =>
+  useSimulationStore((state) => state.car.positionY);
+
+export const useSimulationCarHeading = () =>
+  useSimulationStore((state) => state.car.angle);
+
+export const useSimulationCamera = () => useSimulationStore((state) => state.camera);
