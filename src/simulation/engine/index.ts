@@ -40,3 +40,11 @@ export {
   drawSimulationFrame,
   evaluateRoadCarComposition,
 } from "./simulationFrameRenderer";
+
+export {
+  evaluateCarRoadBoundary,
+  getCarLeftEdgeX,
+  getCarRightEdgeX,
+  isCarOffRoad,
+  type CarRoadBoundaryCheck,
+} from "./roadBoundary";
