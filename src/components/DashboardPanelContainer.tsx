@@ -14,6 +14,7 @@ import {
   useSimulationCarPositionX,
   useSimulationCarPositionY,
   useSimulationCarHeading,
+  useRoadDepartureWarning,
 } from "../store";
 import { DashboardPanel } from "./DashboardPanel";
 
@@ -27,6 +28,7 @@ export function DashboardPanelContainer() {
   const vehiclePositionX = useSimulationCarPositionX();
   const vehiclePositionY = useSimulationCarPositionY();
   const vehicleHeading = useSimulationCarHeading();
+  const roadDepartureWarning = useRoadDepartureWarning();
 
   return (
     <DashboardPanel
@@ -39,6 +41,7 @@ export function DashboardPanelContainer() {
       vehiclePositionX={vehiclePositionX}
       vehiclePositionY={vehiclePositionY}
       vehicleHeading={vehicleHeading}
+      roadDepartureWarning={roadDepartureWarning}
       canvasDiagnostics={{
         width: 1280,
         height: 720,
