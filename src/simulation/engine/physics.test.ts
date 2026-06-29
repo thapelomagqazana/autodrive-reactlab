@@ -12,6 +12,7 @@ import {
   resolveCarFriction,
   clampSpeed,
   clampSteeringInput,
+  clampSpeedForRoadState,
   createCarPhysicsInput,
   isValidRawSteeringInput,
   updateCarPhysics,
@@ -23,6 +24,7 @@ import {
   calculateSteeringSpeedFactor,
   updateHeadingFromSteering,
   returnSteeringAngleToCenter,
+  resolveEffectiveMaxSpeed,
 } from "./physics";
 
 describe("updateCarPhysics", () => {
@@ -666,6 +668,7 @@ describe("normalized steering input", () => {
   it("creates neutral physics input by default", () => {
     expect(createCarPhysicsInput()).toEqual({
       isAccelerating: false,
+      isOffRoad: false,
       isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
@@ -679,6 +682,7 @@ describe("normalized steering input", () => {
       }),
     ).toEqual({
       isAccelerating: true,
+      isOffRoad: false,
       isBrakeOrReversePressed: false,
       steeringInput: 1,
     });
@@ -690,6 +694,7 @@ describe("normalized steering input", () => {
       }),
     ).toEqual({
       isAccelerating: false,
+      isOffRoad: false,
       isBrakeOrReversePressed: true,
       steeringInput: -1,
     });
@@ -1194,4 +1199,41 @@ describe("low-speed turning behaviour", () => {
 
     expect(car).toEqual(snapshot);
   });
+});
+
+it("reduces effective max speed while off-road", () => {
+  expect(resolveEffectiveMaxSpeed(200, true)).toBe(70);
+});
+
+it("keeps full max speed while on-road", () => {
+  expect(resolveEffectiveMaxSpeed(200, false)).toBe(200);
+});
+
+it("clamps forward speed to off-road effective max speed", () => {
+  expect(clampSpeedForRoadState(150, 200, 80, true)).toBe(70);
+});
+
+it("rejects invalid off-road multiplier", () => {
+  expect(() => resolveEffectiveMaxSpeed(200, true, -0.1)).toThrow(RangeError);
+  expect(() => resolveEffectiveMaxSpeed(200, true, 1.1)).toThrow(RangeError);
+});
+
+it("applies off-road speed cap during physics update", () => {
+  const road = createInitialRoad();
+
+  const car = {
+    ...createInitialCar(road),
+    speed: 180,
+    maxSpeed: 200,
+  };
+
+  const nextCar = updateCarPhysics(
+    car,
+    createCarPhysicsInput({
+      isOffRoad: true,
+    }),
+    0,
+  );
+
+  expect(nextCar.speed).toBe(70);
 });

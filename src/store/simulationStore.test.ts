@@ -751,3 +751,25 @@ it("reset clears road departure warning", () => {
 
   expect(useSimulationStore.getState().roadDepartureWarning).toBe(false);
 });
+
+it("passes off-road state into physics and reduces speed", () => {
+  const road = createInitialRoad();
+  const car = {
+    ...createInitialCar(road),
+    positionX: 9999,
+    speed: 180,
+    maxSpeed: 200,
+  };
+
+  useSimulationStore.setState({
+    status: "running",
+    road,
+    car,
+    roadDepartureWarning: false,
+  });
+
+  useSimulationStore.getState().tickSimulation(createCarPhysicsInput({}), 0);
+
+  expect(useSimulationStore.getState().roadDepartureWarning).toBe(true);
+  expect(useSimulationStore.getState().car.speed).toBe(70);
+});
