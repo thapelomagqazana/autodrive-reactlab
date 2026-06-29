@@ -16,6 +16,7 @@ import { formatVehicleAcceleration } from "./formatVehicleAcceleration";
 import { formatSteeringAngle } from "./formatSteeringAngle";
 import { formatVehiclePosition } from "./formatVehiclePosition";
 import { formatVehicleHeading } from "./formatVehicleHeading";
+import { formatRoadDepartureWarning } from "./formatRoadDepartureWarning";
 import { DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS } from "./vehicleTelemetryPlaceholders";
 
 export interface DashboardPanelProps {
@@ -29,6 +30,7 @@ export interface DashboardPanelProps {
   vehiclePositionY: number;
   vehicleHeading: number;
   canvasDiagnostics?: CanvasDiagnostics;
+  roadDepartureWarning: boolean;
 }
 
 function getStatusPresentation(status: SimulationStatus) {
@@ -80,6 +82,7 @@ export function DashboardPanel({
   vehiclePositionY,
   vehicleHeading,
   canvasDiagnostics,
+  roadDepartureWarning,
 }: DashboardPanelProps) {
   const statusPresentation = getStatusPresentation(status);
 
@@ -196,6 +199,11 @@ export function DashboardPanel({
             />
 
             <TelemetryCard label="Heading" value={formatVehicleHeading(vehicleHeading)} />
+
+            <TelemetryCard
+              label="Road Status"
+              value={formatRoadDepartureWarning(roadDepartureWarning)}
+            />
 
             <TelemetryCard
               label="AI Decision"

@@ -704,3 +704,50 @@ it("reset recreates camera state", () => {
   expect(useSimulationStore.getState().camera).toEqual(createInitialCameraState());
   expect(useSimulationStore.getState().camera).not.toBe(previousCamera);
 });
+
+it("starts with no road departure warning", () => {
+  expect(useSimulationStore.getState().roadDepartureWarning).toBe(false);
+});
+
+it("sets road departure warning when car leaves road", () => {
+  const road = createInitialRoad();
+  const car = {
+    ...createInitialCar(road),
+    positionX: 9999,
+  };
+
+  useSimulationStore.setState({
+    status: "running",
+    road,
+    car,
+    roadDepartureWarning: false,
+  });
+
+  useSimulationStore.getState().tickSimulation(createCarPhysicsInput({}), 0);
+
+  expect(useSimulationStore.getState().roadDepartureWarning).toBe(true);
+});
+
+it("clears road departure warning when car returns to road", () => {
+  const road = createInitialRoad();
+  const car = createInitialCar(road);
+
+  useSimulationStore.setState({
+    status: "running",
+    road,
+    car,
+    roadDepartureWarning: true,
+  });
+
+  useSimulationStore.getState().tickSimulation(createCarPhysicsInput({}), 0);
+
+  expect(useSimulationStore.getState().roadDepartureWarning).toBe(false);
+});
+
+it("reset clears road departure warning", () => {
+  useSimulationStore.getState().setRoadDepartureWarning(true);
+
+  useSimulationStore.getState().resetSimulation();
+
+  expect(useSimulationStore.getState().roadDepartureWarning).toBe(false);
+});

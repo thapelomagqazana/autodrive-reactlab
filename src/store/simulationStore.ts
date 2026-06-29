@@ -8,6 +8,7 @@ import { create } from "zustand";
 import { createInitialRoad, type Road } from "../simulation/world";
 import { createInitialCar, type CarState } from "../simulation/vehicle";
 import { updateCarPhysics, type CarPhysicsInput } from "../simulation/engine/physics";
+import { isCarOffRoad } from "../simulation/engine/roadBoundary";
 import {
   createInitialCameraState,
   type CameraMode,
@@ -34,6 +35,7 @@ export interface SimulationState {
   road: Road;
   car: CarState;
   camera: CameraState;
+  roadDepartureWarning: boolean;
 }
 
 export interface SimulationActions {
@@ -54,6 +56,7 @@ export interface SimulationActions {
 
   toggleDebugMode: () => void;
   toggleSensorsVisibility: () => void;
+  setRoadDepartureWarning: (value: boolean) => void;
 }
 
 export type SimulationStore = SimulationState & SimulationActions;
@@ -78,6 +81,7 @@ function createInitialState(): SimulationState {
     road,
     car: createInitialCar(road),
     camera: createInitialCameraState(),
+    roadDepartureWarning: false,
   };
 }
 
@@ -105,6 +109,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         road,
         car: createInitialCar(road),
         camera: createInitialCameraState(),
+        roadDepartureWarning: false,
       };
     }),
 
@@ -128,6 +133,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
       }
 
       const nextCar = updateCarPhysics(state.car, input, deltaTimeSeconds);
+      const roadDepartureWarning = isCarOffRoad(nextCar, state.road);
 
       return {
         telemetry: {
@@ -135,6 +141,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
           simulationTimeSeconds: state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
         },
         car: nextCar,
+        roadDepartureWarning,
       };
     }),
 
@@ -237,6 +244,11 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         areSensorsVisible: !state.ui.areSensorsVisible,
       },
     })),
+
+  setRoadDepartureWarning: (value) =>
+    set(() => ({
+      roadDepartureWarning: value,
+    })),
 }));
 
 export const useSimulationStatus = () => useSimulationStore((state) => state.status);
@@ -313,3 +325,9 @@ export const useSetCameraMode = () => useSimulationStore((state) => state.setCam
 
 export const useToggleCameraMode = () =>
   useSimulationStore((state) => state.toggleCameraMode);
+
+export const useRoadDepartureWarning = () =>
+  useSimulationStore((state) => state.roadDepartureWarning);
+
+export const useSetRoadDepartureWarning = () =>
+  useSimulationStore((state) => state.setRoadDepartureWarning);

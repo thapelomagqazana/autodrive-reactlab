@@ -29,6 +29,8 @@ export {
   useSetCamera,
   useToggleCameraMode,
   useSimulationCameraMode,
+  useRoadDepartureWarning,
+  useSetRoadDepartureWarning,
 } from "./simulationStore";
 
 export type {

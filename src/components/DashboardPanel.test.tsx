@@ -15,6 +15,7 @@ describe("DashboardPanel", () => {
         vehiclePositionX={400}
         vehiclePositionY={600}
         vehicleHeading={0}
+        roadDepartureWarning={false}
       />,
     );
 
@@ -34,6 +35,7 @@ describe("DashboardPanel", () => {
         vehiclePositionX={400}
         vehiclePositionY={600}
         vehicleHeading={0}
+        roadDepartureWarning={false}
       />,
     );
 
@@ -53,6 +55,7 @@ describe("DashboardPanel", () => {
         vehiclePositionX={400}
         vehiclePositionY={600}
         vehicleHeading={0}
+        roadDepartureWarning={false}
         canvasDiagnostics={{
           width: 1280,
           height: 720,
@@ -81,6 +84,7 @@ describe("DashboardPanel", () => {
         vehiclePositionX={400}
         vehiclePositionY={600}
         vehicleHeading={0}
+        roadDepartureWarning={false}
       />,
     );
 
