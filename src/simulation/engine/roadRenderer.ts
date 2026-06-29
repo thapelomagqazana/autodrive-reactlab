@@ -101,6 +101,13 @@ export const DEFAULT_DRAW_ROAD_OPTIONS: Required<DrawRoadOptions> = {
 };
 
 const ROAD_RENDER_PADDING_Y = 800;
+const LANE_MARKING_LENGTH = 80;
+const LANE_MARKING_GAP = 80;
+const LANE_MARKING_PERIOD = LANE_MARKING_LENGTH + LANE_MARKING_GAP;
+
+function getProceduralMarkingStartY(visibleTopY: number): number {
+  return Math.floor(visibleTopY / LANE_MARKING_PERIOD) * LANE_MARKING_PERIOD;
+}
 
 function resolveRoadRenderVerticalBounds(
   road: Road,
@@ -206,20 +213,26 @@ export function drawRoadCenterGuide(
   road: Road,
   options: Pick<
     Required<DrawRoadOptions>,
-    "showCenterGuide" | "centerGuideColor" | "centerGuideLineWidth"
+    | "showCenterGuide"
+    | "centerGuideColor"
+    | "centerGuideLineWidth"
+    | "visibleTopY"
+    | "visibleBottomY"
   > = DEFAULT_DRAW_ROAD_OPTIONS,
 ): void {
   if (!options.showCenterGuide) {
     return;
   }
 
+  const bounds = resolveRoadRenderVerticalBounds(road, options);
+
   drawRoadLine(
     context,
     {
       startX: road.centerX,
-      startY: road.topY,
+      startY: bounds.topY,
       endX: road.centerX,
-      endY: road.bottomY,
+      endY: bounds.bottomY,
       kind: "divider",
     },
     {
@@ -241,16 +254,37 @@ export function drawLaneDividers(
   road: Road,
   options: Pick<
     Required<DrawRoadOptions>,
-    "dividerColor" | "dividerLineWidth" | "dividerDash"
+    "dividerColor" | "dividerLineWidth" | "dividerDash" | "visibleTopY" | "visibleBottomY"
   > = DEFAULT_DRAW_ROAD_OPTIONS,
 ): void {
+  const bounds = resolveRoadRenderVerticalBounds(road, options);
   const dividerLines = getLaneDividerLines(road);
 
-  drawRoadLines(context, dividerLines, {
-    color: options.dividerColor,
-    lineWidth: options.dividerLineWidth,
-    dash: options.dividerDash,
-  });
+  context.save();
+
+  context.strokeStyle = options.dividerColor;
+  context.lineWidth = options.dividerLineWidth;
+  context.setLineDash([]);
+
+  const firstY = getProceduralMarkingStartY(bounds.topY);
+
+  for (const divider of dividerLines) {
+    for (
+      let markerY = firstY;
+      markerY <= bounds.bottomY;
+      markerY += LANE_MARKING_PERIOD
+    ) {
+      context.beginPath();
+      context.moveTo(divider.startX, markerY);
+      context.lineTo(
+        divider.endX,
+        Math.min(markerY + LANE_MARKING_LENGTH, bounds.bottomY),
+      );
+      context.stroke();
+    }
+  }
+
+  context.restore();
 }
 
 /**

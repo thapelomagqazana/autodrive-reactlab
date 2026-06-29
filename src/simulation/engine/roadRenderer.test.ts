@@ -37,25 +37,28 @@ describe("drawRoad", () => {
     expect(context.fillRect).toHaveBeenCalledWith(220, -2000, 360, 2900);
   });
 
-  it("draws road boundaries and lane dividers", () => {
+  it("draws the road surface, boundaries, and procedural lane divider segments", () => {
     const context = createMockContext();
 
     drawRoad(context, createInitialRoad());
 
     expect(context.fillRect).toHaveBeenCalledOnce();
-    expect(context.beginPath).toHaveBeenCalledTimes(4);
-    expect(context.stroke).toHaveBeenCalledTimes(4);
+
+    // 2 boundaries + many procedural lane marker segments
+    expect(context.beginPath).toHaveBeenCalledTimes(40);
+    expect(context.stroke).toHaveBeenCalledTimes(40);
   });
 
-  it("draws boundaries before dividers", () => {
+  it("draws boundaries before procedural divider segments", () => {
     const context = createMockContext();
 
     drawRoad(context, createInitialRoad());
 
     expect(context.moveTo).toHaveBeenNthCalledWith(1, 220, -2000);
     expect(context.moveTo).toHaveBeenNthCalledWith(2, 580, -2000);
-    expect(context.moveTo).toHaveBeenNthCalledWith(3, 340, -2000);
-    expect(context.moveTo).toHaveBeenNthCalledWith(4, 460, -2000);
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(3, 340, -2080);
+    expect(context.moveTo).toHaveBeenNthCalledWith(4, 340, -1920);
   });
 
   it("restores canvas state after drawing", () => {
@@ -88,7 +91,9 @@ describe("drawRoad", () => {
     });
 
     expect(context.fillStyle).toBe("black");
-    expect(context.setLineDash).toHaveBeenCalledWith([4, 2]);
+
+    // Procedural dividers draw physical segments, not canvas dash patterns.
+    expect(context.setLineDash).toHaveBeenCalledWith([]);
   });
 
   it("can draw the optional center guide", () => {
@@ -98,7 +103,7 @@ describe("drawRoad", () => {
       showCenterGuide: true,
     });
 
-    expect(context.stroke).toHaveBeenCalledTimes(5);
+    expect(context.stroke).toHaveBeenCalledTimes(41);
     expect(context.moveTo).toHaveBeenLastCalledWith(400, -2000);
     expect(context.lineTo).toHaveBeenLastCalledWith(400, 900);
   });
@@ -300,15 +305,16 @@ describe("road boundary rendering", () => {
     expect(road).toEqual(snapshot);
   });
 
-  it("draws boundaries before divider lines inside drawRoad", () => {
+  it("draws boundaries before procedural divider segments", () => {
     const context = createMockContext();
 
     drawRoad(context, createInitialRoad());
 
     expect(context.moveTo).toHaveBeenNthCalledWith(1, 220, -2000);
     expect(context.moveTo).toHaveBeenNthCalledWith(2, 580, -2000);
-    expect(context.moveTo).toHaveBeenNthCalledWith(3, 340, -2000);
-    expect(context.moveTo).toHaveBeenNthCalledWith(4, 460, -2000);
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(3, 340, -2080);
+    expect(context.moveTo).toHaveBeenNthCalledWith(4, 340, -1920);
   });
 
   it("rejects invalid road geometry before drawing boundaries", () => {
@@ -331,15 +337,19 @@ describe("road boundary rendering", () => {
 });
 
 describe("lane divider rendering", () => {
-  it("draws two dashed divider lines for the default three-lane road", () => {
+  it("draws procedural divider segments for the default three-lane road", () => {
     const context = createMockContext();
 
     drawLaneDividers(context, createInitialRoad(), DEFAULT_DRAW_ROAD_OPTIONS);
 
-    expect(context.beginPath).toHaveBeenCalledTimes(2);
-    expect(context.stroke).toHaveBeenCalledTimes(2);
-    expect(context.moveTo).toHaveBeenNthCalledWith(1, 340, -2000);
-    expect(context.moveTo).toHaveBeenNthCalledWith(2, 460, -2000);
+    expect(context.beginPath).toHaveBeenCalledTimes(38);
+    expect(context.stroke).toHaveBeenCalledTimes(38);
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(1, 340, -2080);
+    expect(context.moveTo).toHaveBeenNthCalledWith(19, 340, 800);
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(20, 460, -2080);
+    expect(context.moveTo).toHaveBeenNthCalledWith(38, 460, 800);
   });
 
   it("draws no divider lines for a one-lane road", () => {
@@ -361,18 +371,20 @@ describe("lane divider rendering", () => {
     expect(context.stroke).not.toHaveBeenCalled();
   });
 
-  it("uses dashed divider styling", () => {
+  it("uses procedural divider styling", () => {
     const context = createMockContext();
 
     drawLaneDividers(context, createInitialRoad(), {
       dividerColor: "rgb(148 163 184)",
       dividerLineWidth: 2,
       dividerDash: [18, 18],
+      visibleTopY: 0,
+      visibleBottomY: 600,
     });
 
     expect(context.strokeStyle).toBe("rgb(148 163 184)");
     expect(context.lineWidth).toBe(2);
-    expect(context.setLineDash).toHaveBeenCalledWith([18, 18]);
+    expect(context.setLineDash).toHaveBeenCalledWith([]);
   });
 
   it("resets line dash after drawing divider lines", () => {
@@ -390,11 +402,14 @@ describe("lane divider rendering", () => {
 
     expect(context.moveTo).toHaveBeenNthCalledWith(1, 220, -2000);
     expect(context.moveTo).toHaveBeenNthCalledWith(2, 580, -2000);
-    expect(context.moveTo).toHaveBeenNthCalledWith(3, 340, -2000);
-    expect(context.moveTo).toHaveBeenNthCalledWith(4, 460, -2000);
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(3, 340, -2080);
+    expect(context.moveTo).toHaveBeenNthCalledWith(20, 340, 640);
+
+    expect(context.moveTo).toHaveBeenNthCalledWith(21, 340, 800);
+    expect(context.moveTo).toHaveBeenNthCalledWith(22, 460, -2080);
 
     expect(context.setLineDash).toHaveBeenCalledWith([]);
-    expect(context.setLineDash).toHaveBeenCalledWith([18, 18]);
   });
 
   it("does not mutate the road model", () => {
@@ -485,7 +500,7 @@ describe("road center guide rendering", () => {
       showCenterGuide: true,
     });
 
-    expect(context.stroke).toHaveBeenCalledTimes(5);
+    expect(context.stroke).toHaveBeenCalledTimes(41);
     expect(context.moveTo).toHaveBeenLastCalledWith(400, -2000);
     expect(context.lineTo).toHaveBeenLastCalledWith(400, 900);
   });
@@ -495,6 +510,6 @@ describe("road center guide rendering", () => {
 
     drawRoad(context, createInitialRoad());
 
-    expect(context.stroke).toHaveBeenCalledTimes(4);
+    expect(context.stroke).toHaveBeenCalledTimes(40);
   });
 });
