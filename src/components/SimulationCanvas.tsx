@@ -86,10 +86,15 @@ export function SimulationCanvas({
       height: dimensions.height,
     });
 
+    const visibleTopY = -renderCamera.offsetY;
+    const visibleBottomY = visibleTopY + dimensions.height;
+
     drawSimulationFrame(context, road, car, {
       camera: renderCamera,
       road: {
         showCenterGuide: ui.isDebugModeEnabled,
+        visibleTopY,
+        visibleBottomY,
       },
     });
   }, [context, dimensions, isGridEnabled, road, car, camera, ui.isDebugModeEnabled]);
