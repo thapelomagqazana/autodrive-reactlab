@@ -33,6 +33,7 @@ describe("useKeyboardControls", () => {
 
     expect(result.current).toEqual({
       isAccelerating: false,
+      isOffRoad: false,
       isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
@@ -106,6 +107,7 @@ describe("useKeyboardControls", () => {
 
     expect(result.current).toEqual({
       isAccelerating: false,
+      isOffRoad: false,
       isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
@@ -128,6 +130,7 @@ describe("useKeyboardControls", () => {
 
     expect(result.current).toEqual({
       isAccelerating: false,
+      isOffRoad: false,
       isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
@@ -153,6 +156,7 @@ describe("useKeyboardControls", () => {
 
     expect(result.current).toEqual({
       isAccelerating: false,
+      isOffRoad: false,
       isBrakeOrReversePressed: false,
       steeringInput: 0,
     });
@@ -588,6 +592,7 @@ it("clears all active inputs on window blur", () => {
 
   expect(result.current).toEqual({
     isAccelerating: false,
+    isOffRoad: false,
     isBrakeOrReversePressed: false,
     steeringInput: 0,
   });

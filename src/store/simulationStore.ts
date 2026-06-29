@@ -132,7 +132,17 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         return state;
       }
 
-      const nextCar = updateCarPhysics(state.car, input, deltaTimeSeconds);
+      const wasOffRoad = isCarOffRoad(state.car, state.road);
+
+      const nextCar = updateCarPhysics(
+        state.car,
+        {
+          ...input,
+          isOffRoad: wasOffRoad,
+        },
+        deltaTimeSeconds,
+      );
+
       const roadDepartureWarning = isCarOffRoad(nextCar, state.road);
 
       return {

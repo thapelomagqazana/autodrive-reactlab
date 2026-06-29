@@ -14,6 +14,8 @@
 
 import { clampSteeringAngle, steeringInputToAngle, type CarState } from "../vehicle";
 
+export const DEFAULT_OFF_ROAD_SPEED_MULTIPLIER = 0.35;
+
 export interface CarPhysicsInput {
   isAccelerating: boolean;
   /**
@@ -34,12 +36,15 @@ export interface CarPhysicsInput {
    * converts it into CarState.steeringAngle.
    */
   steeringInput: number;
+
+  isOffRoad: boolean;
 }
 
 export const NEUTRAL_CAR_PHYSICS_INPUT: Readonly<CarPhysicsInput> = Object.freeze({
   isAccelerating: false,
   isBrakeOrReversePressed: false,
   steeringInput: 0,
+  isOffRoad: false,
 });
 
 /**
@@ -77,6 +82,7 @@ export function createCarPhysicsInput(
     isAccelerating: input.isAccelerating ?? false,
     isBrakeOrReversePressed: input.isBrakeOrReversePressed ?? false,
     steeringInput: clampSteeringInput(input.steeringInput ?? 0),
+    isOffRoad: input.isOffRoad ?? false,
   };
 }
 
@@ -464,7 +470,12 @@ export function updateCarPhysics(
     speed = applyFrictionToSpeed(speed, car.friction, deltaTimeSeconds);
   }
 
-  speed = clampSpeed(speed, car.maxSpeed, car.maxReverseSpeed);
+  speed = clampSpeedForRoadState(
+    speed,
+    car.maxSpeed,
+    car.maxReverseSpeed,
+    normalizedInput.isOffRoad,
+  );
 
   const effectiveSteeringInput = resolveEffectiveSteeringInput(
     speed,
@@ -508,4 +519,48 @@ export function updateCarPhysics(
     steeringAngle,
     angle,
   };
+}
+
+/**
+ * Returns true when an off-road speed multiplier is safe to use.
+ */
+export function isValidOffRoadSpeedMultiplier(value: number): boolean {
+  return Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
+/**
+ * Calculates the maximum allowed forward speed for current road state.
+ *
+ * Off-road mode reduces max speed but does not stop the car instantly.
+ */
+export function resolveEffectiveMaxSpeed(
+  maxSpeed: number,
+  isOffRoad: boolean,
+  offRoadSpeedMultiplier = DEFAULT_OFF_ROAD_SPEED_MULTIPLIER,
+): number {
+  if (!Number.isFinite(maxSpeed) || maxSpeed <= 0) {
+    throw new RangeError("maxSpeed must be a finite positive value.");
+  }
+
+  if (!isValidOffRoadSpeedMultiplier(offRoadSpeedMultiplier)) {
+    throw new RangeError("offRoadSpeedMultiplier must be between 0 and 1.");
+  }
+
+  return isOffRoad ? maxSpeed * offRoadSpeedMultiplier : maxSpeed;
+}
+
+/**
+ * Clamps speed using the effective road-aware maximum speed.
+ *
+ * Reverse speed is intentionally unchanged for MVP so the driver can recover.
+ */
+export function clampSpeedForRoadState(
+  speed: number,
+  maxSpeed: number,
+  maxReverseSpeed: number,
+  isOffRoad: boolean,
+): number {
+  const effectiveMaxSpeed = resolveEffectiveMaxSpeed(maxSpeed, isOffRoad);
+
+  return clampSpeed(speed, effectiveMaxSpeed, maxReverseSpeed);
 }
