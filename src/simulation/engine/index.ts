@@ -48,3 +48,10 @@ export {
   isCarOffRoad,
   type CarRoadBoundaryCheck,
 } from "./roadBoundary";
+
+export {
+  DEFAULT_MAXIMUM_OFF_ROAD_DISTANCE,
+  assertValidMaximumOffRoadDistance,
+  isValidMaximumOffRoadDistance,
+  shouldRecoverFromSevereRoadDeparture,
+} from "./offRoadRecovery";

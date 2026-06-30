@@ -711,15 +711,14 @@ it("starts with no road departure warning", () => {
 
 it("sets road departure warning when car leaves road", () => {
   const road = createInitialRoad();
-  const car = {
-    ...createInitialCar(road),
-    positionX: 9999,
-  };
 
   useSimulationStore.setState({
     status: "running",
     road,
-    car,
+    car: {
+      ...createInitialCar(road),
+      positionX: 700,
+    },
     roadDepartureWarning: false,
   });
 
@@ -754,17 +753,16 @@ it("reset clears road departure warning", () => {
 
 it("passes off-road state into physics and reduces speed", () => {
   const road = createInitialRoad();
-  const car = {
-    ...createInitialCar(road),
-    positionX: 9999,
-    speed: 180,
-    maxSpeed: 200,
-  };
 
   useSimulationStore.setState({
     status: "running",
     road,
-    car,
+    car: {
+      ...createInitialCar(road),
+      positionX: 700,
+      speed: 180,
+      maxSpeed: 200,
+    },
     roadDepartureWarning: false,
   });
 
@@ -772,4 +770,52 @@ it("passes off-road state into physics and reduces speed", () => {
 
   expect(useSimulationStore.getState().roadDepartureWarning).toBe(true);
   expect(useSimulationStore.getState().car.speed).toBe(70);
+});
+
+it("resets simulation after severe road departure", () => {
+  const road = createInitialRoad();
+
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 10,
+      fps: 60,
+    },
+    road,
+    car: {
+      ...createInitialCar(road),
+      positionX: 580 + 301,
+    },
+    roadDepartureWarning: true,
+  });
+
+  useSimulationStore.getState().tickSimulation(createCarPhysicsInput({}), 0);
+
+  const state = useSimulationStore.getState();
+
+  expect(state.status).toBe("idle");
+  expect(state.telemetry.simulationTimeSeconds).toBe(0);
+  expect(state.roadDepartureWarning).toBe(false);
+  expect(state.car).toEqual(createInitialCar(createInitialRoad()));
+});
+
+it("resets simulation after severe road departure", () => {
+  const road = createInitialRoad();
+
+  useSimulationStore.setState({
+    status: "running",
+    road,
+    car: {
+      ...createInitialCar(road),
+      positionX: 881,
+    },
+    roadDepartureWarning: true,
+  });
+
+  useSimulationStore.getState().tickSimulation(createCarPhysicsInput({}), 0);
+
+  const state = useSimulationStore.getState();
+
+  expect(state.status).toBe("idle");
+  expect(state.roadDepartureWarning).toBe(false);
 });
