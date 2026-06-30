@@ -9,6 +9,7 @@ import { createInitialRoad, type Road } from "../simulation/world";
 import { createInitialCar, type CarState } from "../simulation/vehicle";
 import { updateCarPhysics, type CarPhysicsInput } from "../simulation/engine/physics";
 import { isCarOffRoad } from "../simulation/engine/roadBoundary";
+import { shouldRecoverFromSevereRoadDeparture } from "../simulation/engine/offRoadRecovery";
 import {
   createInitialCameraState,
   type CameraMode,
@@ -142,6 +143,20 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         },
         deltaTimeSeconds,
       );
+
+      if (shouldRecoverFromSevereRoadDeparture(nextCar, state.road)) {
+        const road = createInitialRoad();
+
+        return {
+          status: "idle",
+          telemetry: { ...INITIAL_TELEMETRY },
+          ui: state.ui,
+          road,
+          car: createInitialCar(road),
+          camera: createInitialCameraState(),
+          roadDepartureWarning: false,
+        };
+      }
 
       const roadDepartureWarning = isCarOffRoad(nextCar, state.road);
 
