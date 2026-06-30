@@ -31,6 +31,7 @@ export {
   useSimulationCameraMode,
   useRoadDepartureWarning,
   useSetRoadDepartureWarning,
+  useSetCanvasDiagnostics,
 } from "./simulationStore";
 
 export type {

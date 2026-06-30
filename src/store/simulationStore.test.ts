@@ -819,3 +819,34 @@ it("resets simulation after severe road departure", () => {
   expect(state.status).toBe("idle");
   expect(state.roadDepartureWarning).toBe(false);
 });
+
+it("updates FPS during active simulation ticks", () => {
+  useSimulationStore.setState({
+    status: "running",
+    telemetry: {
+      simulationTimeSeconds: 0,
+      fps: 0,
+    },
+  });
+
+  useSimulationStore.getState().tickSimulation(createCarPhysicsInput({}), 1 / 60);
+
+  expect(useSimulationStore.getState().telemetry.fps).toBeCloseTo(60, 5);
+});
+
+it("does not update FPS while paused", () => {
+  useSimulationStore.setState({
+    status: "paused",
+    telemetry: {
+      simulationTimeSeconds: 10,
+      fps: 30,
+    },
+  });
+
+  useSimulationStore.getState().tickSimulation(createCarPhysicsInput({}), 1 / 60);
+
+  expect(useSimulationStore.getState().telemetry).toEqual({
+    simulationTimeSeconds: 10,
+    fps: 30,
+  });
+});

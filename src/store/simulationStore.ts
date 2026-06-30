@@ -10,6 +10,8 @@ import { createInitialCar, type CarState } from "../simulation/vehicle";
 import { updateCarPhysics, type CarPhysicsInput } from "../simulation/engine/physics";
 import { isCarOffRoad } from "../simulation/engine/roadBoundary";
 import { shouldRecoverFromSevereRoadDeparture } from "../simulation/engine/offRoadRecovery";
+import { calculateFps } from "../simulation/engine/performanceMetrics";
+import type { CanvasDiagnostics } from "../types/canvasDiagnostics";
 import {
   createInitialCameraState,
   type CameraMode,
@@ -37,6 +39,7 @@ export interface SimulationState {
   car: CarState;
   camera: CameraState;
   roadDepartureWarning: boolean;
+  canvasDiagnostics: CanvasDiagnostics | null;
 }
 
 export interface SimulationActions {
@@ -58,6 +61,7 @@ export interface SimulationActions {
   toggleDebugMode: () => void;
   toggleSensorsVisibility: () => void;
   setRoadDepartureWarning: (value: boolean) => void;
+  setCanvasDiagnostics: (diagnostics: CanvasDiagnostics | null) => void;
 }
 
 export type SimulationStore = SimulationState & SimulationActions;
@@ -83,6 +87,7 @@ function createInitialState(): SimulationState {
     car: createInitialCar(road),
     camera: createInitialCameraState(),
     roadDepartureWarning: false,
+    canvasDiagnostics: null,
   };
 }
 
@@ -111,6 +116,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         car: createInitialCar(road),
         camera: createInitialCameraState(),
         roadDepartureWarning: false,
+        canvasDiagnostics: state.canvasDiagnostics,
       };
     }),
 
@@ -164,6 +170,7 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         telemetry: {
           ...state.telemetry,
           simulationTimeSeconds: state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
+          fps: calculateFps(deltaTimeSeconds),
         },
         car: nextCar,
         roadDepartureWarning,
@@ -274,6 +281,11 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
     set(() => ({
       roadDepartureWarning: value,
     })),
+
+  setCanvasDiagnostics: (diagnostics) =>
+    set(() => ({
+      canvasDiagnostics: diagnostics,
+    })),
 }));
 
 export const useSimulationStatus = () => useSimulationStore((state) => state.status);
@@ -356,3 +368,9 @@ export const useRoadDepartureWarning = () =>
 
 export const useSetRoadDepartureWarning = () =>
   useSimulationStore((state) => state.setRoadDepartureWarning);
+
+export const useCanvasDiagnostics = () =>
+  useSimulationStore((state) => state.canvasDiagnostics);
+
+export const useSetCanvasDiagnostics = () =>
+  useSimulationStore((state) => state.setCanvasDiagnostics);
