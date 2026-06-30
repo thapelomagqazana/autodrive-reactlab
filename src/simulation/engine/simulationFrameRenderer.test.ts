@@ -205,3 +205,37 @@ it("restores canvas state when world rendering throws", () => {
 
   expect(context.restore).toHaveBeenCalledTimes(1);
 });
+
+it("renders an off-road car so it remains recoverable", () => {
+  const context = createMockContext();
+  const road = createInitialRoad();
+  const car = {
+    ...createInitialCar(road),
+    positionX: 9999,
+  };
+
+  expect(() => drawSimulationFrame(context, road, car)).not.toThrow();
+
+  expect(drawRoad).toHaveBeenCalledWith(context, road, undefined);
+  expect(drawCar).toHaveBeenCalledWith(context, car, undefined);
+});
+
+it("still applies camera transform when vehicle is off-road", () => {
+  const context = createMockContext();
+  const road = createInitialRoad();
+  const car = {
+    ...createInitialCar(road),
+    positionX: 9999,
+  };
+
+  drawSimulationFrame(context, road, car, {
+    camera: {
+      mode: "follow",
+      offsetX: -9500,
+      offsetY: 0,
+    },
+  });
+
+  expect(context.translate).toHaveBeenCalledWith(-9500, 0);
+  expect(drawCar).toHaveBeenCalledWith(context, car, undefined);
+});

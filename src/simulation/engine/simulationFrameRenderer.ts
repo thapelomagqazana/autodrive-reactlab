@@ -47,21 +47,12 @@ export interface RoadCarCompositionResult {
 }
 
 /**
- * Draws the simulation frame's world layer.
+ * Draws the simulation world layer.
  *
- * Responsibilities:
- * - Validate world composition.
- * - Save canvas state before camera transform.
- * - Apply camera transform once.
- * - Draw all world objects under the same transform.
- * - Restore canvas state so overlays/HUD are not affected.
- *
- * Render order:
- * 1. save()
- * 2. applyCameraTransform()
- * 3. drawRoad()
- * 4. drawCar()
- * 5. restore()
+ * Important:
+ * - The renderer must not reject off-road vehicles.
+ * - Off-road detection belongs to roadBoundary.ts.
+ * - The vehicle remains visible and recoverable even during boundary violations.
  */
 export function drawSimulationFrame(
   context: CanvasRenderingContext2D,
@@ -69,8 +60,6 @@ export function drawSimulationFrame(
   car: CarState,
   options: DrawSimulationFrameOptions = {},
 ): void {
-  assertCarIsRenderableOnRoad(road, car);
-
   context.save();
 
   try {
