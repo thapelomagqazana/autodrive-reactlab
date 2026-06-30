@@ -179,28 +179,37 @@ export function DashboardPanel({
 
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TelemetryCard
+              testId="vehicle-speed-telemetry"
               label="Vehicle Speed"
               value={`${formatVehicleSpeed(vehicleSpeed)} px/s`}
             />
 
             <TelemetryCard
+              testId="vehicle-acceleration-telemetry"
               label="Acceleration"
               value={`${formatVehicleAcceleration(vehicleAcceleration)} px/s²`}
             />
 
             <TelemetryCard
+              testId="vehicle-steering-telemetry"
               label="Steering Angle"
               value={formatSteeringAngle(steeringAngle)}
             />
 
             <TelemetryCard
+              testId="vehicle-position-telemetry"
               label="Position"
               value={formatVehiclePosition(vehiclePositionX, vehiclePositionY)}
             />
 
-            <TelemetryCard label="Heading" value={formatVehicleHeading(vehicleHeading)} />
+            <TelemetryCard
+              testId="vehicle-heading-telemetry"
+              label="Heading"
+              value={formatVehicleHeading(vehicleHeading)}
+            />
 
             <TelemetryCard
+              testId="road-status-telemetry"
               label="Road Status"
               value={formatRoadDepartureWarning(roadDepartureWarning)}
             />

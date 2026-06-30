@@ -19,15 +19,20 @@ export interface TelemetryCardProps {
   label: string;
   value: string;
   isPlaceholder?: boolean;
+  testId?: string;
 }
 
 export function TelemetryCard({
   label,
   value,
   isPlaceholder = false,
+  testId,
 }: TelemetryCardProps) {
   return (
-    <article className="rounded-xl border border-cyan-300/20 bg-black/40 p-4">
+    <article
+      data-testid={testId}
+      className="rounded-xl border border-cyan-300/20 bg-black/40 p-4"
+    >
       <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
         {label}
       </p>
