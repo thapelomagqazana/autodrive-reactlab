@@ -14,6 +14,7 @@ import {
   useSimulationCar,
   useSimulationRoad,
   useSimulationUiPreferences,
+  useSetCanvasDiagnostics,
 } from "../store";
 import { resolveCameraForView } from "../simulation/camera";
 
@@ -50,6 +51,7 @@ export function SimulationCanvas({
   const car = useSimulationCar();
   const camera = useSimulationCamera();
   const ui = useSimulationUiPreferences();
+  const setCanvasDiagnostics = useSetCanvasDiagnostics();
 
   const { canvasRef, context, dimensions, resizeCanvas, initializeContext } = useCanvas();
 
@@ -61,6 +63,23 @@ export function SimulationCanvas({
   useEffect(() => {
     initializeContext();
   }, [initializeContext]);
+
+  useEffect(() => {
+    if (!hasValidCanvasDimensions(dimensions)) {
+      setCanvasDiagnostics(null);
+      return;
+    }
+
+    const pixelRatio = dimensions.pixelRatio ?? window.devicePixelRatio ?? 1;
+
+    setCanvasDiagnostics({
+      width: dimensions.width,
+      height: dimensions.height,
+      pixelRatio,
+      bufferWidth: Math.round(dimensions.width * pixelRatio),
+      bufferHeight: Math.round(dimensions.height * pixelRatio),
+    });
+  }, [dimensions, setCanvasDiagnostics]);
 
   useEffect(() => {
     if (!context || !hasValidCanvasDimensions(dimensions)) {

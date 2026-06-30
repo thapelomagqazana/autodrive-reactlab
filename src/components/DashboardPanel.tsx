@@ -59,9 +59,17 @@ function getStatusPresentation(status: SimulationStatus) {
   }
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+function MetricCard({
+  label,
+  value,
+  testId,
+}: {
+  label: string;
+  value: string;
+  testId?: string;
+}) {
   return (
-    <article className="mission-metric p-4">
+    <article data-testid={testId} className="mission-metric p-4">
       <dt className="text-xs font-black uppercase tracking-[0.2em] text-sky-300">
         {label}
       </dt>
@@ -118,7 +126,7 @@ export function DashboardPanel({
             value={formatElapsedTime(simulationTimeSeconds)}
           />
 
-          <MetricCard label="FPS" value={formatFps(fps)} />
+          <MetricCard testId="fps-telemetry" label="FPS" value={formatFps(fps)} />
         </dl>
 
         {canvasDiagnostics ? (

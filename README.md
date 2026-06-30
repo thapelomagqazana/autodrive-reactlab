@@ -1,123 +1,448 @@
-# AutoDrive Lab
+# AutoDrive ReactLab
 
-Retro-inspired autonomous driving simulation lab built with React, TypeScript, Vite, Tailwind CSS, Zustand, Vitest, and Playwright.
+A React + TypeScript self-driving car simulation lab built with canvas rendering, Zustand state management, keyboard controls, deterministic vehicle physics, camera following, dashboard telemetry, and Playwright E2E coverage.
 
-## Purpose
+## Project Status
 
-AutoDrive Lab is a learning-first engineering project for building a browser-based autonomous driving simulator step by step.
+```txt
+Phase 1: MVP Moving Car on Road — Completed
+```
 
-The project is structured to grow from a professional UI foundation into a full simulation system with:
+## What Phase 1 Delivers
 
-- canvas rendering
-- game loop timing
-- simulation state
-- controls
-- telemetry dashboard
-- vehicle movement
-- sensors
-- AI decisions
-- replay and diagnostics
+Phase 1 establishes the first playable simulation loop:
+
+```txt
+Start simulation
+Pause simulation
+Reset simulation
+Drive forward
+Brake / reverse
+Steer left and right
+Track speed, acceleration, steering, heading, position, FPS, and road status
+Follow the vehicle with camera mode
+Render road and car on canvas
+Detect off-road state
+Apply off-road speed penalty
+Recover from severe road departure
+Validate behaviour with unit and E2E tests
+```
 
 ## Tech Stack
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- Zustand
-- Vitest
-- Testing Library
-- Playwright
-- ESLint
-- Prettier
-- GitHub Actions
-- Husky
+```txt
+React
+TypeScript
+Vite
+Tailwind CSS
+Zustand
+Canvas API
+Vitest
+Testing Library
+Playwright
+```
 
-## Getting Started
+## Core Features
+
+- Canvas-based simulation viewport
+- Zustand-backed simulation state
+- Start, pause, and reset lifecycle controls
+- Keyboard driving controls
+- Acceleration and brake/reverse input
+- Steering input with return-to-center behaviour
+- Vehicle movement physics
+- Follow/fixed camera mode
+- Procedural road rendering
+- Dashboard telemetry
+- Road departure warning
+- Off-road speed penalty
+- Severe off-road recovery reset
+- Unit tests and Playwright E2E tests
+
+## Running the Project
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Scripts
+## Running Tests
 
 ```bash
-npm run typecheck
-npm run format:check
-npm run lint
 npm test
-npm run build
 npm run test:e2e
-npm run verify
-npm run verify:full
 ```
 
-## Project Structure
+## Phase 1 Acceptance Summary
 
-```text
+```txt
+Car moves smoothly.
+Car can reset.
+Speed updates live.
+No page reload is needed.
+Keyboard input controls movement.
+Camera can follow the vehicle.
+Dashboard reflects live simulation state.
+Off-road state is detected and handled safely.
+Tests protect the MVP behaviour.
+```
+
+## Useful Scripts
+
+```bash
+npm run dev
+npm test
+npm run test:e2e
+npm run build
+npm run lint
+```
+
+## Current Architecture
+
+```txt
 src/
   app/
   components/
   hooks/
   simulation/
+    camera/
     engine/
+    vehicle/
+    world/
   store/
-  styles/
   types/
   utils/
+
 tests/
-docs/
-.github/
-  workflows/
+  e2e/
 ```
 
-## Current Features
+## Phase 1 Engineering Principles
 
-- AppShell layout
-- Header
-- SimulationCanvas
-- ControlsPanel
-- DashboardPanel
-- Zustand simulation store
-- Start / Pause / Reset lifecycle controls
-- Elapsed time display
-- FPS display
-- Canvas diagnostics support
-- Vehicle telemetry placeholders
-- GitHub Actions CI
-- Husky quality hooks
+- Physics is pure and testable.
+- React owns UI, not per-frame drawing.
+- Canvas owns rendering pixels.
+- Zustand owns simulation runtime state.
+- Keyboard input is normalized before physics.
+- Road boundary detection is centralized.
+- Camera affects rendering only.
+- E2E tests verify user-visible behaviour.
 
-## Quality Gates
+## Car Physics
 
-Local verification:
+The vehicle uses a deterministic, frame-rate-independent kinematic physics model designed to be simple enough for learning while remaining extensible for future autonomous driving features.
+
+### Physics Pipeline
+
+Every simulation frame executes the following sequence:
+
+```text
+Keyboard Input
+        │
+        ▼
+Input Normalisation
+        │
+        ▼
+Acceleration / Brake
+        │
+        ▼
+Friction
+        │
+        ▼
+Off-road Speed Penalty
+        │
+        ▼
+Speed Clamp
+        │
+        ▼
+Steering Calculation
+        │
+        ▼
+Heading Update
+        │
+        ▼
+Position Update
+        │
+        ▼
+Road Boundary Detection
+        │
+        ▼
+Road Departure Warning
+        │
+        ▼
+Recovery Check
+```
+
+### Vehicle Model
+
+The vehicle state consists of:
+
+- Position (X, Y)
+- Heading (degrees)
+- Speed
+- Acceleration
+- Steering angle
+- Maximum forward speed
+- Maximum reverse speed
+- Friction
+- Steering return rate
+
+Each simulation frame produces a brand-new immutable `CarState`, making the physics deterministic and straightforward to test.
+
+### Physics Features
+
+Implemented:
+
+- Forward acceleration
+- Brake and reverse
+- Passive rolling friction
+- Steering angle limits
+- Automatic steering return-to-centre
+- Heading integration
+- Position integration
+- Off-road detection
+- Off-road speed penalty
+- Severe off-road recovery
+- Camera following
+
+### Design Goals
+
+The physics engine is designed to be:
+
+- Deterministic
+- Pure
+- Testable
+- Extensible
+- Independent of rendering
+- Independent of React
+
+Future phases can extend it with:
+
+- Tyre slip
+- Vehicle mass
+- Weight transfer
+- Suspension
+- Collision response
+- Multiple vehicle models
+- AI driving controllers
+
+---
+
+# Keyboard Controls
+
+The simulation supports keyboard-driven vehicle control.
+
+| Key | Action          |
+| --- | --------------- |
+| ↑   | Accelerate      |
+| ↓   | Brake / Reverse |
+| ←   | Steer Left      |
+| →   | Steer Right     |
+
+Simulation controls:
+
+| Button | Action                                       |
+| ------ | -------------------------------------------- |
+| Start  | Begins the simulation                        |
+| Pause  | Stops physics updates                        |
+| Reset  | Restores the simulation to its initial state |
+| Camera | Toggle between Fixed and Follow camera       |
+
+---
+
+# Screenshots
+
+## Dashboard
+
+> Add screenshot
+
+```text
+docs/images/dashboard.png
+```
+
+---
+
+## Simulation Canvas
+
+> Add screenshot
+
+```text
+docs/images/simulation-canvas.png
+```
+
+---
+
+## Camera Follow
+
+> Add screenshot
+
+```text
+docs/images/follow-camera.png
+```
+
+---
+
+## Road Departure Warning
+
+> Add screenshot
+
+```text
+docs/images/off-road-warning.png
+```
+
+---
+
+## Off-road Recovery
+
+> Add screenshot
+
+```text
+docs/images/off-road-recovery.png
+```
+
+---
+
+# Demo GIF
+
+A short recording demonstrating the completed Phase 1 MVP is recommended.
+
+Suggested content:
+
+1. Launch application
+2. Start simulation
+3. Accelerate
+4. Steer
+5. Toggle camera mode
+6. Leave the road
+7. Observe warning
+8. Return to road
+9. Trigger severe recovery
+10. Reset simulation
+
+Store the recording here:
+
+```text
+docs/images/autodrive-phase1.gif
+```
+
+This GIF serves as excellent portfolio evidence for GitHub and LinkedIn.
+
+---
+
+# Testing
+
+## Unit Tests
+
+Run all unit tests:
 
 ```bash
-npm run verify
+npm test
 ```
 
-Full verification:
+Run tests in watch mode:
 
 ```bash
-npm run verify:full
+npm run test
 ```
 
-CI runs on pull requests and pushes to `main`.
+Run a specific test file:
 
-## Design Principles
+```bash
+npm test -- src/store/simulationStore.test.ts
+```
 
-- Keep UI components presentational where possible.
-- Keep Zustand as lightweight shared state only.
-- Keep game loop logic outside React components.
-- Keep dashboard read-only.
-- Keep canvas rendering separate from layout.
-- Prefer small, testable modules.
-- Avoid premature coupling between physics, AI, rendering, and UI.
+---
 
-## Documentation
+## End-to-End Tests
 
-See `docs/` for implementation notes and phase-specific architecture decisions.
+Execute Playwright tests:
 
-## License
+```bash
+npm run test:e2e
+```
 
-MIT
+Run only Chromium:
+
+```bash
+npx playwright test --project=chromium
+```
+
+Run with the Playwright UI:
+
+```bash
+npx playwright test --ui
+```
+
+Open the HTML report:
+
+```bash
+npx playwright show-report
+```
+
+---
+
+## Build Verification
+
+Create a production build:
+
+```bash
+npm run build
+```
+
+Preview the production build locally:
+
+```bash
+npm run preview
+```
+
+---
+
+## Quality Checklist
+
+Before opening a Pull Request, verify that:
+
+- All unit tests pass.
+- All Playwright tests pass.
+- The project builds successfully.
+- ESLint reports no errors.
+- TypeScript reports no type errors.
+- The simulation starts correctly.
+- Vehicle controls work.
+- Camera modes work.
+- Dashboard telemetry updates correctly.
+- Road departure detection functions correctly.
+- Off-road recovery functions correctly.
+
+---
+
+# Engineering Philosophy
+
+AutoDrive ReactLab is intentionally structured as a teaching project.
+
+The codebase prioritises:
+
+- Clear architecture over premature optimisation.
+- Pure functions over hidden side effects.
+- Deterministic simulation behaviour.
+- High unit-test coverage.
+- Separation of rendering, simulation, and UI.
+- Incremental feature development through well-defined work packages (WBS).
+
+Each completed phase establishes a stable foundation for the next, allowing progressively more advanced autonomous driving capabilities to be added without introducing unnecessary technical debt.
+
+## Next Phase
+
+```txt
+Phase 2: Sensors
+```
+
+Planned work:
+
+```txt
+Ray-casting sensors
+Front / left / right sensor rays
+Sensor distance calculation
+Sensor overlay rendering
+Road-edge detection
+Sensor telemetry
+```
