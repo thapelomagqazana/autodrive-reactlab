@@ -76,26 +76,44 @@ test.describe("AutoDrive ReactLab startup", () => {
 
     await expect(vehicleTelemetry).toBeVisible();
 
-    await expect(vehicleTelemetry.getByText("Vehicle Speed")).toBeVisible();
-    await expect(vehicleTelemetry.getByText("0 px/s", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("vehicle-speed-telemetry")).toContainText(
+      "Vehicle Speed",
+    );
+    await expect(page.getByTestId("vehicle-speed-telemetry")).toContainText("0 px/s");
 
-    await expect(vehicleTelemetry.getByText("Acceleration")).toBeVisible();
-    await expect(vehicleTelemetry.getByText("120 px/s²", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("vehicle-acceleration-telemetry")).toContainText(
+      "Acceleration",
+    );
+    await expect(page.getByTestId("vehicle-acceleration-telemetry")).toContainText(
+      "120 px/s²",
+    );
 
-    await expect(vehicleTelemetry.getByText("Steering Angle")).toBeVisible();
-    await expect(vehicleTelemetry.getByText("0°", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("vehicle-steering-telemetry")).toContainText(
+      "Steering Angle",
+    );
+    await expect(page.getByTestId("vehicle-steering-telemetry")).toContainText("0°");
+
+    await expect(page.getByTestId("vehicle-heading-telemetry")).toContainText("Heading");
+    await expect(page.getByTestId("vehicle-heading-telemetry")).toContainText("0°");
+
+    await expect(page.getByTestId("vehicle-position-telemetry")).toContainText(
+      "Position",
+    );
+
+    await expect(page.getByTestId("road-status-telemetry")).toContainText("Road Status");
+    await expect(page.getByTestId("road-status-telemetry")).toContainText("On road");
 
     await expect(vehicleTelemetry.getByText("AI Decision")).toBeVisible();
     await expect(vehicleTelemetry.getByText("Waiting for simulation")).toBeVisible();
 
     await page.getByRole("button", { name: "Start" }).click();
-    await expect(page.getByText("Running")).toBeVisible();
+    await expect(page.getByLabel(/Simulation status: Running/i)).toBeVisible();
 
     await page.getByRole("button", { name: "Pause" }).click();
-    await expect(page.getByText("Paused")).toBeVisible();
+    await expect(page.getByLabel(/Simulation status: Paused/i)).toBeVisible();
 
     await page.getByRole("button", { name: "Reset" }).click();
-    await expect(page.getByText("Idle")).toBeVisible();
+    await expect(page.getByLabel(/Simulation status: Idle/i)).toBeVisible();
 
     expect(consoleErrors).toEqual([]);
   });
