@@ -26,3 +26,7 @@ dist-ssr
 # Playwright artifacts
 /playwright-report/
 /test-results/
+
+.env
+.env.local
+.env.*.local
