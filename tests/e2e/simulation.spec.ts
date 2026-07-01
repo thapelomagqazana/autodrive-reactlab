@@ -41,9 +41,8 @@ test.describe("AutoDrive simulation E2E", () => {
     await page.getByRole("button", { name: "Start" }).click();
 
     const speedCard = page.getByTestId("vehicle-speed-telemetry");
-    const steeringCard = page.getByTestId("vehicle-steering-telemetry");
 
-    await expect(steeringCard).toContainText("0°");
+    await expect(speedCard).toContainText("0 px/s");
 
     await page.keyboard.down("ArrowUp");
 
@@ -52,6 +51,10 @@ test.describe("AutoDrive simulation E2E", () => {
     });
 
     await page.keyboard.down("ArrowLeft");
+
+    await page.getByRole("tab", { name: "Debug" }).click();
+
+    const steeringCard = page.getByTestId("vehicle-steering-telemetry");
 
     await expect(steeringCard).toContainText("-30°", {
       timeout: 3000,

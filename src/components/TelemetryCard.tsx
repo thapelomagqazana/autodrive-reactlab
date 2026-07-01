@@ -15,11 +15,28 @@
  * - No sensor calculations.
  */
 
+export type TelemetryTone = "default" | "success" | "warning" | "danger";
+
 export interface TelemetryCardProps {
   label: string;
   value: string;
   isPlaceholder?: boolean;
   testId?: string;
+  tone?: TelemetryTone;
+}
+
+function getToneClassName(tone: TelemetryTone): string {
+  switch (tone) {
+    case "success":
+      return "border-emerald-300/40 bg-emerald-950/30 text-emerald-200";
+    case "warning":
+      return "border-amber-300/50 bg-amber-950/30 text-amber-200";
+    case "danger":
+      return "border-red-300/50 bg-red-950/30 text-red-200";
+    case "default":
+    default:
+      return "border-cyan-300/20 bg-black/40 text-white";
+  }
 }
 
 export function TelemetryCard({
@@ -27,24 +44,26 @@ export function TelemetryCard({
   value,
   isPlaceholder = false,
   testId,
+  tone = "default",
 }: TelemetryCardProps) {
   return (
     <article
       data-testid={testId}
-      className="rounded-xl border border-cyan-300/20 bg-black/40 p-4"
+      className={`rounded-xl border p-4 ${getToneClassName(tone)}`}
     >
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
+      <dt className="text-xs font-black uppercase tracking-[0.2em] text-sky-300">
         {label}
-      </p>
+      </dt>
 
-      <p
-        className={[
-          "mt-2 text-lg font-black",
-          isPlaceholder ? "text-slate-400 italic" : "text-white",
-        ].join(" ")}
+      <dd
+        className={
+          isPlaceholder
+            ? "mt-2 text-lg font-black italic text-slate-400"
+            : "mt-2 text-lg font-black"
+        }
       >
         {value}
-      </p>
+      </dd>
     </article>
   );
 }
