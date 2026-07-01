@@ -250,82 +250,34 @@ Simulation controls:
 
 ---
 
-# Screenshots
+## 🎥 Demo
 
-## Dashboard
+Below is a short demonstration of the completed **Phase 1 MVP**.
 
-> Add screenshot
+### Features Demonstrated
 
-```text
-docs/images/dashboard.png
-```
+- 🚀 Launch application
+- ▶️ Start simulation
+- ⬆️ Accelerate vehicle
+- ⬅️ Steer vehicle
+- 📷 Toggle camera mode
+- 🛣️ Leave the road
+- ⚠️ Observe off-road warning
+- ↩️ Return safely to the road
+- 🔄 Trigger severe off-road recovery
+- 🔁 Reset simulation
 
----
+<p align="center">
+  <img
+    src="./docs/images/autodrive-phase1.gif"
+    alt="AutoDrive ReactLab Phase 1 MVP Demo"
+    width="1000"
+  />
+</p>
 
-## Simulation Canvas
-
-> Add screenshot
-
-```text
-docs/images/simulation-canvas.png
-```
-
----
-
-## Camera Follow
-
-> Add screenshot
-
-```text
-docs/images/follow-camera.png
-```
-
----
-
-## Road Departure Warning
-
-> Add screenshot
-
-```text
-docs/images/off-road-warning.png
-```
-
----
-
-## Off-road Recovery
-
-> Add screenshot
-
-```text
-docs/images/off-road-recovery.png
-```
-
----
-
-# Demo GIF
-
-A short recording demonstrating the completed Phase 1 MVP is recommended.
-
-Suggested content:
-
-1. Launch application
-2. Start simulation
-3. Accelerate
-4. Steer
-5. Toggle camera mode
-6. Leave the road
-7. Observe warning
-8. Return to road
-9. Trigger severe recovery
-10. Reset simulation
-
-Store the recording here:
-
-```text
-docs/images/autodrive-phase1.gif
-```
-
-This GIF serves as excellent portfolio evidence for GitHub and LinkedIn.
+> If the GIF does not render on GitHub, you can download it directly:
+>
+> **[View Demo GIF](./docs/images/autodrive-phase1.gif)**
 
 ---
 

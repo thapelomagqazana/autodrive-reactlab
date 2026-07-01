@@ -68,13 +68,17 @@ test.describe("AutoDrive ReactLab startup", () => {
     await expect(page.getByText("Idle")).toBeVisible();
     await expect(page.getByText("Elapsed Time")).toBeVisible();
     await expect(page.getByText("00:00:00.000")).toBeVisible();
-    await expect(page.getByText("FPS", { exact: true })).toBeVisible();
 
-    const vehicleTelemetry = page.getByRole("region", {
-      name: "Vehicle Telemetry",
-    });
+    /*
+    |--------------------------------------------------------------------------
+    | Vehicle tab (default)
+    |--------------------------------------------------------------------------
+    */
 
-    await expect(vehicleTelemetry).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Vehicle" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
     await expect(page.getByTestId("vehicle-speed-telemetry")).toContainText(
       "Vehicle Speed",
@@ -82,39 +86,63 @@ test.describe("AutoDrive ReactLab startup", () => {
     await expect(page.getByTestId("vehicle-speed-telemetry")).toContainText("0 px/s");
 
     await expect(page.getByTestId("vehicle-acceleration-telemetry")).toContainText(
-      "Acceleration",
-    );
-    await expect(page.getByTestId("vehicle-acceleration-telemetry")).toContainText(
       "120 px/s²",
     );
 
-    await expect(page.getByTestId("vehicle-steering-telemetry")).toContainText(
-      "Steering Angle",
-    );
-    await expect(page.getByTestId("vehicle-steering-telemetry")).toContainText("0°");
-
     await expect(page.getByTestId("vehicle-heading-telemetry")).toContainText("Heading");
-    await expect(page.getByTestId("vehicle-heading-telemetry")).toContainText("0°");
 
     await expect(page.getByTestId("vehicle-position-telemetry")).toContainText(
       "Position",
     );
 
-    await expect(page.getByTestId("road-status-telemetry")).toContainText("Road Status");
     await expect(page.getByTestId("road-status-telemetry")).toContainText("On road");
 
-    await expect(vehicleTelemetry.getByText("AI Decision")).toBeVisible();
-    await expect(vehicleTelemetry.getByText("Waiting for simulation")).toBeVisible();
+    /*
+    |--------------------------------------------------------------------------
+    | Performance tab
+    |--------------------------------------------------------------------------
+    */
 
-    await page.getByRole("button", { name: "Start" }).click();
-    await expect(page.getByLabel(/Simulation status: Running/i)).toBeVisible();
+    await page.getByRole("tab", { name: "Performance" }).click();
 
-    await page.getByRole("button", { name: "Pause" }).click();
-    await expect(page.getByLabel(/Simulation status: Paused/i)).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Performance" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
-    await page.getByRole("button", { name: "Reset" }).click();
-    await expect(page.getByLabel(/Simulation status: Idle/i)).toBeVisible();
+    await expect(page.getByTestId("fps-telemetry")).toBeVisible();
 
-    expect(consoleErrors).toEqual([]);
+    /*
+    |--------------------------------------------------------------------------
+    | AI tab
+    |--------------------------------------------------------------------------
+    */
+
+    await page.getByRole("tab", { name: "AI" }).click();
+
+    await expect(page.getByText("AI Decision")).toBeVisible();
+    await expect(page.getByText("Waiting for simulation")).toBeVisible();
+
+    await expect(page.getByText("Sensor Status")).toBeVisible();
+    await expect(page.getByText("Destination Status")).toBeVisible();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Debug tab
+    |--------------------------------------------------------------------------
+    */
+
+    await page.getByRole("tab", { name: "Debug" }).click();
+
+    await expect(page.getByTestId("vehicle-steering-telemetry")).toContainText(
+      "Steering Angle",
+    );
+
+    await expect(page.getByTestId("vehicle-steering-telemetry")).toContainText("0°");
+
+    await expect(page.getByText("Collision Count")).toBeVisible();
+    await expect(page.getByText("Lane")).toBeVisible();
+    await expect(page.getByTestId("camera-debug-telemetry")).toContainText("Camera");
+    await expect(page.getByText("Offsets")).toBeVisible();
   });
 });

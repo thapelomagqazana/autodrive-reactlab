@@ -1,6 +1,24 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { DashboardPanel } from "./DashboardPanel";
+
+function renderDashboard() {
+  return render(
+    <DashboardPanel
+      status="idle"
+      simulationTimeSeconds={0}
+      fps={0}
+      vehicleSpeed={0}
+      vehicleAcceleration={120}
+      steeringAngle={0}
+      vehiclePositionX={400}
+      vehiclePositionY={600}
+      vehicleHeading={0}
+      roadDepartureWarning={false}
+    />,
+  );
+}
 
 describe("DashboardPanel", () => {
   it("renders lifecycle status", () => {
@@ -40,15 +58,36 @@ describe("DashboardPanel", () => {
     );
 
     expect(screen.getByText("00:01:01.500")).toBeInTheDocument();
-    expect(screen.getByText("60")).toBeInTheDocument();
+    expect(screen.getByTestId("fps-telemetry")).toHaveTextContent("60");
   });
 
-  it("renders canvas diagnostics when provided", () => {
+  it("renders vehicle tab by default", () => {
+    renderDashboard();
+
+    expect(screen.getByRole("tab", { name: "Vehicle" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+
+    expect(screen.getByTestId("vehicle-speed-telemetry")).toHaveTextContent("0 px/s");
+    expect(screen.getByTestId("vehicle-acceleration-telemetry")).toHaveTextContent(
+      "120 px/s²",
+    );
+    expect(screen.getByTestId("vehicle-heading-telemetry")).toHaveTextContent("0°");
+    expect(screen.getByTestId("vehicle-position-telemetry")).toHaveTextContent(
+      "X: 400 | Y: 600",
+    );
+    expect(screen.getByTestId("road-status-telemetry")).toHaveTextContent("On road");
+  });
+
+  it("renders canvas diagnostics in the performance tab", async () => {
+    const user = userEvent.setup();
+
     render(
       <DashboardPanel
         status="idle"
         simulationTimeSeconds={0}
-        fps={0}
+        fps={60}
         vehicleSpeed={0}
         vehicleAcceleration={120}
         steeringAngle={0}
@@ -66,41 +105,48 @@ describe("DashboardPanel", () => {
       />,
     );
 
-    expect(screen.getByLabelText("Canvas Diagnostics")).toBeInTheDocument();
-    expect(screen.getByText("1280px")).toBeInTheDocument();
-    expect(screen.getByText("720px")).toBeInTheDocument();
-    expect(screen.getByText("2560 × 1440")).toBeInTheDocument();
-  });
+    await user.click(screen.getByRole("tab", { name: "Performance" }));
 
-  it("renders vehicle telemetry placeholders", () => {
-    render(
-      <DashboardPanel
-        status="idle"
-        simulationTimeSeconds={0}
-        fps={0}
-        vehicleSpeed={0}
-        vehicleAcceleration={120}
-        steeringAngle={0}
-        vehiclePositionX={400}
-        vehiclePositionY={600}
-        vehicleHeading={0}
-        roadDepartureWarning={false}
-      />,
+    expect(screen.getByRole("tab", { name: "Performance" })).toHaveAttribute(
+      "aria-selected",
+      "true",
     );
 
-    expect(screen.getByLabelText("Vehicle Telemetry")).toBeInTheDocument();
+    expect(screen.getByText("Frame Time")).toBeInTheDocument();
+    expect(screen.getByText("Canvas")).toBeInTheDocument();
+    expect(screen.getByText("1280 × 720")).toBeInTheDocument();
+    expect(screen.getByText("Buffer")).toBeInTheDocument();
+    expect(screen.getByText("2560 × 1440")).toBeInTheDocument();
+    expect(screen.getByText("DPR")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+  });
 
-    expect(screen.getByText("Vehicle Speed")).toBeInTheDocument();
-    expect(screen.getByText("Acceleration")).toBeInTheDocument();
-    expect(screen.getByText("Steering Angle")).toBeInTheDocument();
-    expect(screen.getByText("Heading")).toBeInTheDocument();
+  it("renders AI telemetry placeholders in the AI tab", async () => {
+    const user = userEvent.setup();
+
+    renderDashboard();
+
+    await user.click(screen.getByRole("tab", { name: "AI" }));
+
     expect(screen.getByText("AI Decision")).toBeInTheDocument();
-    expect(screen.getByText("Collision Count")).toBeInTheDocument();
     expect(screen.getByText("Sensor Status")).toBeInTheDocument();
     expect(screen.getByText("Destination Status")).toBeInTheDocument();
 
     expect(screen.getByText("Waiting for simulation")).toBeInTheDocument();
     expect(screen.getByText("Not connected")).toBeInTheDocument();
-    expect(screen.getByText("N/A")).toBeInTheDocument();
+  });
+
+  it("renders debug telemetry placeholders in the debug tab", async () => {
+    const user = userEvent.setup();
+
+    renderDashboard();
+
+    await user.click(screen.getByRole("tab", { name: "Debug" }));
+
+    expect(screen.getByTestId("vehicle-steering-telemetry")).toHaveTextContent("0°");
+    expect(screen.getByText("Collision Count")).toBeInTheDocument();
+    expect(screen.getByText("Lane")).toBeInTheDocument();
+    expect(screen.getByText("Camera")).toBeInTheDocument();
+    expect(screen.getByText("Offsets")).toBeInTheDocument();
   });
 });
