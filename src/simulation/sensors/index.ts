@@ -3,4 +3,5 @@ export * from "./sensorState";
 export * from "./raycasting";
 export * from "./frontSensorProfile";
 export * from "./sideSensorProfile";
+export * from "./sensorDistance";
 export * from "./roadEdgeDetection";
