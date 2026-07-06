@@ -21,6 +21,16 @@ import {
   useSimulationStatus,
   useStartSimulation,
   useToggleCameraMode,
+  useSimulationUiPreferences,
+  useToggleDebugMode,
+  useToggleSensorsVisibility,
+  useSimulationSensorConfig,
+  useToggleSensorsEnabled,
+  useIncreaseSensorRayCount,
+  useDecreaseSensorRayCount,
+  useIncreaseSensorRange,
+  useDecreaseSensorRange,
+  useResetSensorSettings,
 } from "../store";
 import { ControlsPanel } from "./ControlsPanel";
 
@@ -32,14 +42,28 @@ export function ControlsPanelContainer() {
   const cameraMode = useSimulationCameraMode();
   const toggleCameraMode = useToggleCameraMode();
 
+  const ui = useSimulationUiPreferences();
+  const sensorConfig = useSimulationSensorConfig();
+
   return (
     <ControlsPanel
       status={status}
       cameraMode={cameraMode}
+      sensorConfig={sensorConfig}
+      isDebugModeEnabled={ui.isDebugModeEnabled}
+      areSensorsVisible={ui.areSensorsVisible}
       onStart={startSimulation}
       onPause={pauseSimulation}
       onReset={resetSimulation}
       onToggleCameraMode={toggleCameraMode}
+      onToggleDebugMode={useToggleDebugMode()}
+      onToggleSensorsVisibility={useToggleSensorsVisibility()}
+      onToggleSensorsEnabled={useToggleSensorsEnabled()}
+      onIncreaseSensorRayCount={useIncreaseSensorRayCount()}
+      onDecreaseSensorRayCount={useDecreaseSensorRayCount()}
+      onIncreaseSensorRange={useIncreaseSensorRange()}
+      onDecreaseSensorRange={useDecreaseSensorRange()}
+      onResetSensorSettings={useResetSensorSettings()}
     />
   );
 }

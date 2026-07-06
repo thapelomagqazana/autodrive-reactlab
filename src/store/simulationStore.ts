@@ -18,6 +18,11 @@ import {
   type CameraMode,
   type CameraState,
 } from "../simulation/camera";
+import {
+  createBaseSensorConfig,
+  SENSOR_CONFIG_LIMITS,
+} from "../simulation/sensors/sensorConfiguration";
+import { resetSensorState, withSensorConfig } from "../simulation/sensors/sensorState";
 
 export type SimulationStatus = "idle" | "running" | "paused";
 
@@ -63,6 +68,13 @@ export interface SimulationActions {
   toggleSensorsVisibility: () => void;
   setRoadDepartureWarning: (value: boolean) => void;
   setCanvasDiagnostics: (diagnostics: CanvasDiagnostics | null) => void;
+
+  toggleSensorsEnabled: () => void;
+  increaseSensorRayCount: () => void;
+  decreaseSensorRayCount: () => void;
+  increaseSensorRange: () => void;
+  decreaseSensorRange: () => void;
+  resetSensorSettings: () => void;
 }
 
 export type SimulationStore = SimulationState & SimulationActions;
@@ -76,6 +88,9 @@ const INITIAL_UI: SimulationUiPreferences = {
   isDebugModeEnabled: false,
   areSensorsVisible: true,
 };
+
+export const SENSOR_RAY_COUNT_STEP = 2;
+export const SENSOR_RANGE_STEP = 25;
 
 function createInitialState(): SimulationState {
   const road = createInitialRoad();
@@ -337,6 +352,113 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
     set(() => ({
       canvasDiagnostics: diagnostics,
     })),
+
+  toggleSensorsEnabled: () =>
+    set((state) => {
+      const nextConfig = createBaseSensorConfig({
+        ...state.car.sensors.config,
+        sensorEnabled: !state.car.sensors.config.sensorEnabled,
+      });
+
+      return {
+        car: {
+          ...state.car,
+          sensors: withSensorConfig(state.car.sensors, nextConfig),
+        },
+      };
+    }),
+
+  increaseSensorRayCount: () =>
+    set((state) => {
+      const nextRayCount = state.car.sensors.config.rayCount + SENSOR_RAY_COUNT_STEP;
+
+      if (nextRayCount > SENSOR_CONFIG_LIMITS.maxRayCount) {
+        return state;
+      }
+
+      const nextConfig = createBaseSensorConfig({
+        ...state.car.sensors.config,
+        rayCount: nextRayCount,
+      });
+
+      return {
+        car: {
+          ...state.car,
+          sensors: withSensorConfig(state.car.sensors, nextConfig),
+        },
+      };
+    }),
+
+  decreaseSensorRayCount: () =>
+    set((state) => {
+      const nextRayCount = state.car.sensors.config.rayCount - SENSOR_RAY_COUNT_STEP;
+
+      if (nextRayCount < SENSOR_CONFIG_LIMITS.minRayCount) {
+        return state;
+      }
+
+      const nextConfig = createBaseSensorConfig({
+        ...state.car.sensors.config,
+        rayCount: nextRayCount,
+      });
+
+      return {
+        car: {
+          ...state.car,
+          sensors: withSensorConfig(state.car.sensors, nextConfig),
+        },
+      };
+    }),
+
+  increaseSensorRange: () =>
+    set((state) => {
+      const nextRayLength = state.car.sensors.config.rayLength + SENSOR_RANGE_STEP;
+
+      if (nextRayLength > SENSOR_CONFIG_LIMITS.maxRayLength) {
+        return state;
+      }
+
+      const nextConfig = createBaseSensorConfig({
+        ...state.car.sensors.config,
+        rayLength: nextRayLength,
+      });
+
+      return {
+        car: {
+          ...state.car,
+          sensors: withSensorConfig(state.car.sensors, nextConfig),
+        },
+      };
+    }),
+
+  decreaseSensorRange: () =>
+    set((state) => {
+      const nextRayLength = state.car.sensors.config.rayLength - SENSOR_RANGE_STEP;
+
+      if (nextRayLength < SENSOR_CONFIG_LIMITS.minRayLength) {
+        return state;
+      }
+
+      const nextConfig = createBaseSensorConfig({
+        ...state.car.sensors.config,
+        rayLength: nextRayLength,
+      });
+
+      return {
+        car: {
+          ...state.car,
+          sensors: withSensorConfig(state.car.sensors, nextConfig),
+        },
+      };
+    }),
+
+  resetSensorSettings: () =>
+    set((state) => ({
+      car: {
+        ...state.car,
+        sensors: resetSensorState(),
+      },
+    })),
 }));
 
 export const useSimulationStatus = () => useSimulationStore((state) => state.status);
@@ -425,3 +547,24 @@ export const useCanvasDiagnostics = () =>
 
 export const useSetCanvasDiagnostics = () =>
   useSimulationStore((state) => state.setCanvasDiagnostics);
+
+export const useToggleSensorsEnabled = () =>
+  useSimulationStore((state) => state.toggleSensorsEnabled);
+
+export const useIncreaseSensorRayCount = () =>
+  useSimulationStore((state) => state.increaseSensorRayCount);
+
+export const useDecreaseSensorRayCount = () =>
+  useSimulationStore((state) => state.decreaseSensorRayCount);
+
+export const useIncreaseSensorRange = () =>
+  useSimulationStore((state) => state.increaseSensorRange);
+
+export const useDecreaseSensorRange = () =>
+  useSimulationStore((state) => state.decreaseSensorRange);
+
+export const useResetSensorSettings = () =>
+  useSimulationStore((state) => state.resetSensorSettings);
+
+export const useSimulationSensorConfig = () =>
+  useSimulationStore((state) => state.car.sensors.config);

@@ -2,10 +2,26 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ControlsPanel } from "./ControlsPanel";
+import { DEFAULT_SENSOR_CONFIG } from "../simulation/sensors/sensorModel";
+
+function renderControlsPanel(
+  overrides: Partial<React.ComponentProps<typeof ControlsPanel>> = {},
+) {
+  return render(
+    <ControlsPanel
+      status="idle"
+      cameraMode="fixed"
+      sensorConfig={DEFAULT_SENSOR_CONFIG}
+      isDebugModeEnabled={false}
+      areSensorsVisible={true}
+      {...overrides}
+    />,
+  );
+}
 
 describe("ControlsPanel", () => {
   it("renders lifecycle buttons", () => {
-    render(<ControlsPanel status="idle" cameraMode="fixed" />);
+    renderControlsPanel({ status: "idle", cameraMode: "fixed" });
 
     expect(screen.getByRole("button", { name: "Start" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Pause" })).toBeVisible();
@@ -13,7 +29,7 @@ describe("ControlsPanel", () => {
   });
 
   it("uses idle button state rules", () => {
-    render(<ControlsPanel status="idle" cameraMode="fixed" />);
+    renderControlsPanel({ status: "idle", cameraMode: "fixed" });
 
     expect(screen.getByRole("button", { name: "Start" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Pause" })).toBeDisabled();
@@ -21,7 +37,7 @@ describe("ControlsPanel", () => {
   });
 
   it("uses running button state rules", () => {
-    render(<ControlsPanel status="running" cameraMode="fixed" />);
+    renderControlsPanel({ status: "running", cameraMode: "fixed" });
 
     expect(screen.getByRole("button", { name: "Start" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Pause" })).toBeEnabled();
@@ -29,7 +45,7 @@ describe("ControlsPanel", () => {
   });
 
   it("uses paused button state rules", () => {
-    render(<ControlsPanel status="paused" cameraMode="fixed" />);
+    renderControlsPanel({ status: "paused", cameraMode: "fixed" });
 
     expect(screen.getByRole("button", { name: "Start" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Pause" })).toBeDisabled();
@@ -42,14 +58,7 @@ describe("ControlsPanel", () => {
     const onStart = vi.fn();
     const onReset = vi.fn();
 
-    render(
-      <ControlsPanel
-        status="idle"
-        onStart={onStart}
-        onReset={onReset}
-        cameraMode="fixed"
-      />,
-    );
+    renderControlsPanel({ status: "idle", cameraMode: "fixed", onStart, onReset });
 
     await user.click(screen.getByRole("button", { name: "Start" }));
     await user.click(screen.getByRole("button", { name: "Reset" }));
@@ -62,7 +71,7 @@ describe("ControlsPanel", () => {
     const user = userEvent.setup();
     const onStart = vi.fn();
 
-    render(<ControlsPanel status="running" onStart={onStart} cameraMode="fixed" />);
+    renderControlsPanel({ status: "running", onStart, cameraMode: "fixed" });
 
     await user.click(screen.getByRole("button", { name: "Start" }));
 
@@ -73,10 +82,22 @@ describe("ControlsPanel", () => {
     const user = userEvent.setup();
     const onPause = vi.fn();
 
-    render(<ControlsPanel status="idle" onPause={onPause} cameraMode="fixed" />);
+    renderControlsPanel({ status: "idle", onPause, cameraMode: "fixed" });
 
     await user.click(screen.getByRole("button", { name: "Pause" }));
 
     expect(onPause).not.toHaveBeenCalled();
   });
+});
+
+it("renders sensor controls", () => {
+  renderControlsPanel();
+
+  expect(screen.getByText("Sensor Controls")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Sensors: Enabled" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Debug Mode: Hidden" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Sensor Overlay: Shown" })).toBeVisible();
+  expect(screen.getByText("Ray Count")).toBeInTheDocument();
+  expect(screen.getByText("7")).toBeInTheDocument();
+  expect(screen.getByText("Sensor Range")).toBeInTheDocument();
 });
