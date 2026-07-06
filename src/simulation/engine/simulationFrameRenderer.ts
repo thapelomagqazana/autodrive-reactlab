@@ -26,10 +26,12 @@ import { drawCar, type DrawCarOptions } from "./carRenderer";
 import { drawRoad, type DrawRoadOptions } from "./roadRenderer";
 import type { CameraState } from "../camera";
 import { applyCameraTransform } from "./cameraRenderer";
+import { drawSensors, type DrawSensorsOptions } from "./sensorRenderer";
 
 export interface DrawSimulationFrameOptions {
   road?: DrawRoadOptions;
   car?: DrawCarOptions;
+  sensors?: Pick<DrawSensorsOptions, "isEnabled" | "style">;
 
   /**
    * Camera used for world-space rendering.
@@ -69,6 +71,12 @@ export function drawSimulationFrame(
 
     drawRoad(context, road, options.road);
     drawCar(context, car, options.car);
+    drawSensors(context, {
+      isEnabled: options.sensors?.isEnabled ?? false,
+      rays: car.sensors.rays,
+      readings: car.sensors.readings,
+      style: options.sensors?.style,
+    });
   } finally {
     context.restore();
   }

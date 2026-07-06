@@ -12,6 +12,7 @@ import { isCarOffRoad } from "../simulation/engine/roadBoundary";
 import { shouldRecoverFromSevereRoadDeparture } from "../simulation/engine/offRoadRecovery";
 import { calculateFps } from "../simulation/engine/performanceMetrics";
 import type { CanvasDiagnostics } from "../types/canvasDiagnostics";
+import { updateSensorsForFrame } from "../simulation/sensors/sensorUpdateSystem";
 import {
   createInitialCameraState,
   type CameraMode,
@@ -123,12 +124,18 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
   /**
    * Advances one active simulation frame.
    *
-   * Rules:
-   * - Runs only while status is "running".
-   * - Uses delta time in seconds.
-   * - Delegates movement to updateCarPhysics().
-   * - Persists the returned CarState back into Zustand.
-   * - Never mutates the existing car object.
+   * Frame order:
+   * 1. Validate active simulation state and delta time.
+   * 2. Evaluate the previous frame's road-departure state.
+   * 3. Update vehicle physics.
+   * 4. Recover from severe road departure when required.
+   * 5. Update sensors from the post-physics car pose.
+   * 6. Recalculate road-departure warning state.
+   * 7. Persist telemetry and the fully updated car atomically.
+   *
+   * Sensor ordering is intentional:
+   * sensors must observe the car position and heading produced by the current
+   * physics update, preventing one-frame perception lag.
    */
   tickSimulation: (input, deltaTimeSeconds) =>
     set((state) => {
@@ -139,9 +146,21 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         return state;
       }
 
+      /**
+       * Determine whether the car started this frame off-road.
+       *
+       * Physics consumes this information when applying the current frame's
+       * movement behavior.
+       */
       const wasOffRoad = isCarOffRoad(state.car, state.road);
 
-      const nextCar = updateCarPhysics(
+      /**
+       * Phase 1: advance vehicle physics.
+       *
+       * This is the authoritative post-movement car pose for the current frame.
+       * Sensor calculations must use this result rather than state.car.
+       */
+      const movedCar = updateCarPhysics(
         state.car,
         {
           ...input,
@@ -150,7 +169,13 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         deltaTimeSeconds,
       );
 
-      if (shouldRecoverFromSevereRoadDeparture(nextCar, state.road)) {
+      /**
+       * Severe departure recovery takes precedence over sensor calculation.
+       *
+       * The reset car is created with fresh default sensor state, so stale
+       * runtime rays and readings cannot survive recovery.
+       */
+      if (shouldRecoverFromSevereRoadDeparture(movedCar, state.road)) {
         const road = createInitialRoad();
 
         return {
@@ -164,7 +189,25 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
         };
       }
 
-      const roadDepartureWarning = isCarOffRoad(nextCar, state.road);
+      /**
+       * Phase 2: update perception from the post-physics car pose.
+       *
+       * Because this runs after updateCarPhysics(), generated rays and readings
+       * correspond to the car's current-frame position and heading.
+       */
+      const sensorResult = updateSensorsForFrame({
+        status: state.status,
+        car: movedCar,
+        road: state.road,
+      });
+
+      /**
+       * Road-departure warning also evaluates the current-frame car pose.
+       *
+       * Use sensorResult.car so the final persisted CarState is the same
+       * immutable object carrying the latest sensor state.
+       */
+      const roadDepartureWarning = isCarOffRoad(sensorResult.car, state.road);
 
       return {
         telemetry: {
@@ -172,7 +215,15 @@ export const useSimulationStore = create<SimulationStore>()((set) => ({
           simulationTimeSeconds: state.telemetry.simulationTimeSeconds + deltaTimeSeconds,
           fps: calculateFps(deltaTimeSeconds),
         },
-        car: nextCar,
+
+        /**
+         * Persist the post-physics, post-sensor car atomically.
+         *
+         * Do not persist movedCar here, because that would discard the newly
+         * generated sensor rays and readings.
+         */
+        car: sensorResult.car,
+
         roadDepartureWarning,
       };
     }),
