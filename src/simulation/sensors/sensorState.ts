@@ -30,6 +30,7 @@ export interface SensorState {
   readonly config: SensorConfig;
   readonly rays: readonly SensorRay[];
   readonly readings: readonly SensorReading[];
+  readonly readingGroups: SensorReadingGroups;
 }
 
 /**
@@ -52,6 +53,7 @@ export function createInitialSensorState(
     config,
     rays: [],
     readings: [],
+    readingGroups: createEmptySensorReadingGroups(),
   };
 }
 
@@ -92,6 +94,7 @@ export function withSensorReadings(
   return {
     ...sensorState,
     readings: [...readings],
+    readingGroups: createEmptySensorReadingGroups(),
   };
 }
 
@@ -109,4 +112,21 @@ export function withSensorConfig(
   assertValidSensorConfig(config);
 
   return createInitialSensorState(config);
+}
+
+export function withSensorReadingGroups(
+  sensorState: SensorState,
+  readingGroups: SensorReadingGroups,
+): SensorState {
+  assertValidSensorConfig(sensorState.config);
+
+  const front = [...readingGroups.front];
+  const left = [...readingGroups.left];
+  const right = [...readingGroups.right];
+
+  return {
+    ...sensorState,
+    readingGroups: { front, left, right },
+    readings: [...front, ...left, ...right],
+  };
 }

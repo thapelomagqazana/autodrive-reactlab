@@ -15,7 +15,7 @@
  * - No sensor calculations.
  */
 
-export type TelemetryTone = "default" | "success" | "warning" | "danger";
+export type TelemetryTone = "default" | "success" | "warning" | "danger" | "off-road";
 
 export interface TelemetryCardProps {
   label: string;
@@ -29,10 +29,21 @@ function getToneClassName(tone: TelemetryTone): string {
   switch (tone) {
     case "success":
       return "border-emerald-300/40 bg-emerald-950/30 text-emerald-200";
+
     case "warning":
       return "border-amber-300/50 bg-amber-950/30 text-amber-200";
+
     case "danger":
       return "border-red-300/50 bg-red-950/30 text-red-200";
+
+    case "off-road":
+      return [
+        "border-violet-300/60",
+        "bg-violet-950/40",
+        "text-violet-200",
+        "shadow-[0_0_18px_rgb(167_139_250_/_0.18)]",
+      ].join(" ");
+
     case "default":
     default:
       return "border-cyan-300/20 bg-black/40 text-white";

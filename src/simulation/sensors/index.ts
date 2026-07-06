@@ -6,3 +6,4 @@ export * from "./sideSensorProfile";
 export * from "./sensorDistance";
 export * from "./roadEdgeDetection";
 export * from "./sensorConfiguration";
+export * from "./roadEdgeWarning";

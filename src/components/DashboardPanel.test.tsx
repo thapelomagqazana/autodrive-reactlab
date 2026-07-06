@@ -3,6 +3,27 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { DashboardPanel } from "./DashboardPanel";
 import type { SensorDebugSummary } from "../simulation/sensors/sensorDebugSummary";
+import type { RoadEdgeWarningResult } from "../simulation/sensors/roadEdgeWarning";
+
+const DEFAULT_ROAD_EDGE_SENSOR_WARNING: RoadEdgeWarningResult = {
+  left: {
+    side: "left",
+    state: "unknown",
+    nearestDistance: null,
+  },
+  right: {
+    side: "right",
+    state: "unknown",
+    nearestDistance: null,
+  },
+  overallState: "unknown",
+  nearestDistance: null,
+  nearestSide: null,
+  thresholds: {
+    warningDistance: 80,
+    dangerDistance: 35,
+  },
+};
 
 const DEFAULT_SENSOR_DEBUG_SUMMARY: SensorDebugSummary = {
   status: "Enabled",
@@ -38,6 +59,7 @@ function renderDashboard() {
       vehicleHeading={0}
       roadDepartureWarning={false}
       sensorDebugSummary={DEFAULT_SENSOR_DEBUG_SUMMARY}
+      roadEdgeSensorWarning={DEFAULT_ROAD_EDGE_SENSOR_WARNING}
     />,
   );
 }
@@ -57,6 +79,7 @@ describe("DashboardPanel", () => {
         vehicleHeading={0}
         roadDepartureWarning={false}
         sensorDebugSummary={DEFAULT_SENSOR_DEBUG_SUMMARY}
+        roadEdgeSensorWarning={DEFAULT_ROAD_EDGE_SENSOR_WARNING}
       />,
     );
 
@@ -78,6 +101,7 @@ describe("DashboardPanel", () => {
         vehicleHeading={0}
         roadDepartureWarning={false}
         sensorDebugSummary={DEFAULT_SENSOR_DEBUG_SUMMARY}
+        roadEdgeSensorWarning={DEFAULT_ROAD_EDGE_SENSOR_WARNING}
       />,
     );
 
@@ -127,6 +151,7 @@ describe("DashboardPanel", () => {
           bufferHeight: 1440,
         }}
         sensorDebugSummary={DEFAULT_SENSOR_DEBUG_SUMMARY}
+        roadEdgeSensorWarning={DEFAULT_ROAD_EDGE_SENSOR_WARNING}
       />,
     );
 
@@ -162,6 +187,16 @@ describe("DashboardPanel", () => {
     expect(screen.getByText("None")).toBeInTheDocument();
 
     expect(screen.getByText("Waiting for simulation")).toBeInTheDocument();
+    expect(screen.getByText("Road Edge Safety")).toBeInTheDocument();
+    expect(screen.getByTestId("road-edge-overall-warning")).toHaveTextContent("Unknown");
+    expect(screen.getByTestId("road-edge-nearest-distance")).toHaveTextContent(
+      "Not available",
+    );
+    expect(screen.getByTestId("road-edge-nearest-side")).toHaveTextContent(
+      "Not available",
+    );
+    expect(screen.getByTestId("road-edge-left-warning")).toHaveTextContent("Unknown");
+    expect(screen.getByTestId("road-edge-right-warning")).toHaveTextContent("Unknown");
   });
 
   it("renders debug telemetry placeholders in the debug tab", async () => {
