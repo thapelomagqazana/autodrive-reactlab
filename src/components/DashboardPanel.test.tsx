@@ -2,6 +2,27 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { DashboardPanel } from "./DashboardPanel";
+import type { SensorDebugSummary } from "../simulation/sensors/sensorDebugSummary";
+
+const DEFAULT_SENSOR_DEBUG_SUMMARY: SensorDebugSummary = {
+  status: "Enabled",
+  front: {
+    group: "front",
+    displayDistance: "No data",
+    nearestReading: null,
+  },
+  left: {
+    group: "left",
+    displayDistance: "No data",
+    nearestReading: null,
+  },
+  right: {
+    group: "right",
+    displayDistance: "No data",
+    nearestReading: null,
+  },
+  nearestDetection: null,
+};
 
 function renderDashboard() {
   return render(
@@ -16,6 +37,7 @@ function renderDashboard() {
       vehiclePositionY={600}
       vehicleHeading={0}
       roadDepartureWarning={false}
+      sensorDebugSummary={DEFAULT_SENSOR_DEBUG_SUMMARY}
     />,
   );
 }
@@ -34,6 +56,7 @@ describe("DashboardPanel", () => {
         vehiclePositionY={600}
         vehicleHeading={0}
         roadDepartureWarning={false}
+        sensorDebugSummary={DEFAULT_SENSOR_DEBUG_SUMMARY}
       />,
     );
 
@@ -54,6 +77,7 @@ describe("DashboardPanel", () => {
         vehiclePositionY={600}
         vehicleHeading={0}
         roadDepartureWarning={false}
+        sensorDebugSummary={DEFAULT_SENSOR_DEBUG_SUMMARY}
       />,
     );
 
@@ -102,6 +126,7 @@ describe("DashboardPanel", () => {
           bufferWidth: 2560,
           bufferHeight: 1440,
         }}
+        sensorDebugSummary={DEFAULT_SENSOR_DEBUG_SUMMARY}
       />,
     );
 
@@ -121,7 +146,7 @@ describe("DashboardPanel", () => {
     expect(screen.getByText("2")).toBeInTheDocument();
   });
 
-  it("renders AI telemetry placeholders in the AI tab", async () => {
+  it("renders AI telemetry and sensor debug panel in the AI tab", async () => {
     const user = userEvent.setup();
 
     renderDashboard();
@@ -129,11 +154,14 @@ describe("DashboardPanel", () => {
     await user.click(screen.getByRole("tab", { name: "AI" }));
 
     expect(screen.getByText("AI Decision")).toBeInTheDocument();
-    expect(screen.getByText("Sensor Status")).toBeInTheDocument();
     expect(screen.getByText("Destination Status")).toBeInTheDocument();
 
+    expect(screen.getByText("Sensors")).toBeInTheDocument();
+    expect(screen.getByText("Enabled")).toBeInTheDocument();
+    expect(screen.getAllByText("No data")).toHaveLength(3);
+    expect(screen.getByText("None")).toBeInTheDocument();
+
     expect(screen.getByText("Waiting for simulation")).toBeInTheDocument();
-    expect(screen.getByText("Not connected")).toBeInTheDocument();
   });
 
   it("renders debug telemetry placeholders in the debug tab", async () => {

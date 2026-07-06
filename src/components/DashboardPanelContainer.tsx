@@ -6,6 +6,7 @@
 
 import {
   useSimulationCarAcceleration,
+  useSimulationCar,
   useSimulationFps,
   useSimulationStatus,
   useSimulationTimeSeconds,
@@ -17,8 +18,10 @@ import {
   useRoadDepartureWarning,
 } from "../store";
 import { DashboardPanel } from "./DashboardPanel";
+import { createSensorDebugSummary } from "../simulation/sensors/sensorDebugSummary";
 
 export function DashboardPanelContainer() {
+  const car = useSimulationCar();
   const status = useSimulationStatus();
   const vehicleAcceleration = useSimulationCarAcceleration();
   const simulationTimeSeconds = useSimulationTimeSeconds();
@@ -29,6 +32,14 @@ export function DashboardPanelContainer() {
   const vehiclePositionY = useSimulationCarPositionY();
   const vehicleHeading = useSimulationCarHeading();
   const roadDepartureWarning = useRoadDepartureWarning();
+  const sensorDebugSummary = createSensorDebugSummary({
+    sensorState: car.sensors,
+    groupedReadings: {
+      front: car.sensors.readings,
+      left: [],
+      right: [],
+    },
+  });
 
   return (
     <DashboardPanel
@@ -49,6 +60,7 @@ export function DashboardPanelContainer() {
         bufferWidth: 2560,
         bufferHeight: 1440,
       }}
+      sensorDebugSummary={sensorDebugSummary}
     />
   );
 }
