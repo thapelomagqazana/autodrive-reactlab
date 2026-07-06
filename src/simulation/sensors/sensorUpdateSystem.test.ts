@@ -18,6 +18,9 @@ describe("sensorUpdateSystem", () => {
     expect(result.sensorsUpdated).toBe(true);
     expect(result.car.sensors.rays.length).toBeGreaterThan(0);
     expect(result.car.sensors.readings).toHaveLength(result.car.sensors.rays.length);
+    expect(result.car.sensors.readingGroups.front.length).toBeGreaterThan(0);
+    expect(result.car.sensors.readingGroups.left.length).toBeGreaterThan(0);
+    expect(result.car.sensors.readingGroups.right.length).toBeGreaterThan(0);
   });
 
   it("does not update sensors while paused", () => {
@@ -63,6 +66,11 @@ describe("sensorUpdateSystem", () => {
           },
         ],
         readings: [createNoDetectionSensorReading(0)],
+        readingGroups: {
+          front: [createNoDetectionSensorReading(0)],
+          left: [],
+          right: [],
+        },
       },
     };
 
@@ -76,6 +84,11 @@ describe("sensorUpdateSystem", () => {
     expect(result.car.sensors.config.sensorEnabled).toBe(false);
     expect(result.car.sensors.rays).toEqual([]);
     expect(result.car.sensors.readings).toEqual([]);
+    expect(result.car.sensors.readingGroups).toEqual({
+      front: [],
+      left: [],
+      right: [],
+    });
   });
 
   it("does not mutate previous car state", () => {
@@ -108,4 +121,21 @@ describe("sensorUpdateSystem", () => {
       ),
     ).toBe(true);
   });
+});
+
+it("continues detecting road edges after car moves beyond road topY", () => {
+  const road = createInitialRoad();
+  const car = {
+    ...createInitialCarState(),
+    positionY: road.topY - 500,
+  };
+
+  const result = updateSensorsForFrame({
+    status: "running",
+    car,
+    road,
+  });
+
+  expect(result.car.sensors.readingGroups.left.length).toBeGreaterThan(0);
+  expect(result.car.sensors.readingGroups.right.length).toBeGreaterThan(0);
 });

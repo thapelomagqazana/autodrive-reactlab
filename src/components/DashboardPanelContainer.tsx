@@ -19,6 +19,7 @@ import {
 } from "../store";
 import { DashboardPanel } from "./DashboardPanel";
 import { createSensorDebugSummary } from "../simulation/sensors/sensorDebugSummary";
+import { evaluateRoadEdgeWarning } from "../simulation/sensors/roadEdgeWarning";
 
 export function DashboardPanelContainer() {
   const car = useSimulationCar();
@@ -34,11 +35,14 @@ export function DashboardPanelContainer() {
   const roadDepartureWarning = useRoadDepartureWarning();
   const sensorDebugSummary = createSensorDebugSummary({
     sensorState: car.sensors,
-    groupedReadings: {
-      front: car.sensors.readings,
-      left: [],
-      right: [],
-    },
+    groupedReadings: car.sensors.readingGroups,
+  });
+
+  const roadEdgeSensorWarning = evaluateRoadEdgeWarning({
+    sensorEnabled: car.sensors.config.sensorEnabled,
+    isCarOffRoad: roadDepartureWarning,
+    leftReadings: car.sensors.readingGroups.left,
+    rightReadings: car.sensors.readingGroups.right,
   });
 
   return (
@@ -61,6 +65,7 @@ export function DashboardPanelContainer() {
         bufferHeight: 1440,
       }}
       sensorDebugSummary={sensorDebugSummary}
+      roadEdgeSensorWarning={roadEdgeSensorWarning}
     />
   );
 }

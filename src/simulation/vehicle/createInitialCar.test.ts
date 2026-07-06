@@ -46,6 +46,11 @@ describe("createInitialCar", () => {
         config: DEFAULT_SENSOR_CONFIG,
         rays: [],
         readings: [],
+        readingGroups: {
+          front: [],
+          left: [],
+          right: [],
+        },
       },
     });
   });

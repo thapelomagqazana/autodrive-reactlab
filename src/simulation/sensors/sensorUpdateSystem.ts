@@ -37,26 +37,11 @@ export interface SensorFrameUpdateResult {
   readonly sensorsUpdated: boolean;
 }
 
-function createRoadBoundarySegments(road: Road): readonly RoadBoundarySegment[] {
-  return [
-    {
-      side: "left",
-      start: { x: getRoadLeftEdgeX(road), y: road.topY },
-      end: { x: getRoadLeftEdgeX(road), y: road.bottomY },
-    },
-    {
-      side: "right",
-      start: { x: getRoadRightEdgeX(road), y: road.topY },
-      end: { x: getRoadRightEdgeX(road), y: road.bottomY },
-    },
-  ];
-}
-
-function createReadingsForRays(
-  rays: readonly SensorRay[],
+function createReadingsForLabelledRays(
+  rays: readonly { readonly ray: SensorRay }[],
   boundaries: readonly RoadBoundarySegment[],
 ): SensorReading[] {
-  return rays.map((ray) => {
+  return rays.map(({ ray }) => {
     const hit = detectClosestRoadEdgeIntersection(ray, boundaries);
 
     if (hit === null) {
@@ -70,11 +55,43 @@ function createReadingsForRays(
   });
 }
 
+function createRoadBoundarySegments(
+  road: Road,
+  car: Pick<CarState, "positionY" | "sensors">,
+): readonly RoadBoundarySegment[] {
+  const leftX = getRoadLeftEdgeX(road);
+  const rightX = getRoadRightEdgeX(road);
+
+  const rayLength = car.sensors.config.rayLength;
+  const padding = rayLength * 2;
+
+  const topY = Math.min(road.topY, car.positionY - padding);
+  const bottomY = Math.max(road.bottomY, car.positionY + padding);
+
+  return [
+    {
+      side: "left",
+      start: { x: leftX, y: topY },
+      end: { x: leftX, y: bottomY },
+    },
+    {
+      side: "right",
+      start: { x: rightX, y: topY },
+      end: { x: rightX, y: bottomY },
+    },
+  ];
+}
+
 function clearRuntimeSensorData(sensorState: SensorState): SensorState {
   return {
     config: sensorState.config,
     rays: [],
     readings: [],
+    readingGroups: {
+      front: [],
+      left: [],
+      right: [],
+    },
   };
 }
 
@@ -108,23 +125,32 @@ export function updateSensorsForFrame({
     };
   }
 
-  const frontRays = castFrontSensorRays({
+  const frontRayEntries = castFrontSensorRays({
     car,
     config: {
       ...car.sensors.config,
       rayCount: 5,
       raySpread: Math.PI / 2,
     },
-  }).map((entry) => entry.ray);
+  });
 
-  const sideRays = castSideSensorRays({
+  const sideRayGroups = castSideSensorRays({
     car,
     sensorConfig: car.sensors.config,
-  }).all.map((entry) => entry.ray);
+  });
 
-  const rays = [...frontRays, ...sideRays];
-  const boundaries = createRoadBoundarySegments(road);
-  const readings = createReadingsForRays(rays, boundaries);
+  const boundaries = createRoadBoundarySegments(road, car);
+
+  const frontReadings = createReadingsForLabelledRays(frontRayEntries, boundaries);
+  const leftReadings = createReadingsForLabelledRays(sideRayGroups.left, boundaries);
+  const rightReadings = createReadingsForLabelledRays(sideRayGroups.right, boundaries);
+
+  const rays = [
+    ...frontRayEntries.map((entry) => entry.ray),
+    ...sideRayGroups.all.map((entry) => entry.ray),
+  ];
+
+  const readings = [...frontReadings, ...leftReadings, ...rightReadings];
 
   return {
     car: {
@@ -133,6 +159,11 @@ export function updateSensorsForFrame({
         config: car.sensors.config,
         rays,
         readings,
+        readingGroups: {
+          front: frontReadings,
+          left: leftReadings,
+          right: rightReadings,
+        },
       },
     },
     sensorsUpdated: true,

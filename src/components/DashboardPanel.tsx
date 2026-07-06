@@ -26,6 +26,7 @@ import {
 } from "./telemetryTabs";
 import type { SensorDebugSummary } from "../simulation/sensors/sensorDebugSummary";
 import { SensorDebugPanel } from "./SensorDebugPanel";
+import type { RoadEdgeWarningResult } from "../simulation/sensors/roadEdgeWarning";
 
 export interface DashboardPanelProps {
   status: SimulationStatus;
@@ -40,6 +41,14 @@ export interface DashboardPanelProps {
   canvasDiagnostics?: CanvasDiagnostics;
   roadDepartureWarning: boolean;
   sensorDebugSummary: SensorDebugSummary;
+
+  /**
+   * Derived road-edge proximity warning state.
+   *
+   * This value is calculated outside the presentational component so the
+   * dashboard does not duplicate domain threshold logic.
+   */
+  roadEdgeSensorWarning: RoadEdgeWarningResult;
 }
 
 interface TelemetryTabButtonProps {
@@ -129,6 +138,64 @@ function MetricCard({
   );
 }
 
+function formatRoadEdgeWarningState(
+  state: RoadEdgeWarningResult["overallState"],
+): string {
+  switch (state) {
+    case "off-road":
+      return "Off road";
+
+    case "danger":
+      return "Danger";
+
+    case "warning":
+      return "Warning";
+
+    case "safe":
+      return "Safe";
+
+    case "unknown":
+      return "Unknown";
+
+    case "disabled":
+      return "Disabled";
+  }
+}
+
+function formatRoadEdgeDistance(distance: number | null): string {
+  return distance === null ? "Not available" : `${distance.toFixed(1)} units`;
+}
+
+function formatNearestRoadEdgeSide(side: RoadEdgeWarningResult["nearestSide"]): string {
+  if (side === null) {
+    return "Not available";
+  }
+
+  return side === "left" ? "Left" : "Right";
+}
+
+function getRoadEdgeWarningTone(
+  state: RoadEdgeWarningResult["overallState"],
+): "default" | "success" | "warning" | "danger" | "off-road" {
+  switch (state) {
+    case "off-road":
+      return "off-road";
+
+    case "danger":
+      return "danger";
+
+    case "warning":
+      return "warning";
+
+    case "safe":
+      return "success";
+
+    case "unknown":
+    case "disabled":
+      return "default";
+  }
+}
+
 export function DashboardPanel({
   status,
   simulationTimeSeconds,
@@ -142,6 +209,7 @@ export function DashboardPanel({
   canvasDiagnostics,
   roadDepartureWarning,
   sensorDebugSummary,
+  roadEdgeSensorWarning,
 }: DashboardPanelProps) {
   const statusPresentation = getStatusPresentation(status);
   const [activeTelemetryTabId, setActiveTelemetryTabId] = useState<TelemetryTabId>(
@@ -301,6 +369,59 @@ export function DashboardPanel({
                     isPlaceholder
                   />
                 </div>
+
+                <section
+                  aria-labelledby="road-edge-warning-title"
+                  className="grid grid-cols-1 gap-3"
+                >
+                  <h3
+                    id="road-edge-warning-title"
+                    className="text-xs font-black uppercase tracking-[0.2em] text-slate-400"
+                  >
+                    Road Edge Safety
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <TelemetryCard
+                      testId="road-edge-overall-warning"
+                      label="Overall Edge State"
+                      value={formatRoadEdgeWarningState(
+                        roadEdgeSensorWarning.overallState,
+                      )}
+                      tone={getRoadEdgeWarningTone(roadEdgeSensorWarning.overallState)}
+                    />
+
+                    <TelemetryCard
+                      testId="road-edge-nearest-distance"
+                      label="Nearest Edge"
+                      value={formatRoadEdgeDistance(
+                        roadEdgeSensorWarning.nearestDistance,
+                      )}
+                    />
+
+                    <TelemetryCard
+                      testId="road-edge-nearest-side"
+                      label="Nearest Side"
+                      value={formatNearestRoadEdgeSide(roadEdgeSensorWarning.nearestSide)}
+                    />
+
+                    <TelemetryCard
+                      testId="road-edge-left-warning"
+                      label="Left Edge"
+                      value={formatRoadEdgeWarningState(roadEdgeSensorWarning.left.state)}
+                      tone={getRoadEdgeWarningTone(roadEdgeSensorWarning.left.state)}
+                    />
+
+                    <TelemetryCard
+                      testId="road-edge-right-warning"
+                      label="Right Edge"
+                      value={formatRoadEdgeWarningState(
+                        roadEdgeSensorWarning.right.state,
+                      )}
+                      tone={getRoadEdgeWarningTone(roadEdgeSensorWarning.right.state)}
+                    />
+                  </div>
+                </section>
 
                 <SensorDebugPanel summary={sensorDebugSummary} />
               </div>
