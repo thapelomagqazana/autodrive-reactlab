@@ -55,3 +55,5 @@ export {
   isValidMaximumOffRoadDistance,
   shouldRecoverFromSevereRoadDeparture,
 } from "./offRoadRecovery";
+
+export * from "./sensorRenderer";
