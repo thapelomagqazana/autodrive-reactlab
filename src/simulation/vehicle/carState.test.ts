@@ -32,7 +32,10 @@ import {
   normalizeHeadingAngle,
   radiansToDegrees,
   steeringInputToAngle,
+  resetCarState,
 } from "./carState";
+
+import { DEFAULT_SENSOR_CONFIG } from "../sensors";
 
 describe("createInitialCarState", () => {
   it("creates the default Phase 1 MVP car state", () => {
@@ -56,6 +59,11 @@ describe("createInitialCarState", () => {
       distanceTravelled: 0,
       collisionCount: 0,
       decision: "idle",
+      sensors: {
+        config: DEFAULT_SENSOR_CONFIG,
+        rays: [],
+        readings: [],
+      },
     });
   });
 
@@ -621,5 +629,35 @@ describe("clampSteeringAngle", () => {
     expect(() => clampSteeringAngle(Number.NaN)).toThrow(RangeError);
     expect(() => clampSteeringAngle(1, Number.NaN)).toThrow(RangeError);
     expect(() => clampSteeringAngle(1, -1)).toThrow(RangeError);
+  });
+});
+
+describe("car sensor state", () => {
+  it("creates a car with structured sensor state", () => {
+    const car = createInitialCarState();
+
+    expect(car.sensors).toBeDefined();
+    expect(car.sensors.config).toEqual(DEFAULT_SENSOR_CONFIG);
+    expect(car.sensors.rays).toEqual([]);
+    expect(car.sensors.readings).toEqual([]);
+  });
+
+  it("does not store loose sensor fields on root car state", () => {
+    const car = createInitialCarState() as unknown as Record<string, unknown>;
+
+    expect(car.rayStartPosition).toBeUndefined();
+    expect(car.rayEndPosition).toBeUndefined();
+    expect(car.detectedDistance).toBeUndefined();
+    expect(car.detectionType).toBeUndefined();
+  });
+
+  it("resets car sensors deterministically", () => {
+    const firstReset = resetCarState();
+    const secondReset = resetCarState();
+
+    expect(firstReset.sensors).toEqual(secondReset.sensors);
+    expect(firstReset.sensors.config).toEqual(DEFAULT_SENSOR_CONFIG);
+    expect(firstReset.sensors.rays).toEqual([]);
+    expect(firstReset.sensors.readings).toEqual([]);
   });
 });

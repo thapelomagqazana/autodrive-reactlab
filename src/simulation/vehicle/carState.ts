@@ -20,6 +20,9 @@
  * rendering functions, or browser APIs. It is a pure domain model.
  */
 
+import type { SensorState } from "../sensors/sensorState";
+import { createInitialSensorState } from "../sensors/sensorState";
+
 /**
  * Explains the car's current high-level decision/state.
  *
@@ -150,6 +153,15 @@ export interface CarState extends CarPosition {
    * steering input.
    */
   steeringReturnRate: number;
+
+  /**
+   * Structured ray-based sensor state owned by the car.
+   *
+   * Sensor data must stay grouped here. Do not add loose root-level sensor
+   * fields such as rayStartPosition, rayEndPosition, detectedDistance, or
+   * detectionType.
+   */
+  sensors: SensorState;
 }
 
 /**
@@ -264,6 +276,7 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
 
   decision: "idle",
   turnRate: DEFAULT_CAR_TURN_RATE,
+  sensors: createInitialSensorState(),
 });
 
 /**
@@ -275,6 +288,20 @@ export const DEFAULT_CAR_STATE: Readonly<CarState> = Object.freeze({
 export function createInitialCarState(): CarState {
   return {
     ...DEFAULT_CAR_STATE,
+    sensors: createInitialSensorState(),
+  };
+}
+
+/**
+ * Creates a fresh reset car state.
+ *
+ * Sensor reset restores default sensor configuration and clears stale runtime
+ * rays/readings so no old detection data leaks into a new simulation run.
+ */
+export function resetCarState(): CarState {
+  return {
+    ...DEFAULT_CAR_STATE,
+    sensors: createInitialSensorState(),
   };
 }
 

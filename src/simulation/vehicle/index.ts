@@ -47,6 +47,7 @@ export {
   radiansToDegrees,
   steeringInputToAngle,
   isValidSteeringReturnRate,
+  resetCarState,
 } from "./carState";
 
 export type {

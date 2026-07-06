@@ -11,6 +11,7 @@ import {
   getCarBoundsFromCenter,
   isValidCarDimension,
 } from "./createInitialCar";
+import { DEFAULT_SENSOR_CONFIG } from "../sensors";
 
 describe("createInitialCar", () => {
   it("creates a complete default MVP car state", () => {
@@ -41,6 +42,11 @@ describe("createInitialCar", () => {
       collisionCount: 0,
 
       decision: "idle",
+      sensors: {
+        config: DEFAULT_SENSOR_CONFIG,
+        rays: [],
+        readings: [],
+      },
     });
   });
 
