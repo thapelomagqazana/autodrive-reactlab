@@ -5,3 +5,4 @@ export * from "./frontSensorProfile";
 export * from "./sideSensorProfile";
 export * from "./sensorDistance";
 export * from "./roadEdgeDetection";
+export * from "./sensorConfiguration";
