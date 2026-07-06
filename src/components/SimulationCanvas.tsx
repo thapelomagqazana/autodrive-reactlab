@@ -115,8 +115,23 @@ export function SimulationCanvas({
         visibleTopY,
         visibleBottomY,
       },
+      sensors: {
+        isEnabled:
+          ui.isDebugModeEnabled &&
+          ui.areSensorsVisible &&
+          car.sensors.config.sensorEnabled,
+      },
     });
-  }, [context, dimensions, isGridEnabled, road, car, camera, ui.isDebugModeEnabled]);
+  }, [
+    context,
+    dimensions,
+    isGridEnabled,
+    road,
+    car,
+    camera,
+    ui.isDebugModeEnabled,
+    ui.areSensorsVisible,
+  ]);
 
   return (
     <section className="mission-panel min-w-0 overflow-hidden p-4">
