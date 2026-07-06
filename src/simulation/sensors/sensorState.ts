@@ -6,6 +6,20 @@ import {
   assertValidSensorConfig,
 } from "./sensorModel";
 
+export interface SensorReadingGroups {
+  readonly front: readonly SensorReading[];
+  readonly left: readonly SensorReading[];
+  readonly right: readonly SensorReading[];
+}
+
+export function createEmptySensorReadingGroups(): SensorReadingGroups {
+  return {
+    front: [],
+    left: [],
+    right: [],
+  };
+}
+
 /**
  * Runtime sensor state owned by a car.
  *
