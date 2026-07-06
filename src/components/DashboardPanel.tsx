@@ -24,6 +24,8 @@ import {
   TELEMETRY_TABS,
   type TelemetryTabId,
 } from "./telemetryTabs";
+import type { SensorDebugSummary } from "../simulation/sensors/sensorDebugSummary";
+import { SensorDebugPanel } from "./SensorDebugPanel";
 
 export interface DashboardPanelProps {
   status: SimulationStatus;
@@ -37,6 +39,7 @@ export interface DashboardPanelProps {
   vehicleHeading: number;
   canvasDiagnostics?: CanvasDiagnostics;
   roadDepartureWarning: boolean;
+  sensorDebugSummary: SensorDebugSummary;
 }
 
 interface TelemetryTabButtonProps {
@@ -138,6 +141,7 @@ export function DashboardPanel({
   vehicleHeading,
   canvasDiagnostics,
   roadDepartureWarning,
+  sensorDebugSummary,
 }: DashboardPanelProps) {
   const statusPresentation = getStatusPresentation(status);
   const [activeTelemetryTabId, setActiveTelemetryTabId] = useState<TelemetryTabId>(
@@ -283,24 +287,22 @@ export function DashboardPanel({
             ) : null}
 
             {activeTelemetryTabId === "ai" ? (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <TelemetryCard
-                  label="AI Decision"
-                  value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.aiDecision}
-                  isPlaceholder
-                />
+              <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <TelemetryCard
+                    label="AI Decision"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.aiDecision}
+                    isPlaceholder
+                  />
 
-                <TelemetryCard
-                  label="Sensor Status"
-                  value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.sensorStatus}
-                  isPlaceholder
-                />
+                  <TelemetryCard
+                    label="Destination Status"
+                    value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.destinationStatus}
+                    isPlaceholder
+                  />
+                </div>
 
-                <TelemetryCard
-                  label="Destination Status"
-                  value={DEFAULT_VEHICLE_TELEMETRY_PLACEHOLDERS.destinationStatus}
-                  isPlaceholder
-                />
+                <SensorDebugPanel summary={sensorDebugSummary} />
               </div>
             ) : null}
 
