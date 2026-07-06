@@ -1,6 +1,7 @@
 import type { CarState } from "../vehicle/carState";
 import { type SensorConfig, type SensorRay, createSensorConfig } from "./sensorModel";
 import { castSensorRays } from "./raycasting";
+import { DEFAULT_FRONT_SENSOR_PROFILE_CONFIG } from "./sensorConfiguration";
 
 /**
  * Default front sensor ray count.
@@ -12,14 +13,15 @@ import { castSensorRays } from "./raycasting";
  * - index 3: front-right
  * - index 4: wide-right
  */
-export const DEFAULT_FRONT_SENSOR_RAY_COUNT = 5;
+export const DEFAULT_FRONT_SENSOR_RAY_COUNT =
+  DEFAULT_FRONT_SENSOR_PROFILE_CONFIG.rayCount;
 
 /**
  * Default front sensor spread.
  *
  * Math.PI / 2 creates a 90-degree front-facing detection cone.
  */
-export const DEFAULT_FRONT_SENSOR_SPREAD = Math.PI / 2;
+export const DEFAULT_FRONT_SENSOR_SPREAD = DEFAULT_FRONT_SENSOR_PROFILE_CONFIG.raySpread;
 
 /**
  * Human-readable semantic labels for the default front sensor profile.

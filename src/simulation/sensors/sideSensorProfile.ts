@@ -26,6 +26,7 @@ import type { CarState } from "../vehicle/carState";
 import type { SensorConfig, SensorRay } from "./sensorModel";
 import { createSensorConfig, createSensorPoint } from "./sensorModel";
 import { castRay } from "./raycasting";
+import { DEFAULT_SIDE_SENSOR_PROFILE_CONFIG } from "./sensorConfiguration";
 
 /**
  * Default side sensor length as a ratio of the front sensor ray length.
@@ -33,7 +34,8 @@ import { castRay } from "./raycasting";
  * Side rays are intentionally shorter than front rays because side awareness is
  * mainly used for nearby lane-boundary, road-edge, and adjacent-object checks.
  */
-export const DEFAULT_SIDE_SENSOR_LENGTH_RATIO = 0.6;
+export const DEFAULT_SIDE_SENSOR_LENGTH_RATIO =
+  DEFAULT_SIDE_SENSOR_PROFILE_CONFIG.sideRayLengthRatio;
 
 /**
  * Stable semantic labels for the default side sensor rays.
